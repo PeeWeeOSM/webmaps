@@ -93,10 +93,14 @@ input:checked+.slider:before{transform:translateX(14px)}
       </div>
     </div>
     <div>
-      <label>Zoomniveau voor namen (labels verschijnen vanaf dit niveau)</label>
-      <div class="row">
-        <input type="range" min="8" max="18" value="13" step="1" id="labelzoom" oninput="document.getElementById('lzval').textContent=this.value;updatePreview()">
-        <span class="range-val" id="lzval">13</span>
+      <label>Zoomniveau voor namen</label>
+      <div class="row" style="gap:6px">
+        <span class="range-val" style="color:#aaa">van</span>
+        <input type="range" min="8" max="18" value="14" step="1" id="labelzoommin" oninput="syncZoom('min');updatePreview()">
+        <span class="range-val" id="lzminval">14</span>
+        <span class="range-val" style="color:#aaa">t/m</span>
+        <input type="range" min="8" max="19" value="17" step="1" id="labelzoommax" oninput="syncZoom('max');updatePreview()">
+        <span class="range-val" id="lzmaxval">17</span>
       </div>
     </div>
   </div>
@@ -222,11 +226,21 @@ function clearAll(){
   document.getElementById('exportbtn').disabled=true;
 }
 
-// midpoint of a polyline for label placement
-function midpoint(coords){
+// centroid of all coords in a track for label placement
+function centroid(coords){
   if(!coords.length)return[0,0];
-  const mid=Math.floor(coords.length/2);
-  return coords[mid];
+  let la=0,lo=0;
+  coords.forEach(p=>{la+=p[0];lo+=p[1];});
+  return[la/coords.length,lo/coords.length];
+}
+
+function syncZoom(which){
+  const mn=parseInt(document.getElementById('labelzoommin').value);
+  const mx=parseInt(document.getElementById('labelzoommax').value);
+  if(which==='min'&&mn>mx)document.getElementById('labelzoommax').value=mn,document.getElementById('lzmaxval').textContent=mn;
+  if(which==='max'&&mx<mn)document.getElementById('labelzoommin').value=mx,document.getElementById('lzminval').textContent=mx;
+  document.getElementById('lzminval').textContent=document.getElementById('labelzoommin').value;
+  document.getElementById('lzmaxval').textContent=document.getElementById('labelzoommax').value;
 }
 
 function updatePreview(){
@@ -256,13 +270,14 @@ function updatePreview(){
       if(w.name||w.desc)m.bindPopup('<b>'+w.name+'</b>'+(w.desc?'<br>'+w.desc:''));
       layers.push(m);allCoords.push([w.lat,w.lon]);
     });
-    // label marker at midpoint of first track
+    // label marker at centroid of all track coords
     if(f.showLabel&&f.tracks.length){
-      const mid=midpoint(f.tracks[0].coords);
+      const allPts=f.tracks.flatMap(t=>t.coords);
+      const mid=centroid(allPts);
       const label=L.marker(mid,{
         icon:L.divIcon({
           className:'',
-          html:`<div style="background:rgba(255,255,255,0.85);color:${f.color};border:1.5px solid ${f.color};padding:2px 6px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none">${f.name.replace(/\.gpx$/i,'')}</div>`,
+          html:`<div style="color:#111;font-size:14px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 #fff,1.5px -1.5px 0 #fff,-1.5px 1.5px 0 #fff,1.5px 1.5px 0 #fff,0 2px 0 #fff,0 -2px 0 #fff;transform:translate(-50%,-50%)">${f.name.replace(/\.gpx$/i,'')}</div>`,
           iconAnchor:[0,0]
         }),
         interactive:false,
@@ -283,11 +298,12 @@ function updatePreview(){
 function updateLabelVisibility(){
   if(!map)return;
   const zoom=map.getZoom();
-  const minZoom=parseInt(document.getElementById('labelzoom').value);
+  const minZoom=parseInt(document.getElementById('labelzoommin').value);
+  const maxZoom=parseInt(document.getElementById('labelzoommax').value);
   layers.forEach(l=>{
     if(l._gpxLabel){
       const el=l.getElement();
-      if(el)el.style.display=zoom>=minZoom?'':'none';
+      if(el)el.style.display=(zoom>=minZoom&&zoom<=maxZoom)?'':'none';
     }
   });
 }
@@ -295,7 +311,8 @@ function updateLabelVisibility(){
 function exportMap(){
   const title=document.getElementById('title').value.trim()||'Mijn route';
   const lw=parseInt(document.getElementById('linewidth').value);
-  const labelZoom=parseInt(document.getElementById('labelzoom').value);
+  const labelZoomMin=parseInt(document.getElementById('labelzoommin').value);
+  const labelZoomMax=parseInt(document.getElementById('labelzoommax').value);
   const data=files.map(f=>({
     filename:f.name.replace(/\.gpx$/i,''),
     color:f.color,
@@ -337,7 +354,15 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 const D=${JSON.stringify(data)};
 const B=${JSON.stringify(bounds)};
 const LW=${lw};
-const LABELZOOM=${labelZoom};
+const LABELZOOMMIN=${labelZoomMin};
+const LABELZOOMMAX=${labelZoomMax};
+
+function centroid(coords){
+  if(!coords.length)return[0,0];
+  let la=0,lo=0;
+  coords.forEach(p=>{la+=p[0];lo+=p[1];});
+  return[la/coords.length,lo/coords.length];
+}
 
 function midpt(coords){return coords[Math.floor(coords.length/2)];}
 
@@ -357,11 +382,12 @@ D.forEach(f=>{
     if(w.name||w.desc)m.bindPopup('<b>'+w.name+'</b>'+(w.desc?'<br>'+w.desc:''));
   });
   if(f.showLabel&&f.tracks.length){
-    const mid=midpt(f.tracks[0].coords);
+    const allPts=f.tracks.flatMap(t=>t.coords);
+    const mid=centroid(allPts);
     const lbl=L.marker(mid,{
       icon:L.divIcon({
         className:'',
-        html:'<div style="background:rgba(255,255,255,0.88);color:'+f.color+';border:1.5px solid '+f.color+';padding:2px 7px;border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3)">'+f.filename+'</div>',
+        html:'<div style="color:#111;font-size:14px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 #fff,1.5px -1.5px 0 #fff,-1.5px 1.5px 0 #fff,1.5px 1.5px 0 #fff,0 2px 0 #fff,0 -2px 0 #fff;transform:translate(-50%,-50%)">'+f.filename+'</div>',
         iconAnchor:[0,0]
       }),
       interactive:false,
@@ -375,7 +401,7 @@ if(B)map.fitBounds(B,{padding:[16,16]});else map.setView([52,5],8);
 
 function updateLabels(){
   const z=map.getZoom();
-  labelLayers.forEach(l=>{const e=l.getElement();if(e)e.style.display=z>=LABELZOOM?'':'none';});
+  labelLayers.forEach(l=>{const e=l.getElement();if(e)e.style.display=(z>=LABELZOOMMIN&&z<=LABELZOOMMAX)?'':'none';});
 }
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
