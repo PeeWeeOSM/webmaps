@@ -32,7 +32,16 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 .dropzone:hover,.dropzone.over{background:#e8f4ff;border-color:#4363d8}
 .dropzone i{font-size:32px;display:block;margin-bottom:10px;color:#bbb}
 #file-list{margin-top:1rem;display:flex;flex-direction:column;gap:8px}
-.file-row{display:flex;align-items:center;gap:8px;font-size:13px;background:#f5f5f5;border-radius:8px;padding:8px 12px}
+.file-row{display:flex;flex-direction:column;gap:8px;font-size:13px;background:#f5f5f5;border-radius:8px;padding:8px 12px}
+.file-row-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.file-row-wpticon{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #e0e0e0}
+@media(prefers-color-scheme:dark){.file-row-wpticon{border-top-color:#4a4a4c}}
+.wpticon-upload-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:5px}
+@media(prefers-color-scheme:dark){.wpticon-upload-btn{background:#2c2c2e;color:#eee;border-color:#555}}
+.wpticon-preview{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd;border-radius:4px;background:#fff;flex-shrink:0}
+@media(prefers-color-scheme:dark){.wpticon-preview{background:#2c2c2e;border-color:#555}}
+.wpticon-preview svg,.wpticon-preview img{max-width:100%;max-height:100%}
+.wpticon-clear{font-size:12px;color:#888;background:none;border:none;cursor:pointer;text-decoration:underline}
 .file-name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .nameinput{flex:1;font-size:13px;font-weight:500;padding:4px 7px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0;outline:none}
 .nameinput:focus{border-color:#4363d8}
@@ -116,8 +125,15 @@ input:checked+.slider:before{transform:translateX(14px)}
       <label>Navigatie-opties (in geëxporteerde kaart)</label>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:inherit;margin-bottom:0">
-          <input type="checkbox" id="opt-follow"> Kaart volgt eigen locatie automatisch
+          <input type="checkbox" id="opt-follow" checked> Kaart volgt eigen locatie automatisch
         </label>
+      </div>
+    </div>
+    <div>
+      <label>Waypoints tonen vanaf zoom <span style="color:#aaa;font-weight:400">(het icoontje/stip zelf)</span></label>
+      <div class="row">
+        <input type="range" min="1" max="19" value="1" step="1" id="wptmarkerzoom" oninput="document.getElementById('wptmarkerzoomval').textContent=this.value;updatePreview()">
+        <span class="range-val" id="wptmarkerzoomval">1</span>
       </div>
     </div>
     <div>
@@ -142,6 +158,9 @@ input:checked+.slider:before{transform:translateX(14px)}
   <div id="preview-wrap" style="position:relative">
     <div id="map"></div>
     <div id="preview-zoom-indicator" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;font-weight:600;color:#222;pointer-events:none">z–</div>
+    <button onclick="resetPreviewExtent()" title="Zoom naar alle GPX-data" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">
+      <i class="ti ti-focus-2" aria-hidden="true"></i> Extent herstellen
+    </button>
   </div>
 </div>
 
@@ -164,7 +183,7 @@ let previewExtraLayers=[];
 
 function addLayer(preset){
   const idx=extraLayers.length;
-  extraLayers.push(preset||{type:'xyz',url:'',wmsLayer:'',displayName:'Laag '+(idx+1),opacity:0.8,zoomMin:1,zoomMax:22});
+  extraLayers.push(preset||{type:'xyz',url:'',wmsLayer:'',displayName:'Laag '+(idx+1),opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:true});
   renderLayerList();
   updatePreview();
 }
@@ -204,6 +223,11 @@ function renderLayerList(){
         <input type="number" value="${l.zoomMin!=null?l.zoomMin:1}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommin" title="Zoomniveau van">
         <span class="toggle-label" style="color:#aaa">t/m</span>
         <input type="number" value="${l.zoomMax!=null?l.zoomMax:22}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommax" title="Zoomniveau t/m">
+        <label class="toggle" title="Laag standaard aan of uit bij openen van de kaart" style="margin-left:8px">
+          <input type="checkbox" ${l.defaultOn!==false?'checked':''} data-idx="${i}" class="layer-defaulton">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">standaard aan</span>
       </div>`;
     el.appendChild(row);
   });
@@ -308,6 +332,7 @@ function renderList(){
     const row=document.createElement('div');
     row.className='file-row';
     row.innerHTML=`
+      <div class="file-row-main">
       <input type="color" value="${f.color}" title="Kleur" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Naam op kaart" data-idx="${i}" class="nameinput" placeholder="Naam">
       <label class="toggle" title="Naam tonen op kaart">
@@ -335,7 +360,27 @@ function renderList(){
       <span class="toggle-label" style="color:#aaa">–</span>
       <input type="number" value="${f.zoomMax}" min="1" max="19" data-idx="${i}" class="zoominput zoommax" title="Zoomniveau t/m">
       <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
-      <button class="delbtn" data-idx="${i}" title="Verwijderen">&times;</button>`;
+      <button class="delbtn" data-idx="${i}" title="Verwijderen">&times;</button>
+      </div>
+      ${f.waypoints.length>0?`
+      <div class="file-row-wpticon">
+        <span class="toggle-label" style="color:#aaa">Waypointicoon</span>
+        <div class="wpticon-preview" id="wpticon-preview-${i}" style="color:${f.color}">${f.wptIconSvg?f.wptIconSvg:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:14px"></i>'}</div>
+        <button type="button" class="wpticon-upload-btn" data-idx="${i}" onclick="document.getElementById('wpticon-file-${i}').click()">
+          <i class="ti ti-upload" aria-hidden="true"></i> SVG kiezen
+        </button>
+        <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
+        ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">verwijderen</button>`:''}
+        <span class="toggle-label" style="color:#aaa;margin-left:6px">grootte</span>
+        <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Iconformaat in pixels" style="width:48px">
+        <span class="toggle-label" style="color:#aaa">px</span>
+        ${f.wptIconSvg?`
+        <label class="toggle" title="SVG inkleuren met de GPX-kleur (werkt alleen als de SVG geen eigen vaste kleuren heeft)" style="margin-left:6px">
+          <input type="checkbox" ${f.wptIconRecolor!==false?'checked':''} data-idx="${i}" class="wpticon-recolor">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">inkleuren</span>`:''}
+      </div>`:''}`;
     el.appendChild(row);
   });
   el.querySelectorAll('.nameinput').forEach(inp=>{
@@ -390,6 +435,58 @@ function renderList(){
       updatePreview();renderList();
     });
   });
+  el.querySelectorAll('.wpticon-fileinput').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      const file=e.target.files[0];
+      if(!file)return;
+      if(!file.name.toLowerCase().endsWith('.svg')&&file.type!=='image/svg+xml'){
+        alert('Kies een SVG-bestand.');
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        let svgText=ev.target.result;
+        // basale validatie: moet een <svg> tag bevatten
+        if(!/<svg[\s>]/i.test(svgText)){
+          alert('Dit lijkt geen geldig SVG-bestand.');
+          return;
+        }
+        files[i].wptIconSvgRaw=svgText;
+        files[i].wptIconSvg=prepareSvgForRecolor(svgText, files[i].wptIconRecolor!==false);
+        renderList();
+        updatePreview();
+      };
+      reader.readAsText(file);
+    });
+  });
+  el.querySelectorAll('.wpticon-clear').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconSvg=null;
+      files[i].wptIconSvgRaw=null;
+      renderList();
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.wpticon-size').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconSize=parseInt(e.target.value)||28;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.wpticon-recolor').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconRecolor=e.target.checked;
+      if(files[i].wptIconSvgRaw){
+        files[i].wptIconSvg=prepareSvgForRecolor(files[i].wptIconSvgRaw, files[i].wptIconRecolor);
+      }
+      renderList();
+      updatePreview();
+    });
+  });
   el.querySelectorAll('.delbtn').forEach(btn=>{
     btn.addEventListener('click',e=>removeFile(parseInt(e.target.dataset.idx)));
   });
@@ -425,6 +522,38 @@ function contrastHalo(hex){
 function getLabelText(f, elementName){
   if(f.useElementName && elementName && elementName.trim()) return elementName.trim();
   return f.displayName;
+}
+
+// Maak een SVG herkleurbaar: vervang alle fill-kleuren (root EN losse vormen zoals
+// <path>, <circle>, etc.) door currentColor, zodat de hele tekening de GPX-kleur volgt.
+// fill="none" wordt met rust gelaten (meestal bewust transparant/outline).
+function prepareSvgForRecolor(svgText, recolor){
+  if(!recolor) return svgText;
+  return svgText.replace(/fill="([^"]*)"/gi, (match, value)=>{
+    if(value.trim().toLowerCase()==='none') return match;
+    return 'fill="currentColor"';
+  });
+}
+
+// bouw een waypoint-marker: custom SVG-icoon indien ingesteld, anders standaard gekleurde cirkel
+function buildWaypointMarker(f, w){
+  if(f.wptIconSvg){
+    const sz=f.wptIconSize||28;
+    return L.marker([w.lat,w.lon],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:'+sz+'px;height:'+sz+'px;display:flex;align-items:center;justify-content:center;color:'+f.color+';filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">'+f.wptIconSvg+'</div>',
+        iconSize:[sz,sz],
+        iconAnchor:[sz/2,sz/2]
+      })
+    });
+  }
+  return L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2});
+}
+
+function resetPreviewExtent(){
+  if(map) map._extentSetOnce=false;
+  updatePreview();
 }
 
 function updatePreview(){
@@ -486,9 +615,12 @@ function updatePreview(){
       layers.push(startM);
     }
     f.waypoints.forEach(w=>{
-      const m=L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2}).addTo(map);
+      const m=buildWaypointMarker(f,w).addTo(map);
       const wLabel=getLabelText(f,w.name);
       if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
+      m._gpxWptMarker=true;
+      m._zoomMin=parseInt(document.getElementById('wptmarkerzoom').value);
+      m._zoomMax=19;
       layers.push(m);allCoords.push([w.lat,w.lon]);
       // waypointlabel: alleen als showLabel aan staat voor deze GPX
       if(f.showLabel){
@@ -496,7 +628,7 @@ function updatePreview(){
         const wptLabel=L.marker([w.lat,w.lon],{
           icon:L.divIcon({
             className:'',
-            html:`<div style="color:${f.color};font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 ${halo},1.5px -1.5px 0 ${halo},-1.5px 1.5px 0 ${halo},1.5px 1.5px 0 ${halo},0 1.5px 0 ${halo},0 -1.5px 0 ${halo};transform:translate(-50%,calc(-50% - 12px))">${wLabel}</div>`,
+            html:`<div style="color:${f.color};font-size:20px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-2.3px -2.3px 0 ${halo},2.3px -2.3px 0 ${halo},-2.3px 2.3px 0 ${halo},2.3px 2.3px 0 ${halo},0 2.3px 0 ${halo},0 -2.3px 0 ${halo};transform:translate(-50%,calc(-50% - 18px))">${wLabel}</div>`,
             iconAnchor:[0,0]
           }),
           interactive:false,
@@ -519,7 +651,7 @@ function updatePreview(){
           tPoly.setText(mainLabel,{
             center:true,
             attributes:{
-              'font-size':'16px',
+              'font-size':'24px',
               'font-weight':'bold',
               'fill':f.color,
               'paint-order':'stroke',
@@ -541,7 +673,7 @@ function updatePreview(){
         const label=L.marker(pos,{
           icon:L.divIcon({
             className:'',
-            html:`<div style="color:${f.color};font-size:21px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-2px -2px 0 ${halo},2px -2px 0 ${halo},-2px 2px 0 ${halo},2px 2px 0 ${halo},0 2px 0 ${halo},0 -2px 0 ${halo},2px 0 0 ${halo},-2px 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
+            html:`<div style="color:${f.color};font-size:32px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-3px -3px 0 ${halo},3px -3px 0 ${halo},-3px 3px 0 ${halo},3px 3px 0 ${halo},0 3px 0 ${halo},0 -3px 0 ${halo},3px 0 0 ${halo},-3px 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
             iconAnchor:[0,0]
           }),
           interactive:false,
@@ -555,8 +687,11 @@ function updatePreview(){
     }
   });
   if(allCoords.length){
-    const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
-    map.fitBounds([[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],{padding:[20,20]});
+    if(!map._extentSetOnce){
+      const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
+      map.fitBounds([[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],{padding:[20,20]});
+      map._extentSetOnce=true;
+    }
   } else if(!map._loaded){
     map.setView([52.1,5.3],8); // Nederland, alleen als nog geen view gezet is
   }
@@ -567,7 +702,7 @@ function updateLabelVisibility(){
   if(!map)return;
   const zoom=map.getZoom();
   layers.forEach(l=>{
-    if(!l._gpxLabel&&!l._gpxWptLabel)return;
+    if(!l._gpxLabel&&!l._gpxWptLabel&&!l._gpxWptMarker)return;
     const zmin=l._zoomMin, zmax=l._zoomMax;
     const visible=zoom>=zmin&&zoom<=zmax;
     if(l.setText){
@@ -576,7 +711,7 @@ function updateLabelVisibility(){
         const f=l._gpxFile;
         const halo=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
-        l.setText(mainLabel,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
+        l.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else {
         l.setText(null);
       }
@@ -592,6 +727,7 @@ function exportMap(){
   const lw=parseInt(document.getElementById('linewidth').value);
   const optFollow=document.getElementById('opt-follow').checked;
   const wptZoom=parseInt(document.getElementById('wptzoom').value);
+  const wptMarkerZoom=parseInt(document.getElementById('wptmarkerzoom').value);
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Laag '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:22}));
   const data=files.map(f=>({
     filename:f.displayName,
@@ -602,6 +738,8 @@ function exportMap(){
     zoomMin:f.zoomMin,
     zoomMax:f.zoomMax,
     useElementName:f.useElementName,
+    wptIconSvg:f.wptIconSvg||null,
+    wptIconSize:f.wptIconSize||28,
     tracks:f.tracks,
     waypoints:f.waypoints
   }));
@@ -676,6 +814,7 @@ const B=${JSON.stringify(bounds)};
 const LW=${lw};
 const OPT_FOLLOW=${optFollow};
 const WPTZOOM=${wptZoom};
+const WPTMARKERZOOM=${wptMarkerZoom};
 
 function centroid(coords){
   if(!coords.length)return[0,0];
@@ -696,8 +835,50 @@ function getLabelText(f, elementName){
   return f.filename;
 }
 
+function buildWaypointMarker(f, w){
+  if(f.wptIconSvg){
+    const sz=f.wptIconSize||28;
+    return L.marker([w.lat,w.lon],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:'+sz+'px;height:'+sz+'px;display:flex;align-items:center;justify-content:center;color:'+f.color+';filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">'+f.wptIconSvg+'</div>',
+        iconSize:[sz,sz],
+        iconAnchor:[sz/2,sz/2]
+      })
+    });
+  }
+  return L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2});
+}
+
 function midpt(coords){return coords[Math.floor(coords.length/2)];}
 
+// --- Status in URL: extent en laag-zichtbaarheid kunnen via #-hash gedeeld worden ---
+function parseStateFromHash(){
+  if(!location.hash || location.hash.length<2) return null;
+  const params=new URLSearchParams(location.hash.slice(1));
+  const lat=parseFloat(params.get('lat'));
+  const lng=parseFloat(params.get('lng'));
+  const z=parseInt(params.get('z'));
+  const layersParam=params.get('layers');
+  const out={};
+  if(!isNaN(lat)&&!isNaN(lng)&&!isNaN(z)){ out.lat=lat; out.lng=lng; out.z=z; }
+  if(layersParam!=null){ out.layerVis=layersParam.split(',').map(v=>v==='1'); }
+  return Object.keys(out).length?out:null;
+}
+
+function updateUrlHash(){
+  const c=map.getCenter();
+  const params=new URLSearchParams();
+  params.set('lat',c.lat.toFixed(6));
+  params.set('lng',c.lng.toFixed(6));
+  params.set('z',map.getZoom());
+  if(wmsLayerObjs.length){
+    params.set('layers',wmsLayerObjs.map(lo=>map.hasLayer(lo.layer)?'1':'0').join(','));
+  }
+  history.replaceState(null,'','#'+params.toString());
+}
+
+const urlState=parseStateFromHash();
 const map=L.map('map');
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
@@ -709,10 +890,13 @@ EX.forEach((el,i)=>{
   let lyr=null;
   try{
     if(el.type==='wms'){
-      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax}).addTo(map);
+      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     } else {
-      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax}).addTo(map);
+      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     }
+    // standaard aan/uit: uit URL-status indien aanwezig, anders uit de instelling van de laag zelf
+    const defaultOn=(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn!==false);
+    if(defaultOn) lyr.addTo(map);
   }catch(e){}
   wmsLayerObjs.push({layer:lyr,name:el.displayName||('Laag '+(i+1)),visible:true});
 });
@@ -727,7 +911,8 @@ if(EX.length>0){
   wmsLayerObjs.forEach((lo,i)=>{
     const row=document.createElement('label');
     row.className='layer-toggle-row';
-    row.innerHTML='<input type="checkbox" checked data-idx="'+i+'"><span>'+lo.name+'</span>';
+    const isOn=lo.layer&&map.hasLayer(lo.layer);
+    row.innerHTML='<input type="checkbox" '+(isOn?'checked':'')+' data-idx="'+i+'"><span>'+lo.name+'</span>';
     panelContent.appendChild(row);
   });
   panelContent.querySelectorAll('input').forEach(inp=>{
@@ -736,6 +921,7 @@ if(EX.length>0){
       const lo=wmsLayerObjs[i];
       if(!lo.layer)return;
       if(e.target.checked){map.addLayer(lo.layer);}else{map.removeLayer(lo.layer);}
+      updateUrlHash();
     });
   });
   layersBtn.onclick=function(){layersPanel.classList.toggle('open');};
@@ -748,6 +934,7 @@ if(EX.length>0){
 
 const labelLayers=[];
 const trackLayers=[];
+const wptMarkerLayers=[];
 
 D.forEach(f=>{
   const filePolys=[];
@@ -771,17 +958,20 @@ D.forEach(f=>{
     trackLayers.push(startM);
   }
   f.waypoints.forEach(w=>{
-    const m=L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2}).addTo(map);
+    const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
     if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
+    m._zoomMin=WPTMARKERZOOM;
+    m._zoomMax=19;
     trackLayers.push(m);
+    wptMarkerLayers.push(m);
     // waypointlabel: alleen als showLabel aan staat voor deze GPX, zoomdrempel uit globale WPTZOOM
     if(f.showLabel){
       const h=contrastHalo(f.color);
       const wptLbl=L.marker([w.lat,w.lon],{
         icon:L.divIcon({
           className:'',
-          html:'<div style="color:'+f.color+';font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 '+h+',1.5px -1.5px 0 '+h+',-1.5px 1.5px 0 '+h+',1.5px 1.5px 0 '+h+',0 1.5px 0 '+h+',0 -1.5px 0 '+h+';transform:translate(-50%,calc(-50% - 12px))">'+wLabel+'</div>',
+          html:'<div style="color:'+f.color+';font-size:20px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-2.3px -2.3px 0 '+h+',2.3px -2.3px 0 '+h+',-2.3px 2.3px 0 '+h+',2.3px 2.3px 0 '+h+',0 2.3px 0 '+h+',0 -2.3px 0 '+h+';transform:translate(-50%,calc(-50% - 18px))">'+wLabel+'</div>',
           iconAnchor:[0,0]
         }),
         interactive:false,zIndexOffset:150
@@ -796,7 +986,7 @@ D.forEach(f=>{
     const mainLabel=getLabelText(f,f.tracks[0].name);
     if(f.labelPos==='midline'&&filePolys.length){
       const tp=filePolys[0];
-      tp.setText(mainLabel,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      tp.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       tp._gpxLabel=true;
       tp._zoomMin=f.zoomMin;
       tp._zoomMax=f.zoomMax;
@@ -810,7 +1000,7 @@ D.forEach(f=>{
       const lbl=L.marker(pos,{
         icon:L.divIcon({
           className:'',
-          html:'<div style="color:'+f.color+';font-size:21px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-2px -2px 0 '+h+',2px -2px 0 '+h+',-2px 2px 0 '+h+',2px 2px 0 '+h+',0 2px 0 '+h+',0 -2px 0 '+h+',2px 0 0 '+h+',-2px 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
+          html:'<div style="color:'+f.color+';font-size:32px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-3px -3px 0 '+h+',3px -3px 0 '+h+',-3px 3px 0 '+h+',3px 3px 0 '+h+',0 3px 0 '+h+',0 -3px 0 '+h+',3px 0 0 '+h+',-3px 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
           iconAnchor:[0,0]
         }),
         interactive:false,zIndexOffset:200
@@ -822,7 +1012,16 @@ D.forEach(f=>{
   }
 });
 
-if(B)map.fitBounds(B,{padding:[16,16]});else map.setView([52,5],8);
+if(urlState&&urlState.z!=null){
+  map.setView([urlState.lat,urlState.lng],urlState.z);
+} else if(B){
+  map.fitBounds(B,{padding:[16,16]});
+} else {
+  map.setView([52,5],8);
+}
+
+// URL bijwerken bij elke pan/zoom, zodat de adresbalk altijd de actuele kaartstatus weergeeft (deelbaar)
+map.on('moveend',updateUrlHash);
 
 function updateLabels(){
   const z=map.getZoom();
@@ -833,11 +1032,16 @@ function updateLabels(){
         const f=l._gpxFile;
         const h=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
-        l.setText(mainLabel,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+        l.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else { l.setText(null); }
     } else {
       const e=l.getElement();if(e)e.style.display=visible?'':'none';
     }
+  });
+  wptMarkerLayers.forEach(m=>{
+    const visible=z>=m._zoomMin&&z<=m._zoomMax;
+    const e=m.getElement();
+    if(e)e.style.display=visible?'':'none';
   });
 }
 map.on('zoomend',updateLabels);
@@ -852,13 +1056,49 @@ map.whenReady(updateZoomIndicator);
 // --- Locatie en volgen ---
 const locBtn=document.getElementById('loc-btn');
 const visBtn=document.getElementById('vis-btn');
-let wid=null,lm=null,lc=null;
+let wid=null,locTrail=null,lc=null,dirMarker=null;
+let followZoom=null; // vastgezet zoomniveau bij start van volgen, voorkomt jitter door getZoom() tijdens animatie
+let locHistory=[]; // laatste N gps-punten voor richtingsspoor
+const TRAIL_LENGTH=20;
+const FOLLOW_RESUME_DELAY=5000; // ms wachten na laatste handmatige kaartinteractie voordat opnieuw automatisch gecentreerd wordt
+let lastUserInteraction=0; // timestamp laatste handmatige pan/zoom
+let programmaticMove=false; // vlag om eigen setView-aanroepen te onderscheiden van gebruikersinteractie
+
+function bearing(p1,p2){
+  // peiling in graden van p1 naar p2 (0=noord)
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLon=(p2[1]-p1[1])*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+// Spitse driehoek als SVG: rotatiepunt exact op het centrum van het figuur, geen scheve weergave
+function makeDirIcon(deg){
+  return L.divIcon({
+    className:'',
+    html:'<svg width="46" height="46" viewBox="0 0 46 46" style="transform:rotate('+deg+'deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">'
+        +'<polygon points="23,2 31,39 23,29 15,39" fill="#2980b9" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>'
+        +'</svg>',
+    iconSize:[46,46],
+    iconAnchor:[23,23]
+  });
+}
 
 function stopLoc(){
   if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
   locBtn.classList.remove('on');locBtn.innerHTML='&#9737;';
-  if(lm){map.removeLayer(lm);map.removeLayer(lc);lm=lc=null;}
+  if(locTrail){map.removeLayer(locTrail);locTrail=null;}
+  if(lc){map.removeLayer(lc);lc=null;}
+  if(dirMarker){map.removeLayer(dirMarker);dirMarker=null;}
+  followZoom=null;
+  locHistory=[];
 }
+
+// Detecteer handmatige kaartinteractie (slepen/zoomen door gebruiker) om auto-centreren tijdelijk te pauzeren
+map.on('dragstart zoomstart',function(){
+  if(!programmaticMove) lastUserInteraction=Date.now();
+});
 
 locBtn.onclick=function(){
   if(wid!==null){stopLoc();return;}
@@ -869,25 +1109,52 @@ locBtn.onclick=function(){
     const ll=[p.coords.latitude,p.coords.longitude];
     locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
 
-    if(lm){
-      lm.setLatLng(ll);
-      lc.setLatLng(ll).setRadius(p.coords.accuracy);
-    } else {
-      lc=L.circle(ll,{radius:p.coords.accuracy,color:'#2980b9',fillColor:'#2980b9',fillOpacity:.15,weight:1}).addTo(map);
-      lm=L.circleMarker(ll,{radius:9,color:'#fff',fillColor:'#2980b9',fillOpacity:1,weight:2}).addTo(map).bindPopup('Jouw locatie');
+    // bewaar laatste N punten voor het richtingsspoor
+    locHistory.push(ll);
+    if(locHistory.length>TRAIL_LENGTH) locHistory.shift();
+
+    // peiling bepalen: gebruik GPS-heading indien beschikbaar, anders berekenen uit spoor
+    let deg=0;
+    if(p.coords.heading!=null && !isNaN(p.coords.heading)){
+      deg=p.coords.heading;
+    } else if(locHistory.length>=2){
+      deg=bearing(locHistory[0],locHistory[locHistory.length-1]);
     }
 
-    if(OPT_FOLLOW){
-      map.setView(ll, Math.max(map.getZoom(),14),{animate:true,duration:0.5});
-    } else if(!lm._shown){
+    if(locTrail){
+      locTrail.setLatLngs(locHistory);
+      lc.setLatLng(ll).setRadius(p.coords.accuracy);
+      dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg));
+    } else {
+      lc=L.circle(ll,{radius:p.coords.accuracy,color:'#2980b9',fillColor:'#2980b9',fillOpacity:.12,weight:1}).addTo(map);
+      locTrail=L.polyline(locHistory,{color:'#2980b9',weight:10,opacity:.85,lineCap:'round'}).addTo(map);
+      dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Jouw locatie');
+    }
+
+    const idleLongEnough=(Date.now()-lastUserInteraction)>=FOLLOW_RESUME_DELAY;
+
+    if(OPT_FOLLOW && idleLongEnough){
+      // zoomniveau eenmalig vastleggen bij start van volgen, niet steeds opnieuw opvragen tijdens animatie
+      if(followZoom===null) followZoom=Math.max(map.getZoom(),14);
+      programmaticMove=true;
+      map.setView(ll, followZoom, {animate:false});
+      programmaticMove=false;
+    } else if(!dirMarker._shown){
+      programmaticMove=true;
       map.setView(ll, Math.max(map.getZoom(),14));
-      lm._shown=true;
+      programmaticMove=false;
+      dirMarker._shown=true;
     }
   },function(e){
     stopLoc();
     alert('Locatie niet beschikbaar: '+e.message);
   },{enableHighAccuracy:true,maximumAge:1000});
 };
+
+// Als gebruiker handmatig zoomt terwijl volgen actief is, nieuw zoomniveau onthouden i.p.v. terugspringen
+map.on('zoomend',function(){
+  if(OPT_FOLLOW && wid!==null) followZoom=map.getZoom();
+});
 
 let gpxVisible=true;
 visBtn.onclick=function(){
@@ -896,8 +1163,9 @@ visBtn.onclick=function(){
     if(gpxVisible)map.addLayer(l);else map.removeLayer(l);
   });
   labelLayers.forEach(l=>{
-    if(gpxVisible){map.addLayer(l);updateLabels();}else map.removeLayer(l);
+    if(gpxVisible){map.addLayer(l);}else map.removeLayer(l);
   });
+  if(gpxVisible)updateLabels();
   visBtn.style.opacity=gpxVisible?'1':'0.5';
 };
 <\/script>
