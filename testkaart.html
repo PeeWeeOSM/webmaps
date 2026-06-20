@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>testkaart</title>
+<title>Mijn route</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -11,25 +11,58 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #hdr{padding:9px 14px;background:#111;display:flex;align-items:center;flex-shrink:0}
 #hdr h1{font-size:15px;font-weight:600}
 #map-wrap{flex:1;position:relative;overflow:hidden}
-#map{position:absolute;top:-20%;left:-20%;width:140%;height:140%;transition:transform 0.3s ease}
-#notice{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#ffc;padding:7px 16px;border-radius:20px;font-size:12px;pointer-events:none;z-index:9999}
-.loc-btn{width:34px;height:34px;background:white;border:2px solid rgba(0,0,0,0.2);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;transition:background 0.15s}
-.loc-btn:hover{background:#f4f4f4}
-.loc-btn.on{background:#d4efff;border-color:#2980b9}
+#map{position:absolute;top:0;left:0;width:100%;height:100%}
+/* Controls overlay: altijd bovenop, niet meedraaien */
+#controls-overlay{position:absolute;top:10px;left:10px;z-index:1000;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+#controls-overlay>*{pointer-events:auto}
+/* Leaflet eigen zoom controls verbergen want wij tonen onze eigen */
+.leaflet-control-zoom{display:none!important}
+#notice{display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#ffc;padding:7px 16px;border-radius:20px;font-size:12px;pointer-events:none;z-index:1001}
+.ctrl-btn{width:34px;height:34px;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.ctrl-btn:hover{background:#f4f4f4}
+.ctrl-btn.on{background:#d4efff;border-color:#2980b9}
+.ctrl-btn.zoom{font-size:22px;font-weight:300}
+.zoom-sep{height:1px;background:#ccc;margin:0 4px}
+.zoom-group{background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.zoom-group .ctrl-btn{border:none;border-radius:0;box-shadow:none;width:34px;height:32px}
+.zoom-group .ctrl-btn:first-child{border-bottom:1px solid #ddd}
+#layers-overlay{display:none;position:absolute;top:54px;right:10px;z-index:1000}
+#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px}
+#layers-panel.open{display:block}
+#layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
+#zoom-indicator{position:absolute;top:10px;right:10px;z-index:1000;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:6px 10px;font-size:13px;font-weight:600;color:#222;pointer-events:none}
+.layer-toggle-row input{flex-shrink:0}
+.layer-toggle-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
-<div id="hdr"><h1>testkaart</h1></div>
-<div id="map-wrap"><div id="map"></div></div>
-<div id="notice">Achtergrondkaart niet beschikbaar (geen verbinding)</div>
+<div id="hdr"><h1>Mijn route</h1></div>
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="controls-overlay">
+    <div class="zoom-group">
+      <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Inzoomen">+</button>
+      <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Uitzoomen">&#8722;</button>
+    </div>
+    <button class="ctrl-btn" id="loc-btn" title="Mijn locatie">&#9737;</button>
+    <button class="ctrl-btn" id="vis-btn" title="GPX tonen/verbergen">&#128065;</button>
+  </div>
+  <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
+  <div id="layers-overlay">
+    <button class="ctrl-btn" id="layers-btn" title="Kaartlagen">&#9776;</button>
+    <div id="layers-panel"><h3>Kaartlagen</h3><div id="layers-panel-content"></div></div>
+  </div>
+  <div id="notice">Achtergrondkaart niet beschikbaar (geen verbinding)</div>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
 <script>
-const D=[{"filename":"Leusden_vogelaars_gebied","color":"#e6194b","showLabel":true,"showStart":true,"labelPos":"centroid","zoomMin":14,"zoomMax":18,"tracks":[{"name":"Leusden_bikkels_area","coords":[[52.12749472718124,5.41053056716919],[52.123542650819374,5.400874614715576],[52.11002112964386,5.401582717895509],[52.10759532407898,5.422697067260743],[52.11819406818236,5.448017120361329],[52.12984450563851,5.428619384765625],[52.127517338233666,5.410621762275696]]}],"waypoints":[]},{"filename":"Leusden_vogelaars_route","color":"#e6194b","showLabel":true,"showStart":true,"labelPos":"centroid","zoomMin":14,"zoomMax":18,"tracks":[{"name":"Leusden_bikkel_route","coords":[[52.121779,5.405574],[52.121788,5.405387],[52.122305,5.405475],[52.122639,5.405508],[52.122751,5.404539],[52.122788,5.404358],[52.122964,5.404468],[52.123278,5.404666],[52.123497,5.40477],[52.123628,5.404829],[52.123669,5.404908],[52.123725,5.404957],[52.123751,5.404958],[52.12378,5.404891],[52.123801,5.404762],[52.123845,5.404719],[52.123876,5.404704],[52.123966,5.404615],[52.124014,5.404516],[52.124094,5.404573],[52.124177,5.404645],[52.124169,5.404731],[52.124161,5.404818],[52.124167,5.40507],[52.124042,5.405281],[52.124019,5.405437],[52.123736,5.407769],[52.123667,5.408423],[52.1236,5.409662],[52.123593,5.409795],[52.123601,5.410039],[52.12364,5.410258],[52.123637,5.410298],[52.123674,5.410421],[52.123724,5.410689],[52.123783,5.410927],[52.123826,5.411115],[52.123847,5.411169],[52.123897,5.411253],[52.123999,5.411345],[52.12428,5.411567],[52.124355,5.411587],[52.124403,5.411618],[52.124704,5.411884],[52.12486,5.412074],[52.124906,5.412149],[52.125001,5.412237],[52.124906,5.412702],[52.124882,5.412782],[52.12484,5.412922],[52.124818,5.412994],[52.124781,5.413119],[52.124701,5.413254],[52.124678,5.413311],[52.124838,5.413378],[52.124857,5.413402],[52.125022,5.413892],[52.124982,5.413944],[52.124952,5.414023],[52.124954,5.414113],[52.124975,5.414193],[52.124933,5.414261],[52.124851,5.414585]]}],"waypoints":[]}];
-const B=[[52.10759532407898,5.400874614715576],[52.12984450563851,5.448017120361329]];
+const D=[];
+const B=null;
 const LW=3;
-const OPT_FOLLOW=true;
-const OPT_ROTATE=true;
+const OPT_FOLLOW=false;
+const WPTZOOM=15;
 
 function centroid(coords){
   if(!coords.length)return[0,0];
@@ -45,23 +78,60 @@ function contrastHalo(hex){
   return(0.299*r+0.587*g+0.114*b)>140?'#000':'#fff';
 }
 
+function getLabelText(f, elementName){
+  if(f.useElementName && elementName && elementName.trim()) return elementName.trim();
+  return f.filename;
+}
+
 function midpt(coords){return coords[Math.floor(coords.length/2)];}
 
 const map=L.map('map');
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
-// Extra lagen (onder GPX tracks)
-const EX=[{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=surface2&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","opacity":0.5},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=maxspeed_label&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","opacity":0.8}];
-EX.forEach(el=>{
+// Extra lagen (onder GPX tracks) — elke laag bijhouden zodat we ze in het lagenpaneel kunnen tonen/verbergen
+const EX=[{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"Leggers","opacity":0.8,"zoomMin":1,"zoomMax":15},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=maxspeed_label&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Maxspeed","opacity":0.8,"zoomMin":17,"zoomMax":22},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=surface2&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Surface","opacity":0.8,"zoomMin":20,"zoomMax":22}];
+const wmsLayerObjs=[];
+EX.forEach((el,i)=>{
+  let lyr=null;
   try{
     if(el.type==='wms'){
-      L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:''}).addTo(map);
+      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax}).addTo(map);
     } else {
-      L.tileLayer(el.url,{opacity:el.opacity,maxZoom:22,attribution:''}).addTo(map);
+      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax}).addTo(map);
     }
   }catch(e){}
+  wmsLayerObjs.push({layer:lyr,name:el.displayName||('Laag '+(i+1)),visible:true});
 });
+
+// Lagenpaneel rechtsboven: alleen tonen als er extra lagen zijn
+if(EX.length>0){
+  const layersBtn=document.getElementById('layers-btn');
+  const layersOverlay=document.getElementById('layers-overlay');
+  const layersPanel=document.getElementById('layers-panel');
+  const panelContent=document.getElementById('layers-panel-content');
+  layersOverlay.style.display='block';
+  wmsLayerObjs.forEach((lo,i)=>{
+    const row=document.createElement('label');
+    row.className='layer-toggle-row';
+    row.innerHTML='<input type="checkbox" checked data-idx="'+i+'"><span>'+lo.name+'</span>';
+    panelContent.appendChild(row);
+  });
+  panelContent.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      const lo=wmsLayerObjs[i];
+      if(!lo.layer)return;
+      if(e.target.checked){map.addLayer(lo.layer);}else{map.removeLayer(lo.layer);}
+    });
+  });
+  layersBtn.onclick=function(){layersPanel.classList.toggle('open');};
+  document.addEventListener('click',function(e){
+    if(!layersOverlay.contains(e.target))layersPanel.classList.remove('open');
+  });
+} else {
+  document.getElementById('layers-overlay').style.display='none';
+}
 
 const labelLayers=[];
 const trackLayers=[];
@@ -70,7 +140,7 @@ D.forEach(f=>{
   const filePolys=[];
   f.tracks.forEach(t=>{
     const poly=L.polyline(t.coords,{color:f.color,weight:LW,opacity:.9}).addTo(map);
-    poly.bindPopup('<b>'+f.filename+'</b>'+(t.name?'<br>'+t.name:''));
+    poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
     poly._gpxFile=f;
     trackLayers.push(poly);
     filePolys.push(poly);
@@ -89,14 +159,31 @@ D.forEach(f=>{
   }
   f.waypoints.forEach(w=>{
     const m=L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2}).addTo(map);
-    if(w.name||w.desc)m.bindPopup('<b>'+w.name+'</b>'+(w.desc?'<br>'+w.desc:''));
+    const wLabel=getLabelText(f,w.name);
+    if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
     trackLayers.push(m);
+    // waypointlabel: alleen als showLabel aan staat voor deze GPX, zoomdrempel uit globale WPTZOOM
+    if(f.showLabel){
+      const h=contrastHalo(f.color);
+      const wptLbl=L.marker([w.lat,w.lon],{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+f.color+';font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 '+h+',1.5px -1.5px 0 '+h+',-1.5px 1.5px 0 '+h+',1.5px 1.5px 0 '+h+',0 1.5px 0 '+h+',0 -1.5px 0 '+h+';transform:translate(-50%,calc(-50% - 12px))">'+wLabel+'</div>',
+          iconAnchor:[0,0]
+        }),
+        interactive:false,zIndexOffset:150
+      }).addTo(map);
+      wptLbl._zoomMin=WPTZOOM;
+      wptLbl._zoomMax=19;
+      labelLayers.push(wptLbl);
+    }
   });
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
+    const mainLabel=getLabelText(f,f.tracks[0].name);
     if(f.labelPos==='midline'&&filePolys.length){
       const tp=filePolys[0];
-      tp.setText(f.filename,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      tp.setText(mainLabel,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       tp._gpxLabel=true;
       tp._zoomMin=f.zoomMin;
       tp._zoomMax=f.zoomMax;
@@ -110,7 +197,7 @@ D.forEach(f=>{
       const lbl=L.marker(pos,{
         icon:L.divIcon({
           className:'',
-          html:'<div style="color:'+f.color+';font-size:21px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-2px -2px 0 '+h+',2px -2px 0 '+h+',-2px 2px 0 '+h+',2px 2px 0 '+h+',0 2px 0 '+h+',0 -2px 0 '+h+',2px 0 0 '+h+',-2px 0 0 '+h+';'+labelOffset+'">'+f.filename+'</div>',
+          html:'<div style="color:'+f.color+';font-size:21px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-2px -2px 0 '+h+',2px -2px 0 '+h+',-2px 2px 0 '+h+',2px 2px 0 '+h+',0 2px 0 '+h+',0 -2px 0 '+h+',2px 0 0 '+h+',-2px 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
           iconAnchor:[0,0]
         }),
         interactive:false,zIndexOffset:200
@@ -132,7 +219,8 @@ function updateLabels(){
       if(visible){
         const f=l._gpxFile;
         const h=contrastHalo(f.color);
-        l.setText(f.filename,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+        const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
+        l.setText(mainLabel,{center:true,attributes:{'font-size':'16px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else { l.setText(null); }
     } else {
       const e=l.getElement();if(e)e.style.display=visible?'':'none';
@@ -142,143 +230,63 @@ function updateLabels(){
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
 
-// --- Locatie, volgen en rotatie ---
-// Positie-offset als rotatie aan staat: marker 35% omlaag van midden
-const MAP_EL=document.getElementById('map');
-let currentHeading=0;
-let isFollowing=false;
+// Zoomniveau-indicator rechtsboven
+const zoomValEl=document.getElementById('zoom-val');
+function updateZoomIndicator(){zoomValEl.textContent=map.getZoom();}
+map.on('zoomend',updateZoomIndicator);
+map.whenReady(updateZoomIndicator);
 
-function applyRotation(deg){
-  currentHeading=deg;
-  if(OPT_ROTATE){
-    MAP_EL.style.transformOrigin='center center';
-    MAP_EL.style.transform='rotate('+(-deg)+'deg)';
-    map.invalidateSize();
-  }
+// --- Locatie en volgen ---
+const locBtn=document.getElementById('loc-btn');
+const visBtn=document.getElementById('vis-btn');
+let wid=null,lm=null,lc=null;
+
+function stopLoc(){
+  if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
+  locBtn.classList.remove('on');locBtn.innerHTML='&#9737;';
+  if(lm){map.removeLayer(lm);map.removeLayer(lc);lm=lc=null;}
 }
 
-function getFollowOffset(){
-  // Als rotatie aan: positie op 65% van hoogte (iets onder midden)
-  if(OPT_ROTATE){
-    const h=MAP_EL.offsetHeight;
-    return map.containerPointToLatLng(L.point(MAP_EL.offsetWidth/2, h*0.65));
-  }
-  return null;
-}
+locBtn.onclick=function(){
+  if(wid!==null){stopLoc();return;}
+  if(!navigator.geolocation){alert('GPS niet beschikbaar in deze browser.');return;}
+  locBtn.innerHTML='&#8987;';
 
-const LocControl=L.Control.extend({
-  options:{position:'topleft'},
-  onAdd:function(){
-    const btn=document.createElement('button');
-    btn.className='loc-btn';
-    btn.title='Mijn locatie';
-    btn.setAttribute('aria-label','Mijn locatie tonen');
-    btn.innerHTML='&#9737;';
-    L.DomEvent.disableClickPropagation(btn);
-    let wid=null,lm=null,lc=null,orHandler=null;
+  wid=navigator.geolocation.watchPosition(function(p){
+    const ll=[p.coords.latitude,p.coords.longitude];
+    locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
 
-    function stopLoc(){
-      if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
-      if(orHandler){window.removeEventListener('deviceorientation',orHandler);orHandler=null;}
-      isFollowing=false;
-      if(OPT_ROTATE){MAP_EL.style.transform='';map.invalidateSize();}
-      btn.classList.remove('on');btn.innerHTML='&#9737;';
-      if(lm){map.removeLayer(lm);map.removeLayer(lc);lm=lc=null;}
+    if(lm){
+      lm.setLatLng(ll);
+      lc.setLatLng(ll).setRadius(p.coords.accuracy);
+    } else {
+      lc=L.circle(ll,{radius:p.coords.accuracy,color:'#2980b9',fillColor:'#2980b9',fillOpacity:.15,weight:1}).addTo(map);
+      lm=L.circleMarker(ll,{radius:9,color:'#fff',fillColor:'#2980b9',fillOpacity:1,weight:2}).addTo(map).bindPopup('Jouw locatie');
     }
 
-    btn.onclick=function(){
-      if(wid!==null){stopLoc();return;}
-      if(!navigator.geolocation){alert('GPS niet beschikbaar in deze browser.');return;}
-      btn.innerHTML='&#8987;';
+    if(OPT_FOLLOW){
+      map.setView(ll, Math.max(map.getZoom(),14),{animate:true,duration:0.5});
+    } else if(!lm._shown){
+      map.setView(ll, Math.max(map.getZoom(),14));
+      lm._shown=true;
+    }
+  },function(e){
+    stopLoc();
+    alert('Locatie niet beschikbaar: '+e.message);
+  },{enableHighAccuracy:true,maximumAge:1000});
+};
 
-      // Kompas/heading via deviceorientation (werkt op telefoon)
-      if(OPT_ROTATE){
-        function handleOrientation(e){
-          const h=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.alpha!=null?(360-e.alpha):null);
-          if(h!=null)applyRotation(h);
-        }
-        // iOS 13+ vereist permissie
-        if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
-          DeviceOrientationEvent.requestPermission().then(r=>{
-            if(r==='granted')window.addEventListener('deviceorientation',handleOrientation,true);
-          }).catch(()=>{});
-        } else {
-          window.addEventListener('deviceorientation',handleOrientation,true);
-        }
-        orHandler=handleOrientation;
-      }
-
-      wid=navigator.geolocation.watchPosition(function(p){
-        const ll=[p.coords.latitude,p.coords.longitude];
-        isFollowing=true;
-        btn.classList.add('on');btn.innerHTML='&#9737;';
-
-        // Heading via GPS als kompas niet werkt of als versnelling beschikbaar
-        if(OPT_ROTATE&&p.coords.heading!=null&&!isNaN(p.coords.heading)){
-          applyRotation(p.coords.heading);
-        }
-
-        if(lm){
-          lm.setLatLng(ll);
-          lc.setLatLng(ll).setRadius(p.coords.accuracy);
-        } else {
-          lc=L.circle(ll,{radius:p.coords.accuracy,color:'#2980b9',fillColor:'#2980b9',fillOpacity:.15,weight:1}).addTo(map);
-          lm=L.circleMarker(ll,{radius:9,color:'#fff',fillColor:'#2980b9',fillOpacity:1,weight:2}).addTo(map).bindPopup('Jouw locatie');
-        }
-
-        if(OPT_FOLLOW||OPT_ROTATE){
-          if(OPT_ROTATE){
-            // Bereken offset zodat marker iets onder midden staat
-            const mapH=MAP_EL.offsetHeight;
-            const mapW=MAP_EL.offsetWidth;
-            const offsetPt=L.point(mapW/2, mapH*0.65);
-            const offsetLL=map.containerPointToLatLng(offsetPt);
-            const center=map.getCenter();
-            const dlat=center.lat-offsetLL.lat;
-            const dlng=center.lng-offsetLL.lng;
-            map.setView([ll[0]+dlat, ll[1]+dlng], Math.max(map.getZoom(),14),{animate:true,duration:0.5});
-          } else {
-            map.setView(ll, Math.max(map.getZoom(),14),{animate:true,duration:0.5});
-          }
-        } else if(!lm._shown){
-          map.setView(ll, Math.max(map.getZoom(),14));
-          lm._shown=true;
-        }
-      },function(e){
-        stopLoc();
-        alert('Locatie niet beschikbaar: '+e.message);
-      },{enableHighAccuracy:true,maximumAge:1000});
-    };
-    return btn;
-  }
-});
-new LocControl().addTo(map);
-
-const VisControl=L.Control.extend({
-  options:{position:'topleft'},
-  onAdd:function(){
-    const btn=document.createElement('button');
-    btn.className='loc-btn';
-    btn.title='GPX tonen/verbergen';
-    btn.setAttribute('aria-label','GPX tonen of verbergen');
-    btn.innerHTML='&#128065;';
-    btn.style.marginTop='4px';
-    L.DomEvent.disableClickPropagation(btn);
-    let visible=true;
-    btn.onclick=function(){
-      visible=!visible;
-      trackLayers.forEach(l=>{
-        if(visible)map.addLayer(l);else map.removeLayer(l);
-      });
-      labelLayers.forEach(l=>{
-        if(visible){map.addLayer(l);updateLabels();}else map.removeLayer(l);
-      });
-      btn.style.opacity=visible?'1':'0.5';
-    };
-    return btn;
-  }
-});
-new VisControl().addTo(map);
+let gpxVisible=true;
+visBtn.onclick=function(){
+  gpxVisible=!gpxVisible;
+  trackLayers.forEach(l=>{
+    if(gpxVisible)map.addLayer(l);else map.removeLayer(l);
+  });
+  labelLayers.forEach(l=>{
+    if(gpxVisible){map.addLayer(l);updateLabels();}else map.removeLayer(l);
+  });
+  visBtn.style.opacity=gpxVisible?'1':'0.5';
+};
 </script>
 </body>
 </html>
