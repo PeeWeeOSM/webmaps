@@ -90,7 +90,7 @@ const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ma
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
 // Extra lagen (onder GPX tracks) — elke laag bijhouden zodat we ze in het lagenpaneel kunnen tonen/verbergen
-const EX=[{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"wmt","opacity":0.8,"zoomMin":1,"zoomMax":22},{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"leggers","opacity":0.8,"zoomMin":1,"zoomMax":22},{"type":"wms","url":"https://service.pdok.nl/rvo/nationale-parken/wms/v2_0?request=GetCapabilities&service=WMS","wmsLayer":"nationaleparken","displayName":"Laag 3","opacity":0.8,"zoomMin":1,"zoomMax":22}];
+const EX=[{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"wmt","opacity":0.8,"zoomMin":1,"zoomMax":22},{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"leggers","opacity":0.8,"zoomMin":1,"zoomMax":22},{"type":"wms","url":"https://service.pdok.nl/rvo/nationale-parken/wms/v2_0?request=GetCapabilities&service=WMS","wmsLayer":"nationaleparken","displayName":"Laag 3","opacity":0.8,"zoomMin":1,"zoomMax":22},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=surface2&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"surface","opacity":0.8,"zoomMin":1,"zoomMax":22}];
 const wmsLayerObjs=[];
 EX.forEach((el,i)=>{
   let lyr=null;
