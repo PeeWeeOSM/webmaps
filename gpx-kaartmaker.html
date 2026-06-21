@@ -48,7 +48,7 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 @media(prefers-color-scheme:dark){.nameinput{background:#2c2c2e;color:#eee;border-color:#555}}
 .posselect{font-size:12px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;flex-shrink:0}
 @media(prefers-color-scheme:dark){.posselect{background:#2c2c2e;color:#eee;border-color:#555}}
-.zoominput{width:36px;font-size:12px;padding:3px 4px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;text-align:center;flex-shrink:0}
+.zoominput{width:52px;font-size:15px;font-weight:600;padding:4px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;text-align:center;flex-shrink:0}
 @media(prefers-color-scheme:dark){.zoominput{background:#2c2c2e;color:#eee;border-color:#555}}
 .layer-row{display:flex;flex-direction:column;gap:6px;background:#f5f5f5;border-radius:8px;padding:10px 12px}
 @media(prefers-color-scheme:dark){.layer-row{background:#3a3a3c}}
@@ -65,6 +65,10 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 .file-pts{color:#888;font-size:12px;white-space:nowrap}
 .file-row .delbtn{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:0 2px;line-height:1;flex-shrink:0}
 .file-row .delbtn:hover{color:#e74c3c}
+.layer-move-btn{background:none;border:1px solid #ccc;border-radius:5px;cursor:pointer;color:#666;font-size:14px;padding:3px 7px;line-height:1;flex-shrink:0}
+.layer-move-btn:hover:not(:disabled){background:#eee;color:#222}
+.layer-move-btn:disabled{opacity:0.25;cursor:default}
+@media(prefers-color-scheme:dark){.layer-move-btn{border-color:#555;color:#aaa}.layer-move-btn:hover:not(:disabled){background:#3a3a3c;color:#eee}}
 input[type=color]{width:34px;height:28px;border:1px solid #ddd;border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0}
 label{font-size:13px;color:#666;display:block;margin-bottom:4px}
 input[type=text]{font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
@@ -122,10 +126,35 @@ input:checked+.slider:before{transform:translateX(14px)}
       </div>
     </div>
     <div>
+      <label>GPS-spoor (richtingslijn van eigen locatie)</label>
+      <div class="row" style="gap:10px;margin-top:4px">
+        <input type="color" id="gpstrail-color" value="#9b30d9" title="Kleur van het GPS-spoor">
+        <span class="toggle-label" style="color:#aaa">dikte</span>
+        <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
+        <span class="toggle-label" style="color:#aaa">px</span>
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        <span class="toggle-label" style="color:#aaa">lengte spoor</span>
+        <select id="gpstrail-mode" class="posselect" onchange="document.getElementById('gpstrail-meters').style.display=this.value==='full'?'none':'';document.getElementById('gpstrail-meters-label').style.display=this.value==='full'?'none':''">
+          <option value="distance" selected>laatste</option>
+          <option value="full">hele rit (geen limiet)</option>
+        </select>
+        <input type="number" id="gpstrail-meters" value="50" min="5" max="5000" class="zoominput" style="width:64px">
+        <span class="toggle-label" style="color:#aaa" id="gpstrail-meters-label">meter</span>
+      </div>
+    </div>
+    <div>
+      <label>Dekking achtergrondkaart (OSM)</label>
+      <div class="row">
+        <input type="range" min="0" max="1" step="0.05" value="1" id="osmopacity" oninput="document.getElementById('osmopacityval').textContent=Math.round(this.value*100)+'%';updatePreview()">
+        <span class="range-val" id="osmopacityval">100%</span>
+      </div>
+    </div>
+    <div>
       <label>Waypoints tonen vanaf zoom <span style="color:#aaa;font-weight:400">(het icoontje/stip zelf)</span></label>
       <div class="row">
-        <input type="range" min="1" max="19" value="1" step="1" id="wptmarkerzoom" oninput="document.getElementById('wptmarkerzoomval').textContent=this.value;updatePreview()">
-        <span class="range-val" id="wptmarkerzoomval">1</span>
+        <input type="range" min="1" max="19" value="9" step="1" id="wptmarkerzoom" oninput="document.getElementById('wptmarkerzoomval').textContent=this.value;updatePreview()">
+        <span class="range-val" id="wptmarkerzoomval">9</span>
       </div>
     </div>
     <div>
@@ -138,6 +167,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <div class="card">
   <div class="section-label">Extra kaartlagen</div>
+  <p style="font-size:12px;color:#888;margin:-4px 0 8px">Volgorde bepaalt rendering: de bovenste laag in de lijst ligt onderop de kaart, de onderste laag ligt bovenop.</p>
   <div id="layer-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addLayer()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Laag toevoegen
@@ -173,6 +203,7 @@ let map=null;
 let layers=[];
 let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
 let previewExtraLayers=[];
+let osmTileLayer=null;
 
 function addLayer(preset){
   const idx=extraLayers.length;
@@ -183,6 +214,14 @@ function addLayer(preset){
 
 function removeLayer(i){
   extraLayers.splice(i,1);
+  renderLayerList();
+  updatePreview();
+}
+
+function moveLayer(i, dir){
+  const j = dir==='up' ? i-1 : i+1;
+  if(j<0 || j>=extraLayers.length) return;
+  [extraLayers[i], extraLayers[j]] = [extraLayers[j], extraLayers[i]];
   renderLayerList();
   updatePreview();
 }
@@ -200,6 +239,8 @@ function renderLayerList(){
           <option value="wms" ${l.type==='wms'?'selected':''}>WMS</option>
         </select>
         <input class="layer-displayname" type="text" placeholder="Laag ${i+1}" value="${(l.displayName||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Naam zoals getoond in het lagenmenu">
+        <button class="layer-move-btn" data-idx="${i}" data-dir="up" title="Naar boven (eerder renderen)" ${i===0?'disabled':''}>&#8593;</button>
+        <button class="layer-move-btn" data-idx="${i}" data-dir="down" title="Naar onder (later renderen)" ${i===extraLayers.length-1?'disabled':''}>&#8595;</button>
         <button class="delbtn" data-idx="${i}" title="Verwijderen" style="font-size:18px">&times;</button>
       </div>
       <div class="layer-row-top">
@@ -207,7 +248,7 @@ function renderLayerList(){
         ${l.type==='wms'?`<input class="layer-name" type="text" placeholder="WMS laagnaam (LAYERS=...)" value="${l.wmsLayer.replace(/"/g,'&quot;')}" data-idx="${i}" title="Technische WMS laagnaam">`:``}
       </div>
       <div class="row" style="gap:8px">
-        <span class="toggle-label" style="color:#aaa">Doorzichtigheid</span>
+        <span class="toggle-label" style="color:#aaa">Dekking</span>
         <input type="range" min="0" max="1" step="0.05" value="${l.opacity}" data-idx="${i}" class="opacity-slider" style="flex:1">
         <span class="range-val layer-opval">${Math.round(l.opacity*100)}%</span>
       </div>
@@ -266,6 +307,13 @@ function renderLayerList(){
       const i=parseInt(e.target.dataset.idx);
       extraLayers[i].defaultOn=e.target.checked;
       updatePreview();
+    });
+  });
+  el.querySelectorAll('.layer-move-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const idx=parseInt(e.currentTarget.dataset.idx);
+      const dir=e.currentTarget.dataset.dir;
+      moveLayer(idx,dir);
     });
   });
   el.querySelectorAll('.delbtn').forEach(btn=>{
@@ -336,7 +384,7 @@ function renderList(){
       <input type="color" value="${f.color}" title="Kleur" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Naam op kaart" data-idx="${i}" class="nameinput" placeholder="Naam">
       <span class="toggle-label" style="color:#aaa">lijndikte</span>
-      <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Lijndikte van deze track in pixels" style="width:42px">
+      <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Lijndikte van deze track in pixels" style="width:56px">
       <span class="toggle-label" style="color:#aaa">px</span>
       <span class="toggle-label" style="color:#aaa;margin-left:4px">kaartzoom</span>
       <input type="number" value="${f.mapZoomMin!=null?f.mapZoomMin:1}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints zichtbaar vanaf zoomniveau">
@@ -381,7 +429,7 @@ function renderList(){
         <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
         ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">verwijderen</button>`:''}
         <span class="toggle-label" style="color:#aaa;margin-left:6px">grootte</span>
-        <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Iconformaat in pixels" style="width:48px">
+        <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Iconformaat in pixels" style="width:60px">
         <span class="toggle-label" style="color:#aaa">px</span>
         ${f.wptIconSvg?`
         <label class="toggle" title="SVG inkleuren met de GPX-kleur (werkt alleen als de SVG geen eigen vaste kleuren heeft)" style="margin-left:6px">
@@ -542,6 +590,33 @@ function centroid(coords){
   return[la/coords.length,lo/coords.length];
 }
 
+// Vind het dichtstbijzijnde punt OP een lijn (met interpolatie tussen knooppunten) bij
+// een gegeven referentiepunt. Gebruikt om het label-ankerpunt altijd op de track te
+// laten vallen, ook als het geometrisch centroid van de track ernaast zou liggen
+// (bijv. bij een hoefijzervormige of sterk gebogen route).
+function nearestPointOnLine(point, lineCoords){
+  if(lineCoords.length===0) return point;
+  if(lineCoords.length===1) return lineCoords[0];
+  let best=lineCoords[0], bestDist=Infinity;
+  for(let i=0;i<lineCoords.length-1;i++){
+    const a=lineCoords[i], b=lineCoords[i+1];
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    let t = (dx===0&&dy===0) ? 0 : ((point[0]-a[0])*dx+(point[1]-a[1])*dy)/(dx*dx+dy*dy);
+    t = Math.max(0, Math.min(1, t));
+    const proj=[a[0]+t*dx, a[1]+t*dy];
+    const d=Math.hypot(point[0]-proj[0], point[1]-proj[1]);
+    if(d<bestDist){ bestDist=d; best=proj; }
+  }
+  return best;
+}
+
+// Label-ankerpunt voor "centroid": bereken het geometrisch midden, maar projecteer dat
+// terug op de track zelf zodat het label gegarandeerd op de lijn ligt.
+function labelAnchorCentroid(trackCoords){
+  const c=centroid(trackCoords);
+  return nearestPointOnLine(c, trackCoords);
+}
+
 // Douglas-Peucker lijnvereenvoudiging: haalt overbodige tussenpunten weg zodat een
 // kronkelige track wordt teruggebracht tot de essentiële richting-bepalende punten.
 function simplifyLine(points, tolerance){
@@ -654,12 +729,13 @@ function updatePreview(){
   empty.style.display='none';wrap.style.display='block';
   if(!map){
     map=L.map('map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+    osmTileLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
     map.on('zoomend',updateLabelVisibility);
     const pzEl=document.getElementById('preview-zoom-indicator');
     map.on('zoomend',()=>{pzEl.textContent='z'+map.getZoom();});
     map.whenReady(()=>{pzEl.textContent='z'+map.getZoom();});
   }
+  if(osmTileLayer) osmTileLayer.setOpacity(parseFloat(document.getElementById('osmopacity').value));
   // verwijder oude extra lagen
   previewExtraLayers.forEach(l=>{if(l&&map.hasLayer(l))map.removeLayer(l);});
   previewExtraLayers=[];
@@ -768,7 +844,7 @@ function updatePreview(){
         const allPts=f.tracks.flatMap(t=>t.coords);
         let pos;
         if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-        else pos=centroid(allPts);
+        else pos=labelAnchorCentroid(allPts);
         const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
         const label=L.marker(pos,{
           icon:L.divIcon({
@@ -834,6 +910,11 @@ function exportMap(){
   const optFollow=document.getElementById('opt-follow').checked;
   const wptZoom=parseInt(document.getElementById('wptzoom').value);
   const wptMarkerZoom=parseInt(document.getElementById('wptmarkerzoom').value);
+  const osmOpacity=parseFloat(document.getElementById('osmopacity').value);
+  const trailColor=document.getElementById('gpstrail-color').value;
+  const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
+  const trailMode=document.getElementById('gpstrail-mode').value;
+  const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Laag '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:22,defaultOn:l.defaultOn!==false}));
   const data=files.map(f=>({
     filename:f.displayName,
@@ -924,12 +1005,36 @@ const MAX_ZOOM=19;
 const OPT_FOLLOW=${optFollow};
 const WPTZOOM=${wptZoom};
 const WPTMARKERZOOM=${wptMarkerZoom};
+const OSM_OPACITY=${osmOpacity};
+const TRAIL_COLOR=${JSON.stringify(trailColor)};
+const TRAIL_WIDTH=${trailWidth};
 
 function centroid(coords){
   if(!coords.length)return[0,0];
   let la=0,lo=0;
   coords.forEach(p=>{la+=p[0];lo+=p[1];});
   return[la/coords.length,lo/coords.length];
+}
+
+function nearestPointOnLine(point, lineCoords){
+  if(lineCoords.length===0) return point;
+  if(lineCoords.length===1) return lineCoords[0];
+  let best=lineCoords[0], bestDist=Infinity;
+  for(let i=0;i<lineCoords.length-1;i++){
+    const a=lineCoords[i], b=lineCoords[i+1];
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    let t = (dx===0&&dy===0) ? 0 : ((point[0]-a[0])*dx+(point[1]-a[1])*dy)/(dx*dx+dy*dy);
+    t = Math.max(0, Math.min(1, t));
+    const proj=[a[0]+t*dx, a[1]+t*dy];
+    const d=Math.hypot(point[0]-proj[0], point[1]-proj[1]);
+    if(d<bestDist){ bestDist=d; best=proj; }
+  }
+  return best;
+}
+
+function labelAnchorCentroid(trackCoords){
+  const c=centroid(trackCoords);
+  return nearestPointOnLine(c, trackCoords);
 }
 
 function simplifyLine(points, tolerance){
@@ -1035,7 +1140,7 @@ function updateUrlHash(){
 
 const urlState=parseStateFromHash();
 const map=L.map('map');
-const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
 // Extra lagen (onder GPX tracks) — elke laag bijhouden zodat we ze in het lagenpaneel kunnen tonen/verbergen
@@ -1161,7 +1266,7 @@ D.forEach(f=>{
       const allPts=f.tracks.flatMap(t=>t.coords);
       let pos;
       if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-      else pos=centroid(allPts);
+      else pos=labelAnchorCentroid(allPts);
       const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
       const lbl=L.marker(pos,{
         icon:L.divIcon({
@@ -1224,11 +1329,34 @@ const locBtn=document.getElementById('loc-btn');
 const visBtn=document.getElementById('vis-btn');
 let wid=null,locTrail=null,lc=null,dirMarker=null;
 let followZoom=null; // vastgezet zoomniveau bij start van volgen, voorkomt jitter door getZoom() tijdens animatie
-let locHistory=[]; // laatste N gps-punten voor richtingsspoor
-const TRAIL_LENGTH=20;
+let locHistory=[]; // gps-punten voor richtingsspoor (afstandsgebaseerd getrimd, zie trimTrail)
+const TRAIL_MODE=${JSON.stringify(trailMode)}; // 'distance' of 'full'
+const TRAIL_METERS=${trailMeters};
 const FOLLOW_RESUME_DELAY=5000; // ms wachten na laatste handmatige kaartinteractie voordat opnieuw automatisch gecentreerd wordt
 let lastUserInteraction=0; // timestamp laatste handmatige pan/zoom
 let programmaticMove=false; // vlag om eigen setView-aanroepen te onderscheiden van gebruikersinteractie
+
+function haversineMeters(p1,p2){
+  const R=6371000;
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLat=(p2[0]-p1[0])*Math.PI/180, dLon=(p2[1]-p1[1])*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Trim het spoor: bij 'full' blijft alles staan (hele rit, ook na 50km), bij 'distance'
+// blijven alleen de punten binnen de laatste TRAIL_METERS meter (langs het pad gemeten) over.
+function trimTrail(history){
+  if(TRAIL_MODE==='full' || history.length<2) return history;
+  let acc=0;
+  let cutIdx=0;
+  for(let i=history.length-1;i>0;i--){
+    acc+=haversineMeters(history[i-1],history[i]);
+    if(acc>=TRAIL_METERS){ cutIdx=i-1; break; }
+    cutIdx=0;
+  }
+  return history.slice(cutIdx);
+}
 
 function bearing(p1,p2){
   // peiling in graden van p1 naar p2 (0=noord)
@@ -1244,7 +1372,7 @@ function makeDirIcon(deg){
   return L.divIcon({
     className:'',
     html:'<svg width="46" height="46" viewBox="0 0 46 46" style="transform:rotate('+deg+'deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">'
-        +'<polygon points="23,2 31,39 23,29 15,39" fill="#2980b9" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>'
+        +'<polygon points="23,2 31,39 23,29 15,39" fill="'+TRAIL_COLOR+'" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>'
         +'</svg>',
     iconSize:[46,46],
     iconAnchor:[23,23]
@@ -1275,9 +1403,9 @@ locBtn.onclick=function(){
     const ll=[p.coords.latitude,p.coords.longitude];
     locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
 
-    // bewaar laatste N punten voor het richtingsspoor
+    // spoor bijwerken: bij 'distance' alleen laatste X meter bewaren, bij 'full' alles
     locHistory.push(ll);
-    if(locHistory.length>TRAIL_LENGTH) locHistory.shift();
+    locHistory=trimTrail(locHistory);
 
     // peiling bepalen: gebruik GPS-heading indien beschikbaar, anders berekenen uit spoor
     let deg=0;
@@ -1292,8 +1420,8 @@ locBtn.onclick=function(){
       lc.setLatLng(ll).setRadius(p.coords.accuracy);
       dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg));
     } else {
-      lc=L.circle(ll,{radius:p.coords.accuracy,color:'#2980b9',fillColor:'#2980b9',fillOpacity:.12,weight:1}).addTo(map);
-      locTrail=L.polyline(locHistory,{color:'#2980b9',weight:10,opacity:.85,lineCap:'round'}).addTo(map);
+      lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
+      locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:.85,lineCap:'round'}).addTo(map);
       dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Jouw locatie');
     }
 
@@ -1301,13 +1429,13 @@ locBtn.onclick=function(){
 
     if(OPT_FOLLOW && idleLongEnough){
       // zoomniveau eenmalig vastleggen bij start van volgen, niet steeds opnieuw opvragen tijdens animatie
-      if(followZoom===null) followZoom=Math.max(map.getZoom(),14);
+      if(followZoom===null) followZoom=Math.max(map.getZoom(),16);
       programmaticMove=true;
       map.setView(ll, followZoom, {animate:false});
       programmaticMove=false;
     } else if(!dirMarker._shown){
       programmaticMove=true;
-      map.setView(ll, Math.max(map.getZoom(),14));
+      map.setView(ll, Math.max(map.getZoom(),16));
       programmaticMove=false;
       dirMarker._shown=true;
     }
