@@ -114,14 +114,6 @@ input:checked+.slider:before{transform:translateX(14px)}
       <input type="text" id="title" placeholder="Mijn rit">
     </div>
     <div>
-      <label>Lijndikte track</label>
-      <div class="row">
-        <input type="range" min="1" max="8" value="3" step="1" id="linewidth" oninput="document.getElementById('lwval').textContent=this.value;updatePreview()">
-        <span class="range-val" id="lwval">3</span>
-        <span class="range-val" style="color:#aaa">px</span>
-      </div>
-    </div>
-    <div>
       <label>Navigatie-opties (in geëxporteerde kaart)</label>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:inherit;margin-bottom:0">
@@ -175,6 +167,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <script>
 const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c07000","#888888","#a9a9a9","#000075"];
+const MAX_ZOOM=19; // praktische grens voor standaard OSM-tiles; hoger heeft geen tile-dekking
 let files=[];
 let map=null;
 let layers=[];
@@ -268,6 +261,13 @@ function renderLayerList(){
       updatePreview();renderLayerList();
     });
   });
+  el.querySelectorAll('.layer-defaulton').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].defaultOn=e.target.checked;
+      updatePreview();
+    });
+  });
   el.querySelectorAll('.delbtn').forEach(btn=>{
     btn.addEventListener('click',e=>removeLayer(parseInt(e.target.dataset.idx)));
   });
@@ -287,7 +287,7 @@ function handleFiles(fl){
     reader.onload=ev=>{
       const parsed=parseGPX(ev.target.result);
       if(!parsed)return;
-      files.push({name:f.name, displayName:f.name.replace(/\.gpx$/i,''), color, showLabel:true, showStart:true, labelPos:'centroid', zoomMin:14, zoomMax:18, useElementName:false, ...parsed});
+      files.push({name:f.name, displayName:f.name.replace(/\.gpx$/i,''), color, showLabel:true, showStart:true, labelPos:'midline', labelZoomMin:14, labelZoomMax:18, useElementName:true, lineWidth:3, mapZoomMin:1, mapZoomMax:19, ...parsed});
       renderList();
       updatePreview();
       document.getElementById('exportbtn').disabled=false;
@@ -335,6 +335,17 @@ function renderList(){
       <div class="file-row-main">
       <input type="color" value="${f.color}" title="Kleur" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Naam op kaart" data-idx="${i}" class="nameinput" placeholder="Naam">
+      <span class="toggle-label" style="color:#aaa">lijndikte</span>
+      <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Lijndikte van deze track in pixels" style="width:42px">
+      <span class="toggle-label" style="color:#aaa">px</span>
+      <span class="toggle-label" style="color:#aaa;margin-left:4px">kaartzoom</span>
+      <input type="number" value="${f.mapZoomMin!=null?f.mapZoomMin:1}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints zichtbaar vanaf zoomniveau">
+      <span class="toggle-label" style="color:#aaa">–</span>
+      <input type="number" value="${f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints zichtbaar t/m zoomniveau">
+      <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
+      <button class="delbtn" data-idx="${i}" title="Verwijderen">&times;</button>
+      </div>
+      <div class="file-row-main">
       <label class="toggle" title="Naam tonen op kaart">
         <input type="checkbox" ${f.showLabel?'checked':''} data-idx="${i}" class="labeltog">
         <span class="slider"></span>
@@ -355,12 +366,10 @@ function renderList(){
         <span class="slider"></span>
       </label>
       <span class="toggle-label">name label</span>
-      <span class="toggle-label" style="color:#aaa;margin-left:4px">zoom</span>
-      <input type="number" value="${f.zoomMin}" min="1" max="19" data-idx="${i}" class="zoominput zoommin" title="Zoomniveau van">
+      <span class="toggle-label" style="color:#aaa;margin-left:4px">label zoom</span>
+      <input type="number" value="${f.labelZoomMin}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommin" title="Label zoomniveau van">
       <span class="toggle-label" style="color:#aaa">–</span>
-      <input type="number" value="${f.zoomMax}" min="1" max="19" data-idx="${i}" class="zoominput zoommax" title="Zoomniveau t/m">
-      <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
-      <button class="delbtn" data-idx="${i}" title="Verwijderen">&times;</button>
+      <input type="number" value="${f.labelZoomMax}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommax" title="Label zoomniveau t/m">
       </div>
       ${f.waypoints.length>0?`
       <div class="file-row-wpticon">
@@ -419,19 +428,42 @@ function renderList(){
       updatePreview();
     });
   });
-  el.querySelectorAll('.zoommin').forEach(inp=>{
+  el.querySelectorAll('.labelzoommin').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      files[i].zoomMin=parseInt(e.target.value)||1;
-      if(files[i].zoomMin>files[i].zoomMax)files[i].zoomMax=files[i].zoomMin;
+      files[i].labelZoomMin=parseInt(e.target.value)||1;
+      if(files[i].labelZoomMin>files[i].labelZoomMax)files[i].labelZoomMax=files[i].labelZoomMin;
       updatePreview();renderList();
     });
   });
-  el.querySelectorAll('.zoommax').forEach(inp=>{
+  el.querySelectorAll('.labelzoommax').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      files[i].zoomMax=parseInt(e.target.value)||19;
-      if(files[i].zoomMax<files[i].zoomMin)files[i].zoomMin=files[i].zoomMax;
+      files[i].labelZoomMax=parseInt(e.target.value)||19;
+      if(files[i].labelZoomMax<files[i].labelZoomMin)files[i].labelZoomMin=files[i].labelZoomMax;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.linewidthinput').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].lineWidth=parseInt(e.target.value)||3;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.mapzoommin').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].mapZoomMin=parseInt(e.target.value)||1;
+      if(files[i].mapZoomMin>files[i].mapZoomMax)files[i].mapZoomMax=files[i].mapZoomMin;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.mapzoommax').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].mapZoomMax=parseInt(e.target.value)||MAX_ZOOM;
+      if(files[i].mapZoomMax<files[i].mapZoomMin)files[i].mapZoomMin=files[i].mapZoomMax;
       updatePreview();renderList();
     });
   });
@@ -508,6 +540,61 @@ function centroid(coords){
   let la=0,lo=0;
   coords.forEach(p=>{la+=p[0];lo+=p[1];});
   return[la/coords.length,lo/coords.length];
+}
+
+// Douglas-Peucker lijnvereenvoudiging: haalt overbodige tussenpunten weg zodat een
+// kronkelige track wordt teruggebracht tot de essentiële richting-bepalende punten.
+function simplifyLine(points, tolerance){
+  if(points.length<3) return points;
+  function perpDist(pt,a,b){
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    if(dx===0&&dy===0) return Math.hypot(pt[0]-a[0],pt[1]-a[1]);
+    const t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/(dx*dx+dy*dy);
+    const tc=Math.max(0,Math.min(1,t));
+    const px=a[0]+tc*dx, py=a[1]+tc*dy;
+    return Math.hypot(pt[0]-px,pt[1]-py);
+  }
+  function dp(pts,tol){
+    if(pts.length<3) return pts;
+    let maxD=0,idx=0;
+    for(let i=1;i<pts.length-1;i++){
+      const d=perpDist(pts[i],pts[0],pts[pts.length-1]);
+      if(d>maxD){maxD=d;idx=i;}
+    }
+    if(maxD>tol){
+      const left=dp(pts.slice(0,idx+1),tol);
+      const right=dp(pts.slice(idx),tol);
+      return left.slice(0,-1).concat(right);
+    }
+    return [pts[0],pts[pts.length-1]];
+  }
+  return dp(points,tolerance);
+}
+
+// Kies en vereenvoudig een tekstpad voor "op lijn"-labels: een sterk gladgestreken
+// versie van de track, zodat de tekst niet elke kleine bocht van een GPS-track volgt.
+function buildTextPathLine(coords, labelLength){
+  if(coords.length<3) return normalizeDirection(coords);
+  const lats=coords.map(p=>p[0]), lons=coords.map(p=>p[1]);
+  const span=Math.max(Math.max(...lats)-Math.min(...lats), Math.max(...lons)-Math.min(...lons));
+  // basistolerantie voor vereenvoudiging, lichter bij langere namen zodat er genoeg
+  // rechte lengte overblijft om de tekst zonder overlap/uitsteken te tonen
+  const lenFactor = labelLength ? Math.max(0.4, 1-(labelLength-10)*0.03) : 1;
+  const tolerance=Math.max(span*0.012*lenFactor, 0.00008);
+  const simplified=simplifyLine(coords, tolerance);
+  return normalizeDirection(simplified);
+}
+
+// Normaliseer de richting van een coördinatenreeks: zorg dat de lijn altijd overwegend
+// van west naar oost loopt (toenemende longitude). Dat voorkomt dat TextPath de tekst
+// op zijn kop tekent wanneer de originele GPX-track van rechts naar links loopt.
+function normalizeDirection(coords){
+  if(coords.length<2) return coords;
+  const start=coords[0], end=coords[coords.length-1];
+  const dLon=end[1]-start[1];
+  const dLat=end[0]-start[0];
+  const goingLeft = Math.abs(dLon) >= Math.abs(dLat) ? dLon < 0 : dLat < 0;
+  return goingLeft ? coords.slice().reverse() : coords;
 }
 
 // contrasterende halo kleur (wit of zwart op basis van lijnkleur)
@@ -593,16 +680,21 @@ function updatePreview(){
     }catch(e){previewExtraLayers.push(null);}
   });
   layers.forEach(l=>map.removeLayer(l));layers=[];
-  const lw=parseInt(document.getElementById('linewidth').value);
   const allCoords=[];
   files.forEach(f=>{
+    const fLw=f.lineWidth!=null?f.lineWidth:3;
+    const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
+    const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
     f.tracks.forEach(t=>{
-      const poly=L.polyline(t.coords,{color:f.color,weight:lw,opacity:.9}).addTo(map);
+      const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
       poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
       poly._gpxFile=f;
+      poly._gpxTrack=true; // aparte vlag voor kaartzoom-zichtbaarheid van de track zelf (los van label-zoom)
+      poly._trackZoomMin=fZMin;
+      poly._trackZoomMax=fZMax;
       layers.push(poly);allCoords.push(...t.coords);
     });
-    // start marker: tonen op basis van showStart toggle
+    // start marker: tonen op basis van showStart toggle, binnen kaartzoom-bereik van deze GPX
     if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
       const startPt=f.tracks[0].coords[0];
       const startIcon=L.divIcon({
@@ -612,6 +704,9 @@ function updatePreview(){
         iconAnchor:[11,11]
       });
       const startM=L.marker(startPt,{icon:startIcon,interactive:false,zIndexOffset:200}).addTo(map);
+      startM._gpxWptMarker=true;
+      startM._zoomMin=fZMin;
+      startM._zoomMax=fZMax;
       layers.push(startM);
     }
     f.waypoints.forEach(w=>{
@@ -619,8 +714,10 @@ function updatePreview(){
       const wLabel=getLabelText(f,w.name);
       if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
       m._gpxWptMarker=true;
-      m._zoomMin=parseInt(document.getElementById('wptmarkerzoom').value);
-      m._zoomMax=19;
+      // strengste (smalste) bereik van globale waypoint-marker-zoom en de kaartzoom van deze GPX
+      const wMarkerZoomMin=parseInt(document.getElementById('wptmarkerzoom').value);
+      m._zoomMin=Math.max(wMarkerZoomMin,fZMin);
+      m._zoomMax=fZMax;
       layers.push(m);allCoords.push([w.lat,w.lon]);
       // waypointlabel: alleen als showLabel aan staat voor deze GPX
       if(f.showLabel){
@@ -645,25 +742,28 @@ function updatePreview(){
       const halo=contrastHalo(f.color);
       const mainLabel=getLabelText(f,f.tracks[0].name);
       if(f.labelPos==='midline'){
-        // tekst langs de lijn via TextPath — op eerste track
-        const tPoly=layers.filter(l=>l._gpxFile===f&&l.setText)[0];
-        if(tPoly){
-          tPoly.setText(mainLabel,{
-            center:true,
-            attributes:{
-              'font-size':'24px',
-              'font-weight':'bold',
-              'fill':f.color,
-              'paint-order':'stroke',
-              'stroke':halo,
-              'stroke-width':'3px',
-              'stroke-linejoin':'round'
-            }
-          });
-          tPoly._gpxLabel=true;
-          tPoly._zoomMin=f.zoomMin;
-          tPoly._zoomMax=f.zoomMax;
-        }
+        // tekst langs de lijn: gebruik een onzichtbare, gladgestreken versie van de
+        // track zodat de letters niet elke kleine GPS-kronkel volgen.
+        const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
+        const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
+        textPoly.setText(mainLabel,{
+          center:true,
+          repeat:false,
+          attributes:{
+            'font-size':'24px',
+            'font-weight':'bold',
+            'fill':f.color,
+            'paint-order':'stroke',
+            'stroke':halo,
+            'stroke-width':'3px',
+            'stroke-linejoin':'round'
+          }
+        });
+        textPoly._gpxFile=f;
+        textPoly._gpxLabel=true;
+        textPoly._zoomMin=f.labelZoomMin;
+        textPoly._zoomMax=f.labelZoomMax;
+        layers.push(textPoly);
       } else {
         const allPts=f.tracks.flatMap(t=>t.coords);
         let pos;
@@ -680,8 +780,8 @@ function updatePreview(){
           zIndexOffset:100
         }).addTo(map);
         label._gpxLabel=true;
-        label._zoomMin=f.zoomMin;
-        label._zoomMax=f.zoomMax;
+        label._zoomMin=f.labelZoomMin;
+        label._zoomMax=f.labelZoomMax;
         layers.push(label);
       }
     }
@@ -702,16 +802,23 @@ function updateLabelVisibility(){
   if(!map)return;
   const zoom=map.getZoom();
   layers.forEach(l=>{
+    // Track-zichtbaarheid (lijn zelf, los van eventueel label erop) op basis van per-GPX kaartzoom
+    if(l._gpxTrack){
+      const tVisible=zoom>=l._trackZoomMin&&zoom<=l._trackZoomMax;
+      const el=l.getElement();
+      if(el)el.style.display=tVisible?'':'none';
+    }
     if(!l._gpxLabel&&!l._gpxWptLabel&&!l._gpxWptMarker)return;
     const zmin=l._zoomMin, zmax=l._zoomMax;
     const visible=zoom>=zmin&&zoom<=zmax;
     if(l.setText){
-      // TextPath polyline: set or clear text
+      // TextPath polyline: set or clear text. De track zelf (zichtbaarheid van de lijn) wordt
+      // hierboven al apart geregeld via _gpxTrack; dit blok regelt alleen de tekst erlangs.
       if(visible){
         const f=l._gpxFile;
         const halo=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
-        l.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
+        l.setText(null);l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else {
         l.setText(null);
       }
@@ -724,20 +831,22 @@ function updateLabelVisibility(){
 
 function exportMap(){
   const title=document.getElementById('title').value.trim()||'Mijn route';
-  const lw=parseInt(document.getElementById('linewidth').value);
   const optFollow=document.getElementById('opt-follow').checked;
   const wptZoom=parseInt(document.getElementById('wptzoom').value);
   const wptMarkerZoom=parseInt(document.getElementById('wptmarkerzoom').value);
-  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Laag '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:22}));
+  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Laag '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:22,defaultOn:l.defaultOn!==false}));
   const data=files.map(f=>({
     filename:f.displayName,
     color:f.color,
     showLabel:f.showLabel,
     showStart:f.showStart,
     labelPos:f.labelPos,
-    zoomMin:f.zoomMin,
-    zoomMax:f.zoomMax,
+    labelZoomMin:f.labelZoomMin,
+    labelZoomMax:f.labelZoomMax,
     useElementName:f.useElementName,
+    lineWidth:f.lineWidth!=null?f.lineWidth:3,
+    mapZoomMin:f.mapZoomMin!=null?f.mapZoomMin:1,
+    mapZoomMax:f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM,
     wptIconSvg:f.wptIconSvg||null,
     wptIconSize:f.wptIconSize||28,
     tracks:f.tracks,
@@ -811,7 +920,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 <script>
 const D=${JSON.stringify(data)};
 const B=${JSON.stringify(bounds)};
-const LW=${lw};
+const MAX_ZOOM=19;
 const OPT_FOLLOW=${optFollow};
 const WPTZOOM=${wptZoom};
 const WPTMARKERZOOM=${wptMarkerZoom};
@@ -821,6 +930,52 @@ function centroid(coords){
   let la=0,lo=0;
   coords.forEach(p=>{la+=p[0];lo+=p[1];});
   return[la/coords.length,lo/coords.length];
+}
+
+function simplifyLine(points, tolerance){
+  if(points.length<3) return points;
+  function perpDist(pt,a,b){
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    if(dx===0&&dy===0) return Math.hypot(pt[0]-a[0],pt[1]-a[1]);
+    const t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/(dx*dx+dy*dy);
+    const tc=Math.max(0,Math.min(1,t));
+    const px=a[0]+tc*dx, py=a[1]+tc*dy;
+    return Math.hypot(pt[0]-px,pt[1]-py);
+  }
+  function dp(pts,tol){
+    if(pts.length<3) return pts;
+    let maxD=0,idx=0;
+    for(let i=1;i<pts.length-1;i++){
+      const d=perpDist(pts[i],pts[0],pts[pts.length-1]);
+      if(d>maxD){maxD=d;idx=i;}
+    }
+    if(maxD>tol){
+      const left=dp(pts.slice(0,idx+1),tol);
+      const right=dp(pts.slice(idx),tol);
+      return left.slice(0,-1).concat(right);
+    }
+    return [pts[0],pts[pts.length-1]];
+  }
+  return dp(points,tolerance);
+}
+
+function buildTextPathLine(coords, labelLength){
+  if(coords.length<3) return normalizeDirection(coords);
+  const lats=coords.map(p=>p[0]), lons=coords.map(p=>p[1]);
+  const span=Math.max(Math.max(...lats)-Math.min(...lats), Math.max(...lons)-Math.min(...lons));
+  const lenFactor = labelLength ? Math.max(0.4, 1-(labelLength-10)*0.03) : 1;
+  const tolerance=Math.max(span*0.012*lenFactor, 0.00008);
+  const simplified=simplifyLine(coords, tolerance);
+  return normalizeDirection(simplified);
+}
+
+function normalizeDirection(coords){
+  if(coords.length<2) return coords;
+  const start=coords[0], end=coords[coords.length-1];
+  const dLon=end[1]-start[1];
+  const dLat=end[0]-start[0];
+  const goingLeft = Math.abs(dLon) >= Math.abs(dLat) ? dLon < 0 : dLat < 0;
+  return goingLeft ? coords.slice().reverse() : coords;
 }
 
 function contrastHalo(hex){
@@ -938,11 +1093,17 @@ const wptMarkerLayers=[];
 
 D.forEach(f=>{
   const filePolys=[];
+  const fLw=f.lineWidth!=null?f.lineWidth:3;
+  const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
+  const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
   f.tracks.forEach(t=>{
-    const poly=L.polyline(t.coords,{color:f.color,weight:LW,opacity:.9}).addTo(map);
+    const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
     poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
     poly._gpxFile=f;
+    poly._trackZoomMin=fZMin;
+    poly._trackZoomMax=fZMax;
     trackLayers.push(poly);
+    wptMarkerLayers.push(poly); // zelfde zoom-zichtbaarheidsmechanisme als waypoint-markers
     filePolys.push(poly);
   });
   if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
@@ -955,14 +1116,18 @@ D.forEach(f=>{
       }),
       interactive:false,zIndexOffset:300
     }).addTo(map);
+    startM._trackZoomMin=fZMin;
+    startM._trackZoomMax=fZMax;
     trackLayers.push(startM);
+    wptMarkerLayers.push(startM);
   }
   f.waypoints.forEach(w=>{
     const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
     if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
-    m._zoomMin=WPTMARKERZOOM;
-    m._zoomMax=19;
+    // strengste (smalste) bereik van globale waypoint-marker-zoom en de kaartzoom van deze GPX
+    m._trackZoomMin=Math.max(WPTMARKERZOOM,fZMin);
+    m._trackZoomMax=fZMax;
     trackLayers.push(m);
     wptMarkerLayers.push(m);
     // waypointlabel: alleen als showLabel aan staat voor deze GPX, zoomdrempel uit globale WPTZOOM
@@ -984,13 +1149,14 @@ D.forEach(f=>{
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
     const mainLabel=getLabelText(f,f.tracks[0].name);
-    if(f.labelPos==='midline'&&filePolys.length){
-      const tp=filePolys[0];
-      tp.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
-      tp._gpxLabel=true;
-      tp._zoomMin=f.zoomMin;
-      tp._zoomMax=f.zoomMax;
-      labelLayers.push(tp);
+    if(f.labelPos==='midline'&&f.tracks.length){
+      const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
+      const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
+      textPoly.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      textPoly._gpxFile=f;
+      textPoly._zoomMin=f.labelZoomMin;
+      textPoly._zoomMax=f.labelZoomMax;
+      labelLayers.push(textPoly);
     } else {
       const allPts=f.tracks.flatMap(t=>t.coords);
       let pos;
@@ -1005,8 +1171,8 @@ D.forEach(f=>{
         }),
         interactive:false,zIndexOffset:200
       }).addTo(map);
-      lbl._zoomMin=f.zoomMin;
-      lbl._zoomMax=f.zoomMax;
+      lbl._zoomMin=f.labelZoomMin;
+      lbl._zoomMax=f.labelZoomMax;
       labelLayers.push(lbl);
     }
   }
@@ -1032,14 +1198,14 @@ function updateLabels(){
         const f=l._gpxFile;
         const h=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
-        l.setText(mainLabel,{center:true,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+        l.setText(null);l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else { l.setText(null); }
     } else {
       const e=l.getElement();if(e)e.style.display=visible?'':'none';
     }
   });
   wptMarkerLayers.forEach(m=>{
-    const visible=z>=m._zoomMin&&z<=m._zoomMax;
+    const visible=z>=m._trackZoomMin&&z<=m._trackZoomMax;
     const e=m.getElement();
     if(e)e.style.display=visible?'':'none';
   });
