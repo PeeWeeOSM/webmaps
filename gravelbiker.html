@@ -64,7 +64,7 @@ const MAX_ZOOM=19;
 const OPT_FOLLOW=true;
 const WPTZOOM=15;
 const WPTMARKERZOOM=9;
-const OSM_OPACITY=1;
+const OSM_OPACITY=0.65;
 const TRAIL_COLOR="#9b30d9";
 const TRAIL_WIDTH=5;
 
@@ -230,7 +230,7 @@ const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ma
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
 // Extra layers (below GPX tracks) — track each layer so we can show/hide them in the layers panel
-const EX=[{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Gravelbike","opacity":0.8,"zoomMin":13,"zoomMax":22,"defaultOn":true},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fietstoegankelijkheid&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"bicyle_access","opacity":0.8,"zoomMin":15,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=naturereserve_cycling&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Naturereserve","opacity":0.55,"zoomMin":1,"zoomMax":22,"defaultOn":true}];
+const EX=[{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Gravelbike","opacity":0.8,"zoomMin":13,"zoomMax":22,"defaultOn":true},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fietstoegankelijkheid&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Bicyle_access","opacity":0.8,"zoomMin":15,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=naturereserve_cycling&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Naturereserve","opacity":0.55,"zoomMin":1,"zoomMax":22,"defaultOn":true}];
 const wmsLayerObjs=[];
 EX.forEach((el,i)=>{
   let lyr=null;
