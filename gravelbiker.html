@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>gravelbiker</title>
+<title>Gravelbiker</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -37,23 +37,23 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 </style>
 </head>
 <body>
-<div id="hdr"><h1>gravelbiker</h1></div>
+<div id="hdr"><h1>Gravelbiker</h1></div>
 <div id="map-wrap">
   <div id="map"></div>
   <div id="controls-overlay">
     <div class="zoom-group">
-      <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Inzoomen">+</button>
-      <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Uitzoomen">&#8722;</button>
+      <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Zoom in">+</button>
+      <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
-    <button class="ctrl-btn" id="loc-btn" title="Mijn locatie">&#9737;</button>
-    <button class="ctrl-btn" id="vis-btn" title="GPX tonen/verbergen">&#128065;</button>
+    <button class="ctrl-btn" id="loc-btn" title="My location">&#9737;</button>
+    <button class="ctrl-btn" id="vis-btn" title="Show/hide GPX">&#128065;</button>
   </div>
   <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
   <div id="layers-overlay">
-    <button class="ctrl-btn" id="layers-btn" title="Kaartlagen">&#9776;</button>
-    <div id="layers-panel"><h3>Kaartlagen</h3><div id="layers-panel-content"></div></div>
+    <button class="ctrl-btn" id="layers-btn" title="Map layers">&#9776;</button>
+    <div id="layers-panel"><h3>Map layers</h3><div id="layers-panel-content"></div></div>
   </div>
-  <div id="notice">Achtergrondkaart niet beschikbaar (geen verbinding)</div>
+  <div id="notice">Background map unavailable (no connection)</div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
@@ -64,8 +64,8 @@ const MAX_ZOOM=19;
 const OPT_FOLLOW=true;
 const WPTZOOM=15;
 const WPTMARKERZOOM=9;
-const OSM_OPACITY=0.45;
-const TRAIL_COLOR="#c215e5";
+const OSM_OPACITY=1;
+const TRAIL_COLOR="#9b30d9";
 const TRAIL_WIDTH=5;
 
 function centroid(coords){
@@ -94,6 +94,33 @@ function nearestPointOnLine(point, lineCoords){
 function labelAnchorCentroid(trackCoords){
   const c=centroid(trackCoords);
   return nearestPointOnLine(c, trackCoords);
+}
+
+function bearingPoints(p1,p2){
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLon=(p2[1]-p1[1])*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+function buildKmMarkers(coords){
+  if(coords.length<2) return [];
+  const markers=[];
+  let cumDist=0;
+  let nextKm=1000;
+  for(let i=0;i<coords.length-1;i++){
+    const segDist=haversineMeters(coords[i],coords[i+1]);
+    while(cumDist+segDist>=nextKm){
+      const t=(nextKm-cumDist)/segDist;
+      const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
+      const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
+      markers.push({position:[lat,lon], bearing:bearingPoints(coords[i],coords[i+1]), km:nextKm/1000});
+      nextKm+=1000;
+    }
+    cumDist+=segDist;
+  }
+  return markers;
 }
 
 function simplifyLine(points, tolerance){
@@ -202,8 +229,8 @@ const map=L.map('map');
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
-// Extra lagen (onder GPX tracks) — elke laag bijhouden zodat we ze in het lagenpaneel kunnen tonen/verbergen
-const EX=[{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=naturereserve_cycling&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"naturereserve_cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":true},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Gravelbiker","opacity":0.8,"zoomMin":15,"zoomMax":22,"defaultOn":true},{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"wmt_cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=surface2&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"surface","opacity":0.8,"zoomMin":17,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://mapwarper.net/mosaics/tile/2123/{z}/{x}/{y}.png","wmsLayer":"","displayName":"Leggers","opacity":0.7,"zoomMin":1,"zoomMax":22,"defaultOn":false}];
+// Extra layers (below GPX tracks) — track each layer so we can show/hide them in the layers panel
+const EX=[{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Gravelbike","opacity":0.8,"zoomMin":13,"zoomMax":22,"defaultOn":true},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fietstoegankelijkheid&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"bicyle_access","opacity":0.8,"zoomMin":15,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=naturereserve_cycling&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Naturereserve","opacity":0.55,"zoomMin":1,"zoomMax":22,"defaultOn":true}];
 const wmsLayerObjs=[];
 EX.forEach((el,i)=>{
   let lyr=null;
@@ -220,7 +247,7 @@ EX.forEach((el,i)=>{
   wmsLayerObjs.push({layer:lyr,name:el.displayName||('Laag '+(i+1)),visible:true});
 });
 
-// Lagenpaneel rechtsboven: alleen tonen als er extra lagen zijn
+// Layers panel top-right: only show if there are extra layers
 if(EX.length>0){
   const layersBtn=document.getElementById('layers-btn');
   const layersOverlay=document.getElementById('layers-overlay');
@@ -267,7 +294,7 @@ D.forEach(f=>{
     poly._trackZoomMin=fZMin;
     poly._trackZoomMax=fZMax;
     trackLayers.push(poly);
-    wptMarkerLayers.push(poly); // zelfde zoom-zichtbaarheidsmechanisme als waypoint-markers
+    wptMarkerLayers.push(poly); // same zoom-visibility mechanism as waypoint markers
     filePolys.push(poly);
   });
   if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
@@ -285,16 +312,36 @@ D.forEach(f=>{
     trackLayers.push(startM);
     wptMarkerLayers.push(startM);
   }
+  // KM direction markers: every kilometer along the combined tracks of this GPX
+  if(f.showKmMarkers&&f.tracks.length){
+    const allTrackCoords=f.tracks.flatMap(t=>t.coords);
+    const kmMarkers=buildKmMarkers(allTrackCoords);
+    kmMarkers.forEach(km=>{
+      const kmM=L.marker(km.position,{
+        icon:L.divIcon({
+          className:'',
+          html:'<svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate('+km.bearing+'deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))"><polygon points="13,2 19,22 13,17 7,22" fill="'+f.color+'" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+          iconSize:[26,26],iconAnchor:[13,13]
+        }),
+        zIndexOffset:180
+      }).addTo(map);
+      kmM.bindPopup('<b>'+km.km+' km</b>');
+      kmM._trackZoomMin=fZMin;
+      kmM._trackZoomMax=fZMax;
+      trackLayers.push(kmM);
+      wptMarkerLayers.push(kmM);
+    });
+  }
   f.waypoints.forEach(w=>{
     const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
     if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
-    // strengste (smalste) bereik van globale waypoint-marker-zoom en de kaartzoom van deze GPX
+    // narrowest (strictest) range of global waypoint-marker-zoom and this GPX's map zoom
     m._trackZoomMin=Math.max(WPTMARKERZOOM,fZMin);
     m._trackZoomMax=fZMax;
     trackLayers.push(m);
     wptMarkerLayers.push(m);
-    // waypointlabel: alleen als showLabel aan staat voor deze GPX, zoomdrempel uit globale WPTZOOM
+    // waypoint label: only if showLabel is on for this GPX, zoomdrempel uit globale WPTZOOM
     if(f.showLabel){
       const h=contrastHalo(f.color);
       const wptLbl=L.marker([w.lat,w.lon],{
@@ -350,7 +397,7 @@ if(urlState&&urlState.z!=null){
   map.setView([52,5],8);
 }
 
-// URL bijwerken bij elke pan/zoom, zodat de adresbalk altijd de actuele kaartstatus weergeeft (deelbaar)
+// Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
 map.on('moveend',updateUrlHash);
 
 function updateLabels(){
@@ -387,13 +434,13 @@ map.whenReady(updateZoomIndicator);
 const locBtn=document.getElementById('loc-btn');
 const visBtn=document.getElementById('vis-btn');
 let wid=null,locTrail=null,lc=null,dirMarker=null;
-let followZoom=null; // vastgezet zoomniveau bij start van volgen, voorkomt jitter door getZoom() tijdens animatie
-let locHistory=[]; // gps-punten voor richtingsspoor (afstandsgebaseerd getrimd, zie trimTrail)
+let followZoom=null; // fixed zoom level at start of following, prevents jitter from getZoom() during animation
+let locHistory=[]; // GPS points for direction trail (distance-based trimming, see trimTrail)
 const TRAIL_MODE="distance"; // 'distance' of 'full'
 const TRAIL_METERS=200;
-const FOLLOW_RESUME_DELAY=5000; // ms wachten na laatste handmatige kaartinteractie voordat opnieuw automatisch gecentreerd wordt
-let lastUserInteraction=0; // timestamp laatste handmatige pan/zoom
-let programmaticMove=false; // vlag om eigen setView-aanroepen te onderscheiden van gebruikersinteractie
+const FOLLOW_RESUME_DELAY=5000; // ms to wait after last manual map interaction before auto-centering again
+let lastUserInteraction=0; // timestamp of last manual pan/zoom
+let programmaticMove=false; // flag to distinguish our own setView calls from user interaction
 
 function haversineMeters(p1,p2){
   const R=6371000;
@@ -403,8 +450,8 @@ function haversineMeters(p1,p2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// Trim het spoor: bij 'full' blijft alles staan (hele rit, ook na 50km), bij 'distance'
-// blijven alleen de punten binnen de laatste TRAIL_METERS meter (langs het pad gemeten) over.
+// Trim the trail: with 'full' everything is kept (whole ride, even after 50km), with 'distance'
+// only the points within the last TRAIL_METERS meters (measured along the path) are kept.
 function trimTrail(history){
   if(TRAIL_MODE==='full' || history.length<2) return history;
   let acc=0;
@@ -426,7 +473,7 @@ function bearing(p1,p2){
   return (Math.atan2(y,x)*180/Math.PI+360)%360;
 }
 
-// Spitse driehoek als SVG: rotatiepunt exact op het centrum van het figuur, geen scheve weergave
+// Pointed triangle as SVG: rotation center exactly at the center of the shape, no skewed rendering
 function makeDirIcon(deg){
   return L.divIcon({
     className:'',
@@ -448,25 +495,25 @@ function stopLoc(){
   locHistory=[];
 }
 
-// Detecteer handmatige kaartinteractie (slepen/zoomen door gebruiker) om auto-centreren tijdelijk te pauzeren
+// Detect manual map interaction (drag/zoom by user) to temporarily pause auto-centering
 map.on('dragstart zoomstart',function(){
   if(!programmaticMove) lastUserInteraction=Date.now();
 });
 
 locBtn.onclick=function(){
   if(wid!==null){stopLoc();return;}
-  if(!navigator.geolocation){alert('GPS niet beschikbaar in deze browser.');return;}
+  if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
   locBtn.innerHTML='&#8987;';
 
   wid=navigator.geolocation.watchPosition(function(p){
     const ll=[p.coords.latitude,p.coords.longitude];
     locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
 
-    // spoor bijwerken: bij 'distance' alleen laatste X meter bewaren, bij 'full' alles
+    // update trail: with 'distance' only keep last X meters, with 'full' keep everything
     locHistory.push(ll);
     locHistory=trimTrail(locHistory);
 
-    // peiling bepalen: gebruik GPS-heading indien beschikbaar, anders berekenen uit spoor
+    // determine bearing: use GPS heading if available, otherwise compute from trail
     let deg=0;
     if(p.coords.heading!=null && !isNaN(p.coords.heading)){
       deg=p.coords.heading;
@@ -481,13 +528,13 @@ locBtn.onclick=function(){
     } else {
       lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
       locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:.85,lineCap:'round'}).addTo(map);
-      dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Jouw locatie');
+      dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     }
 
     const idleLongEnough=(Date.now()-lastUserInteraction)>=FOLLOW_RESUME_DELAY;
 
     if(OPT_FOLLOW && idleLongEnough){
-      // zoomniveau eenmalig vastleggen bij start van volgen, niet steeds opnieuw opvragen tijdens animatie
+      // lock zoom level once at start of following, don't re-query during animation
       if(followZoom===null) followZoom=Math.max(map.getZoom(),16);
       programmaticMove=true;
       map.setView(ll, followZoom, {animate:false});
@@ -500,11 +547,11 @@ locBtn.onclick=function(){
     }
   },function(e){
     stopLoc();
-    alert('Locatie niet beschikbaar: '+e.message);
+    alert('Location unavailable: '+e.message);
   },{enableHighAccuracy:true,maximumAge:1000});
 };
 
-// Als gebruiker handmatig zoomt terwijl volgen actief is, nieuw zoomniveau onthouden i.p.v. terugspringen
+// If user manually zooms while following is active, remember new zoom level instead of snapping back
 map.on('zoomend',function(){
   if(OPT_FOLLOW && wid!==null) followZoom=map.getZoom();
 });
