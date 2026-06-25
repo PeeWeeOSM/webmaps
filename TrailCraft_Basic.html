@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TrailCraft_Basic</title>
+<title>Den_Treek_MTB</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -46,7 +46,9 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-btn.has-routes{border-color:#2980b9;background:#d4efff}
 #route-panel{display:none;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;min-width:320px;max-width:380px;margin-bottom:6px;max-height:65vh;overflow-y:auto}
 #route-panel.open{display:block}
-#route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+#route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
+#route-panel-close{margin-left:auto;background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
+#route-panel-close:hover{color:#333}
 .user-route-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;color:#222}
 .user-route-row:last-child{border-bottom:none}
 .user-route-row input[type=color]{width:24px;height:24px;border:none;padding:0;border-radius:3px;cursor:pointer;flex-shrink:0}
@@ -64,12 +66,22 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-add-bar{display:flex;gap:6px;margin-top:10px}
 #route-add-bar button{flex:1;padding:7px 4px;border:1.5px solid #2980b9;border-radius:6px;background:white;color:#2980b9;font-size:13px;font-weight:600;cursor:pointer}
 #route-add-bar button:hover{background:#eaf4fd}
-/* Hide Leaflet attribution flag emoji (Ukraine flag) — keep text attribution */
-.leaflet-attribution-flag{display:none!important}
+/* Visibility panel: dropdown from the eye button, 3 geometry type rows */
+#vis-overlay{position:relative}
+#vis-panel{display:none;position:absolute;top:42px;left:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:200px;z-index:1001}
+#vis-panel.open{display:block}
+#vis-panel h3{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.vis-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;color:#222;border-bottom:1px solid #f0f0f0}
+.vis-row:last-child{border-bottom:none}
+.vis-row .vis-label{flex:1;font-weight:500}
+.vis-row .vis-eye{background:none;border:none;font-size:15px;cursor:pointer;color:#333;padding:0 2px;line-height:1}
+.vis-row .vis-op{width:65px;accent-color:#185FA5;cursor:pointer}
+.vis-row .vis-pct{font-size:11px;color:#888;min-width:30px;text-align:right}
+/* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
 </style>
 </head>
 <body>
-<div id="hdr"><h1>TrailCraft_Basic</h1></div>
+<div id="hdr"><h1>Den_Treek_MTB</h1></div>
 <div id="map-wrap">
   <div id="map"></div>
   <div id="controls-overlay">
@@ -78,7 +90,30 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
       <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
     <button class="ctrl-btn" id="loc-btn" title="My location">&#9737;</button>
-    <button class="ctrl-btn" id="vis-btn" title="Show/hide GPX">&#128065;</button>
+    <div id="vis-overlay">
+      <button class="ctrl-btn" id="vis-btn" title="Show/hide layers">&#128065;</button>
+      <div id="vis-panel">
+        <h3>Visibility</h3>
+        <div class="vis-row" id="vis-row-tracks">
+          <span class="vis-label">Tracks</span>
+          <button class="vis-eye" id="vis-eye-tracks" title="Toggle tracks">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-tracks" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-tracks">100%</span>
+        </div>
+        <div class="vis-row" id="vis-row-waypoints">
+          <span class="vis-label">Waypoints</span>
+          <button class="vis-eye" id="vis-eye-waypoints" title="Toggle waypoints">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-waypoints" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-waypoints">100%</span>
+        </div>
+        <div class="vis-row" id="vis-row-polygons">
+          <span class="vis-label">Polygons</span>
+          <button class="vis-eye" id="vis-eye-polygons" title="Toggle polygons">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-polygons" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-polygons">100%</span>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
   <div id="layers-overlay">
@@ -88,8 +123,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
   <div id="route-overlay">
-    <div id="route-panel"><h3>User routes</h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-gpx">+ GPX</button><button id="route-add-geojson">+ GeoJSON</button></div></div>
-    <button id="route-btn">&#9782; Load route</button>
+    <div id="route-panel"><h3>Imported files<button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-gpx">+ GPX</button><button id="route-add-geojson">+ GeoJSON</button></div></div>
+    <button id="route-btn">&#8613; Import files</button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
 </div>
@@ -282,7 +317,7 @@ const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ma
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
-const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"riding","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"mountainbike","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"wms","url":"https://qgiscloud.com/PeeWee32/brouter_layers/wms?SERVICE=WMS&REQUEST=GetCapabilities","wmsLayer":"maxspeed_label","displayName":"Maxspeed_NL_Label","opacity":1,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"wms","url":"https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0","wmsLayer":"Actueel_orthoHR","displayName":"Luchtfoto_NL","opacity":0.7,"zoomMin":1,"zoomMax":22,"defaultOn":false}];
+const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Riding","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"wms","url":"https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0","wmsLayer":"Actueel_orthoHR","displayName":"Satelite NL","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false}];
 const wmsLayerObjs=new Array(EX.length);
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
@@ -378,24 +413,40 @@ const wmsLayerObjs=new Array(EX.length);
 }
 
 const labelLayers=[];
-const trackLayers=[];
-const wptMarkerLayers=[];
+const trackLineLayers=[];   // L.Polyline track lines only
+const trackDotLayers=[];    // start markers + km markers (belong to tracks, not waypoints)
+const wptMarkerLayers=[];   // waypoint markers + waypoint labels only
+const polygonLayers=[];     // L.Polygon filled areas only
+// zoomLayers built after D.forEach (see below)
 
 D.forEach(f=>{
   const filePolys=[];
   const fLw=f.lineWidth!=null?f.lineWidth:3;
   const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
   const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
+
+  // --- Render polygon areas (filled, with darker outline) ---
+  (f.polygons||[]).forEach(p=>{
+    const pg=L.polygon(p.rings,{color:f.color,weight:2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
+    if(p.name||p.desc)pg.bindPopup('<b>'+(p.name||f.filename)+'</b>'+(p.desc?'<br>'+p.desc:''));
+    pg._isPolygon=true;
+    pg._trackZoomMin=fZMin;
+    pg._trackZoomMax=fZMax;
+    polygonLayers.push(pg);
+  });
+
+  // --- Render line tracks ---
   f.tracks.forEach(t=>{
     const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
     poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
     poly._gpxFile=f;
     poly._trackZoomMin=fZMin;
     poly._trackZoomMax=fZMax;
-    trackLayers.push(poly);
-    wptMarkerLayers.push(poly); // same zoom-visibility mechanism as waypoint markers
+    trackLineLayers.push(poly);
     filePolys.push(poly);
   });
+
+  // --- Start marker (belongs to tracks, not waypoints) ---
   if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
     const sp=f.tracks[0].coords[0];
     const startM=L.marker(sp,{
@@ -408,10 +459,10 @@ D.forEach(f=>{
     }).addTo(map);
     startM._trackZoomMin=fZMin;
     startM._trackZoomMax=fZMax;
-    trackLayers.push(startM);
-    wptMarkerLayers.push(startM);
+    trackDotLayers.push(startM);  // track group, NOT waypoints
   }
-  // KM direction markers: every kilometer along the combined tracks of this GPX
+
+  // --- KM direction markers (belong to tracks, not waypoints) ---
   if(f.showKmMarkers&&f.tracks.length){
     const allTrackCoords=f.tracks.flatMap(t=>t.coords);
     const kmMarkers=buildKmMarkers(allTrackCoords);
@@ -427,20 +478,20 @@ D.forEach(f=>{
       kmM.bindPopup('<b>'+km.km+' km</b>');
       kmM._trackZoomMin=fZMin;
       kmM._trackZoomMax=fZMax;
-      trackLayers.push(kmM);
-      wptMarkerLayers.push(kmM);
+      trackDotLayers.push(kmM);  // track group, NOT waypoints
     });
   }
+
+  // --- Waypoint markers (belong to waypoints group only) ---
   f.waypoints.forEach(w=>{
     const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
     if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
-    // narrowest (strictest) range of global waypoint-marker-zoom and this GPX's map zoom
     m._trackZoomMin=Math.max(WPTMARKERZOOM,fZMin);
     m._trackZoomMax=fZMax;
-    trackLayers.push(m);
-    wptMarkerLayers.push(m);
-    // waypoint label: only if showLabel is on for this GPX, zoomdrempel uit globale WPTZOOM
+    wptMarkerLayers.push(m);  // waypoints group only
+
+    // Waypoint label marker
     if(f.showLabel){
       const h=contrastHalo(f.color);
       const wptLbl=L.marker([w.lat,w.lon],{
@@ -453,9 +504,12 @@ D.forEach(f=>{
       }).addTo(map);
       wptLbl._zoomMin=WPTZOOM;
       wptLbl._zoomMax=19;
+      wptLbl._wptLabel=true;  // flag so waypoints toggle can target these specifically
       labelLayers.push(wptLbl);
     }
   });
+
+  // --- Track labels ---
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
     const mainLabel=getLabelText(f,f.tracks[0].name);
@@ -488,6 +542,11 @@ D.forEach(f=>{
   }
 });
 
+// Build zoomLayers after all D items processed.
+// trackLineLayers/trackDotLayers/polygonLayers: no getElement(), use addLayer/removeLayer.
+// wptMarkerLayers: L.Marker objects, use getElement() for zoom-visibility.
+const zoomLayers=[...trackLineLayers,...trackDotLayers,...polygonLayers];
+
 if(urlState&&urlState.z!=null){
   map.setView([urlState.lat,urlState.lng],urlState.z);
 } else if(B){
@@ -501,29 +560,54 @@ map.on('moveend',updateUrlHash);
 
 function updateLabels(){
   const z=map.getZoom();
+
+  // --- Track labels (textpath + floating DivIcon) ---
   labelLayers.forEach(l=>{
+    // If user toggled off: ensure removed from map and skip
+    if(l._userHidden){
+      if(l.setText) l.setText(null);
+      else if(map.hasLayer(l)) map.removeLayer(l);
+      return;
+    }
     const visible=z>=l._zoomMin&&z<=l._zoomMax;
     if(l.setText){
+      // Textpath: set/clear text based on zoom
       if(visible){
         const f=l._gpxFile;
         const h=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
-        l.setText(null);l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
-      } else { l.setText(null); }
+        l.setText(null);
+        l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      } else {
+        l.setText(null);
+      }
     } else {
-      const e=l.getElement();if(e)e.style.display=visible?'':'none';
+      // Floating DivIcon label: add/remove from map based on zoom
+      if(visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+      else { if(map.hasLayer(l)) map.removeLayer(l); }
     }
   });
+
+  // --- Waypoint markers ---
   wptMarkerLayers.forEach(m=>{
+    if(m._userHidden){ if(map.hasLayer(m)) map.removeLayer(m); return; }
     const visible=z>=m._trackZoomMin&&z<=m._trackZoomMax;
-    const e=m.getElement();
-    if(e)e.style.display=visible?'':'none';
+    if(visible){ if(!map.hasLayer(m)) map.addLayer(m); }
+    else { if(map.hasLayer(m)) map.removeLayer(m); }
+  });
+
+  // --- Track lines, start/km dots, polygons ---
+  zoomLayers.forEach(l=>{
+    if(l._userHidden){ if(map.hasLayer(l)) map.removeLayer(l); return; }
+    const visible=z>=l._trackZoomMin&&z<=l._trackZoomMax;
+    if(visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+    else { if(map.hasLayer(l)) map.removeLayer(l); }
   });
 }
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
 
-// Zoomniveau-indicator rechtsboven
+// Zoom level indicator (top right corner)
 const zoomValEl=document.getElementById('zoom-val');
 function updateZoomIndicator(){zoomValEl.textContent=map.getZoom();}
 map.on('zoomend',updateZoomIndicator);
@@ -534,7 +618,6 @@ map.whenReady(updateZoomIndicator);
 // circle are shown. When OPT_FOLLOW is true the map re-centers automatically
 // after the user has been idle (no pan/zoom) for FOLLOW_RESUME_DELAY ms.
 const locBtn=document.getElementById('loc-btn');
-const visBtn=document.getElementById('vis-btn');
 let wid=null,locTrail=null,lc=null,dirMarker=null;
 let followZoom=null; // fixed zoom level at start of following, prevents jitter from getZoom() during animation
 let locHistory=[]; // GPS points for direction trail (distance-based trimming, see trimTrail)
@@ -658,19 +741,114 @@ map.on('zoomend',function(){
   if(OPT_FOLLOW && wid!==null) followZoom=map.getZoom();
 });
 
-// --- Show/hide button for the baked-in GPX/GeoJSON tracks ---
-let gpxVisible=true;
-visBtn.onclick=function(){
-  gpxVisible=!gpxVisible;
-  trackLayers.forEach(l=>{
-    if(gpxVisible)map.addLayer(l);else map.removeLayer(l);
+// --- Visibility panel: toggle and opacity control per geometry type ---
+// Each geometry type (tracks, waypoints, polygons) can be shown/hidden
+// and faded independently via the eye-button dropdown (left controls).
+{
+  const visBtn=document.getElementById('vis-btn');
+  const visPanel=document.getElementById('vis-panel');
+
+  // Open/close the panel when clicking the eye button
+  visBtn.onclick=function(e){e.stopPropagation();visPanel.classList.toggle('open');};
+  document.addEventListener('click',function(e){
+    const overlay=document.getElementById('vis-overlay');
+    if(!overlay.contains(e.target))visPanel.classList.remove('open');
   });
-  labelLayers.forEach(l=>{
-    if(gpxVisible){map.addLayer(l);}else map.removeLayer(l);
+
+  // State per geometry type — strictly separate, zero overlap between arrays:
+  // tracks = lines + start dots + km markers (trackLineLayers + trackDotLayers)
+  // waypoints = waypoint markers only (wptMarkerLayers)
+  // polygons = polygon areas only (polygonLayers)
+  const trackAllLayers=[...trackLineLayers,...trackDotLayers];
+  const state={
+    tracks:   {visible:true, opacity:1, layers:trackAllLayers,  eye:'vis-eye-tracks',   op:'vis-op-tracks',   pct:'vis-pct-tracks'},
+    waypoints:{visible:true, opacity:1, layers:wptMarkerLayers, eye:'vis-eye-waypoints',op:'vis-op-waypoints', pct:'vis-pct-waypoints'},
+    polygons: {visible:true, opacity:1, layers:polygonLayers,   eye:'vis-eye-polygons', op:'vis-op-polygons',  pct:'vis-pct-polygons'}
+  };
+
+  // Helper: apply opacity to any layer type without side-effects (no radius change for circles)
+  function applyOpacity(l,op){
+    if(!l.setStyle&&!l.setOpacity&&!l.getElement) return;
+    if(l.setStyle){
+      if(l instanceof L.CircleMarker && !(l instanceof L.Circle)){
+        l.setStyle({opacity:op, fillOpacity:op});
+      } else if(l instanceof L.Polygon){
+        l.setStyle({opacity:op, fillOpacity:op*0.22});
+      } else {
+        l.setStyle({opacity:op});
+      }
+    } else if(l.setOpacity){
+      l.setOpacity(op);
+    }
+    // Also fade the DOM element (catches DivIcon markers like start/km markers)
+    const el=l.getElement&&l.getElement();
+    if(el)el.style.opacity=op;
+  }
+
+  Object.entries(state).forEach(([type,s])=>{
+    const eyeBtn=document.getElementById(s.eye);
+    const opSlider=document.getElementById(s.op);
+    const pctEl=document.getElementById(s.pct);
+
+    eyeBtn.addEventListener('click',function(){
+      s.visible=!s.visible;
+      eyeBtn.style.opacity=s.visible?'1':'0.35';
+
+      // Set _userHidden on every layer in this group and add/remove from map
+      s.layers.forEach(l=>{
+        l._userHidden=!s.visible;
+        if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+        else { if(map.hasLayer(l)) map.removeLayer(l); }
+      });
+
+      // Track toggle: show/hide track labels (NOT waypoint labels)
+      if(type==='tracks'){
+        labelLayers.forEach(l=>{
+          if(l._wptLabel) return;
+          l._userHidden=!s.visible;
+          if(l.setText){
+            if(!s.visible) l.setText(null);
+            // if visible, updateLabels() below will re-apply text at correct zoom
+          } else {
+            if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+            else { if(map.hasLayer(l)) map.removeLayer(l); }
+          }
+        });
+      }
+
+      // Waypoints toggle: show/hide waypoint labels
+      if(type==='waypoints'){
+        labelLayers.forEach(l=>{
+          if(!l._wptLabel) return;
+          l._userHidden=!s.visible;
+          if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+          else { if(map.hasLayer(l)) map.removeLayer(l); }
+        });
+      }
+
+      // Re-run zoom logic so layers respect zoom range when being shown again
+      if(s.visible) updateLabels();
+    });
+
+    opSlider.addEventListener('input',function(){
+      const op=parseInt(opSlider.value)/100;
+      s.opacity=op;
+      pctEl.textContent=opSlider.value+'%';
+      s.layers.forEach(l=>applyOpacity(l,op));
+      // Track opacity also fades track labels (not waypoint labels)
+      if(type==='tracks') labelLayers.forEach(l=>{if(!l._wptLabel)applyOpacity(l,op);});
+      // Waypoint opacity also fades waypoint labels
+      if(type==='waypoints') labelLayers.forEach(l=>{if(l._wptLabel)applyOpacity(l,op);});
+    });
   });
-  if(gpxVisible)updateLabels();
-  visBtn.style.opacity=gpxVisible?'1':'0.5';
-};
+
+  // Hide polygon row if there are no polygons in the baked-in data
+  const hasPolygons=D.some(f=>(f.polygons||[]).length>0);
+  if(!hasPolygons) document.getElementById('vis-row-polygons').style.display='none';
+  // Hide waypoints row if there are none
+  const hasWaypoints=D.some(f=>f.waypoints.length>0);
+  if(!hasWaypoints) document.getElementById('vis-row-waypoints').style.display='none';
+}
 
 // =====================================================================
 // User route loader: load GPX / GeoJSON and display on map
@@ -724,15 +902,6 @@ visBtn.onclick=function(){
             const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
             if(rings.length)polygons.push({name,desc,rings});
           });
-        } else if(geom.type==='Polygon'){
-          // treat polygon rings as closed line tracks so they render on the preview map
-          const coords=geom.coordinates[0].map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
-          if(coords.length)tracks.push({name,coords});
-        } else if(geom.type==='MultiPolygon'){
-          geom.coordinates.forEach(poly=>{
-            const coords=poly[0].map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
-            if(coords.length)tracks.push({name,coords});
-          });
         } else if(geom.type==='Point'){
           const c=geom.coordinates;
           if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
@@ -748,13 +917,14 @@ visBtn.onclick=function(){
     }catch(e){return null;}
   }
 
-  function buildArrowDecorator(coords, color){
-    // Direction arrows every ~3km along the line
+  function buildArrowDecorator(coords, color, routeName){
+    // Direction arrows every ~3km along the line.
+    // Clicking an arrow shows the cumulative distance at that point.
     const arrows=[];
     let dist=0, nextArrow=1500;
     function hvDist(a,b){
-      const R=6371000, lat1=a[0]*Math.PI/180, lat2=b[0]*Math.PI/180;
-      const dLat=(b[0]-a[0])*Math.PI/180, dLon=(b[1]-a[1])*Math.PI/180;
+      const R=6371000,lat1=a[0]*Math.PI/180,lat2=b[0]*Math.PI/180;
+      const dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180;
       const x=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
       return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
     }
@@ -769,8 +939,15 @@ visBtn.onclick=function(){
         const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
         const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
         const deg=brng(coords[i],coords[i+1]);
+        const kmLabel=(nextArrow/1000).toFixed(1)+' km';
         const svg='<svg width="18" height="18" viewBox="0 0 18 18" style="transform:rotate('+deg+'deg)"><polygon points="9,1 14,16 9,11 4,16" fill="'+color+'" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>';
-        arrows.push(L.marker([lat,lon],{icon:L.divIcon({className:'',html:svg,iconSize:[18,18],iconAnchor:[9,9]}),interactive:false,zIndexOffset:100}));
+        const marker=L.marker([lat,lon],{
+          icon:L.divIcon({className:'',html:svg,iconSize:[18,18],iconAnchor:[9,9]}),
+          interactive:true,
+          zIndexOffset:100
+        });
+        marker.bindPopup('<b>'+routeName+'</b><br>'+kmLabel);
+        arrows.push(marker);
         nextArrow+=3000;
       }
       dist+=seg;
@@ -784,32 +961,40 @@ visBtn.onclick=function(){
     parsed.tracks.forEach(t=>{
       allCoords.push(...t.coords);
       const poly=L.polyline(t.coords,{color,weight:4,opacity:0.85}).addTo(map);
-      if(t.name)poly.bindPopup('<b>'+t.name+'</b>');
+      const popupName=t.name||name;
+      poly.bindPopup('<b>'+popupName+'</b>');
       poly._isLine=true;
       lyrGroup.push(poly);
     });
     (parsed.polygons||[]).forEach(p=>{
       allCoords.push(...p.rings[0]);
       const poly=L.polygon(p.rings,{color,fillColor:color,fillOpacity:0.2,weight:2,opacity:0.85}).addTo(map);
-      if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||'')+'</b>'+(p.desc?'<br>'+p.desc:''));
+      if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||name)+'</b>'+(p.desc?'<br>'+p.desc:''));
       lyrGroup.push(poly);
     });
     parsed.waypoints.forEach(w=>{
       allCoords.push([w.lat,w.lon]);
       const m=L.circleMarker([w.lat,w.lon],{radius:6,color,fillColor:color,fillOpacity:.85,weight:2}).addTo(map);
-      if(w.name||w.desc)m.bindPopup('<b>'+(w.name||'')+'</b>'+(w.desc?'<br>'+w.desc:''));
+      if(w.name||w.desc)m.bindPopup('<b>'+(w.name||name)+'</b>'+(w.desc?'<br>'+w.desc:''));
       lyrGroup.push(m);
     });
     const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
     const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
-    userRoutes.push({name,visible:true,opacity:0.85,color,lineWidth:4,showArrows:false,showLabel:true,layers:lyrGroup,arrowLayers:[],bounds,parsed});
+    const idx=userRoutes.length;
+    userRoutes.push({name,visible:true,opacity:0.85,color,lineWidth:4,showArrows:false,showLabel:true,layers:lyrGroup,arrowLayers:[],labelLayer:null,bounds,parsed});
+    // Fit map to route bounds
     if(bounds)map.fitBounds(bounds,{padding:[24,24]});
+    // Apply label immediately and ensure layers render
+    applyRouteStyle(idx);
+    // Rebuild the route list panel
     renderRouteList();
+    // Open the panel so user sees the new entry
+    document.getElementById('route-panel').classList.add('open');
   }
 
   function applyRouteStyle(idx){
     const r=userRoutes[idx];
-    // remove old arrows
+    // Remove old arrow markers
     r.arrowLayers.forEach(l=>map.removeLayer(l));
     r.arrowLayers=[];
     r.layers.forEach(l=>{
@@ -817,21 +1002,25 @@ visBtn.onclick=function(){
         l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*0.25});
       }
     });
+    // Rebuild direction arrows with km popup on click
     if(r.showArrows){
       (r.parsed.tracks||[]).forEach(t=>{
-        buildArrowDecorator(t.coords,r.color).forEach(a=>{
+        const trackLabel=t.name||r.name;
+        buildArrowDecorator(t.coords,r.color,trackLabel).forEach(a=>{
           if(r.visible)a.addTo(map);
           r.arrowLayers.push(a);
         });
       });
     }
-    // label
+    // Label: use first track name if available, else the filename (r.name)
     if(r.labelLayer){map.removeLayer(r.labelLayer);r.labelLayer=null;}
     if(r.showLabel&&r.bounds){
+      const firstTrackName=(r.parsed.tracks&&r.parsed.tracks[0]&&r.parsed.tracks[0].name)||'';
+      const labelText=firstTrackName||r.name;
       const center=[(r.bounds[0][0]+r.bounds[1][0])/2,(r.bounds[0][1]+r.bounds[1][1])/2];
       r.labelLayer=L.marker(center,{icon:L.divIcon({
         className:'',
-        html:'<div style="color:'+r.color+';font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 #fff,1.5px -1.5px 0 #fff,-1.5px 1.5px 0 #fff,1.5px 1.5px 0 #fff;transform:translate(-50%,-50%)">'+r.name+'</div>',
+        html:'<div style="color:'+r.color+';font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 #fff,1.5px -1.5px 0 #fff,-1.5px 1.5px 0 #fff,1.5px 1.5px 0 #fff;transform:translate(-50%,-50%)">'+labelText+'</div>',
         iconAnchor:[0,0]
       }),interactive:false,zIndexOffset:200});
       if(r.visible)r.labelLayer.addTo(map);
@@ -839,11 +1028,29 @@ visBtn.onclick=function(){
   }
 
   function setRouteOpacity(idx,op){
-    userRoutes[idx].opacity=op;
-    userRoutes[idx].layers.forEach(l=>{
-      if(l.setStyle)l.setStyle({opacity:op,fillOpacity:op*0.25});
+    const r=userRoutes[idx];
+    r.opacity=op;
+    r.layers.forEach(l=>{
+      if(!l.setStyle) return;
+      // CircleMarker: set opacity+fillOpacity directly (changing radius would shrink it)
+      if(l instanceof L.CircleMarker && !(l instanceof L.Circle)){
+        l.setStyle({opacity:op, fillOpacity:op});
+      } else if(l instanceof L.Polygon){
+        l.setStyle({opacity:op, fillOpacity:op*0.22});
+      } else {
+        l.setStyle({opacity:op});
+      }
     });
-    userRoutes[idx].arrowLayers.forEach(a=>{a.setOpacity&&a.setOpacity(op);});
+    // Fade arrow markers via DOM opacity
+    r.arrowLayers.forEach(a=>{
+      const el=a.getElement&&a.getElement();
+      if(el)el.style.opacity=op;
+    });
+    // Fade the floating label too
+    if(r.labelLayer){
+      const el=r.labelLayer.getElement&&r.labelLayer.getElement();
+      if(el)el.style.opacity=op;
+    }
   }
 
   function setRouteColor(idx,color){
@@ -941,20 +1148,39 @@ visBtn.onclick=function(){
     reader.readAsText(file);
   }
 
-  // Panel open/close
+  // Panel open/close — stop propagation on the whole overlay so clicks inside don't close it
   const routeBtn=document.getElementById('route-btn');
   const routePanel=document.getElementById('route-panel');
+  const routeOverlay=document.getElementById('route-overlay');
   routeBtn.onclick=function(e){e.stopPropagation();routePanel.classList.toggle('open');};
-  document.addEventListener('click',function(e){
-    if(!document.getElementById('route-overlay').contains(e.target))routePanel.classList.remove('open');
+  routeOverlay.addEventListener('click',function(e){e.stopPropagation();});
+  document.addEventListener('click',function(){routePanel.classList.remove('open');});
+  document.getElementById('route-panel-close').addEventListener('click',function(e){
+    e.stopPropagation();
+    routePanel.classList.remove('open');
   });
 
-  // GPX / GeoJSON buttons
+  // GPX / GeoJSON buttons — reset input value each time so same file can be reloaded
   const fileInput=document.getElementById('route-file-input');
   let pendingAccept='any';
-  document.getElementById('route-add-gpx').onclick=function(){pendingAccept='gpx';fileInput.accept='.gpx';fileInput.value='';fileInput.click();};
-  document.getElementById('route-add-geojson').onclick=function(){pendingAccept='geojson';fileInput.accept='.geojson,.json';fileInput.value='';fileInput.click();};
-  fileInput.onchange=function(){if(fileInput.files[0])loadFile(fileInput.files[0],pendingAccept);};
+
+  function triggerFilePick(accept){
+    pendingAccept=accept;
+    fileInput.accept=accept==='gpx'?'.gpx':accept==='geojson'?'.geojson,.json':'.gpx,.geojson,.json';
+    // Reset so the same filename can be picked again
+    fileInput.value='';
+    // Small delay so the panel-close click-outside doesn't steal focus
+    setTimeout(()=>fileInput.click(),50);
+  }
+
+  document.getElementById('route-add-gpx').onclick=function(e){e.stopPropagation();triggerFilePick('gpx');};
+  document.getElementById('route-add-geojson').onclick=function(e){e.stopPropagation();triggerFilePick('geojson');};
+
+  fileInput.addEventListener('change',function(){
+    Array.from(fileInput.files).forEach(f=>loadFile(f,pendingAccept));
+    // Reset so re-selecting the same file fires change again next time
+    fileInput.value='';
+  });
 
   // Drag & drop on map
   const mapEl=document.getElementById('map');
