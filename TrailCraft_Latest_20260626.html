@@ -499,9 +499,6 @@ function renderList(){
       <input type="number" value="${f.labelZoomMin}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommin" title="Label zoom level from">
       <span class="toggle-label" style="color:#aaa">–</span>
       <input type="number" value="${f.labelZoomMax}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommax" title="Label zoom level to">
-      <span class="toggle-label" style="color:#aaa;margin-left:4px">font</span>
-      <input type="number" value="${f.labelFontSize!=null?f.labelFontSize:24}" min="8" max="72" data-idx="${i}" class="zoominput labelfontsize" title="Label font size in pixels" style="width:52px">
-      <span class="toggle-label" style="color:#aaa">px</span>
       </div>
       ${f.waypoints.length>0?`
       <div class="file-row-wpticon">
@@ -580,12 +577,6 @@ function renderList(){
       files[i].labelZoomMax=parseInt(e.target.value)||19;
       if(files[i].labelZoomMax<files[i].labelZoomMin)files[i].labelZoomMin=files[i].labelZoomMax;
       updatePreview();renderList();
-    });
-  });
-  el.querySelectorAll('.labelfontsize').forEach(inp=>{
-    inp.addEventListener('change',e=>{
-      files[parseInt(e.target.dataset.idx)].labelFontSize=parseInt(e.target.value)||24;
-      updatePreview();
     });
   });
   el.querySelectorAll('.linewidthinput').forEach(inp=>{
@@ -785,37 +776,15 @@ function simplifyLine(points, tolerance){
 // Pick and simplify a text path for "on line" labels: a strongly smoothed
 // version of the track, so the text doesn't follow every small bend of a GPS track.
 function buildTextPathLine(coords, labelLength){
-  // For "on line" labels we want letters on a SINGLE straight line, not following
-  // every GPS wiggle (which causes letters at different angles).
-  // Strategy: find the longest straight sub-segment of the track and use its
-  // two endpoints. This keeps the text readable and avoids upside-down letters.
-  if(coords.length<2) return coords;
-  if(coords.length===2) return normalizeDirection(coords);
-
-  // Compute cumulative distances to find the midpoint
-  const dists=[0];
-  for(let i=1;i<coords.length;i++){
-    const a=coords[i-1], b=coords[i];
-    const dx=b[1]-a[1], dy=b[0]-a[0];
-    dists.push(dists[i-1]+Math.sqrt(dx*dx+dy*dy));
-  }
-  const total=dists[dists.length-1];
-  // Estimate how much track length the label text needs (proportional to label chars)
-  const charSpan=Math.min(0.6, Math.max(0.2, (labelLength||10)*0.018));
-  const halfSpan=charSpan/2;
-
-  // Find the midpoint index
-  const mid=total*0.5;
-  let midIdx=0;
-  for(let i=0;i<dists.length;i++){if(dists[i]>=mid){midIdx=i;break;}}
-
-  // Walk back and forward from midpoint to cover charSpan fraction of total length
-  let startIdx=midIdx, endIdx=midIdx;
-  while(startIdx>0 && dists[midIdx]-dists[startIdx]<total*halfSpan) startIdx--;
-  while(endIdx<coords.length-1 && dists[endIdx]-dists[midIdx]<total*halfSpan) endIdx++;
-
-  // Return just 2 points so textpath draws on a perfectly straight line
-  return normalizeDirection([coords[startIdx], coords[endIdx]]);
+  if(coords.length<3) return normalizeDirection(coords);
+  const lats=coords.map(p=>p[0]), lons=coords.map(p=>p[1]);
+  const span=Math.max(Math.max(...lats)-Math.min(...lats), Math.max(...lons)-Math.min(...lons));
+  // base tolerance for simplification, lighter for longer names so enough
+  // straight length remains to show the text without overlap/overflow
+  const lenFactor = labelLength ? Math.max(0.4, 1-(labelLength-10)*0.03) : 1;
+  const tolerance=Math.max(span*0.012*lenFactor, 0.00008);
+  const simplified=simplifyLine(coords, tolerance);
+  return normalizeDirection(simplified);
 }
 
 // Normalize the direction of a coordinate sequence: make sure the line always
@@ -996,15 +965,15 @@ function updatePreview(){
       const halo=contrastHalo(f.color);
       const mainLabel=getLabelText(f,f.tracks[0].name);
       if(f.labelPos==='midline'){
-        // text along a straight line through the track midpoint
+        // text along the line: use an invisible, smoothed version of the
+        // track so letters don't follow every small GPS wiggle.
         const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
         const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
-        const fs=(f.labelFontSize||24)+'px';
         textPoly.setText(mainLabel,{
           center:true,
           repeat:false,
           attributes:{
-            'font-size':fs,
+            'font-size':'24px',
             'font-weight':'bold',
             'fill':f.color,
             'paint-order':'stroke',
@@ -1024,12 +993,10 @@ function updatePreview(){
         if(f.labelPos==='start') pos=f.tracks[0].coords[0];
         else pos=labelAnchorCentroid(allPts);
         const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
-        const fs=(f.labelFontSize||24)+'px';
-        const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
         const label=L.marker(pos,{
           icon:L.divIcon({
             className:'',
-            html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo},0 ${haloW} 0 ${halo},0 -${haloW} 0 ${halo},${haloW} 0 0 ${halo},-${haloW} 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
+            html:`<div style="color:${f.color};font-size:32px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-3px -3px 0 ${halo},3px -3px 0 ${halo},-3px 3px 0 ${halo},3px 3px 0 ${halo},0 3px 0 ${halo},0 -3px 0 ${halo},3px 0 0 ${halo},-3px 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
             iconAnchor:[0,0]
           }),
           interactive:false,
@@ -1043,40 +1010,16 @@ function updatePreview(){
     }
     // Render polygons as filled areas with a darker outline
     (f.polygons||[]).forEach(p=>{
-      const darkColor=f.color;
+      const darkColor=f.color; // outline = full color
       const poly=L.polygon(p.rings,{color:darkColor,weight:2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
       if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||f.displayName)+'</b>'+(p.desc?'<br>'+p.desc:''));
       poly._gpxTrack=true;
       poly._trackZoomMin=fZMin;
       poly._trackZoomMax=fZMax;
       layers.push(poly);
+      // add all ring coords to allCoords for bounding-box calculation
       p.rings.forEach(ring=>allCoords.push(...ring));
     });
-    // Polygon label: one label per GeoJSON file at the overall centroid, using name from first polygon
-    if(f.showLabel&&(f.polygons||[]).length>0){
-      const polyName=(f.polygons[0].name)||f.displayName;
-      if(polyName){
-        // Compute centroid of all outer rings combined
-        const allPolyPts=f.polygons.flatMap(p=>p.rings[0]);
-        const cLat=allPolyPts.reduce((s,p)=>s+p[0],0)/allPolyPts.length;
-        const cLon=allPolyPts.reduce((s,p)=>s+p[1],0)/allPolyPts.length;
-        const halo=contrastHalo(f.color);
-        const fs=(f.labelFontSize||24)+'px';
-        const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
-        const polyLabel=L.marker([cLat,cLon],{
-          icon:L.divIcon({
-            className:'',
-            html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo};transform:translate(-50%,-50%)">${polyName}</div>`,
-            iconAnchor:[0,0]
-          }),
-          interactive:false,zIndexOffset:100
-        }).addTo(map);
-        polyLabel._gpxLabel=true;
-        polyLabel._zoomMin=f.labelZoomMin;
-        polyLabel._zoomMax=f.labelZoomMax;
-        layers.push(polyLabel);
-      }
-    }
   });
   if(allCoords.length){
     if(!map._extentSetOnce){
@@ -1163,7 +1106,6 @@ function exportMap(){
     labelPos:f.labelPos,
     labelZoomMin:f.labelZoomMin,
     labelZoomMax:f.labelZoomMax,
-    labelFontSize:f.labelFontSize!=null?f.labelFontSize:24,
     useElementName:f.useElementName,
     lineWidth:f.lineWidth!=null?f.lineWidth:3,
     mapZoomMin:f.mapZoomMin!=null?f.mapZoomMin:1,
@@ -1422,26 +1364,13 @@ function simplifyLine(points, tolerance){
 }
 
 function buildTextPathLine(coords, labelLength){
-  // Return a straight two-point line through the track midpoint so letters
-  // always render at a single consistent angle (no per-letter rotation).
-  if(coords.length<2) return coords;
-  if(coords.length===2) return normalizeDirection(coords);
-  const dists=[0];
-  for(let i=1;i<coords.length;i++){
-    const a=coords[i-1],b=coords[i];
-    const dx=b[1]-a[1],dy=b[0]-a[0];
-    dists.push(dists[i-1]+Math.sqrt(dx*dx+dy*dy));
-  }
-  const total=dists[dists.length-1];
-  const charSpan=Math.min(0.6,Math.max(0.2,(labelLength||10)*0.018));
-  const halfSpan=charSpan/2;
-  const mid=total*0.5;
-  let midIdx=0;
-  for(let i=0;i<dists.length;i++){if(dists[i]>=mid){midIdx=i;break;}}
-  let startIdx=midIdx,endIdx=midIdx;
-  while(startIdx>0&&dists[midIdx]-dists[startIdx]<total*halfSpan)startIdx--;
-  while(endIdx<coords.length-1&&dists[endIdx]-dists[midIdx]<total*halfSpan)endIdx++;
-  return normalizeDirection([coords[startIdx],coords[endIdx]]);
+  if(coords.length<3) return normalizeDirection(coords);
+  const lats=coords.map(p=>p[0]), lons=coords.map(p=>p[1]);
+  const span=Math.max(Math.max(...lats)-Math.min(...lats), Math.max(...lons)-Math.min(...lons));
+  const lenFactor = labelLength ? Math.max(0.4, 1-(labelLength-10)*0.03) : 1;
+  const tolerance=Math.max(span*0.012*lenFactor, 0.00008);
+  const simplified=simplifyLine(coords, tolerance);
+  return normalizeDirection(simplified);
 }
 
 function normalizeDirection(coords){
@@ -1713,12 +1642,10 @@ D.forEach(f=>{
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
     const mainLabel=getLabelText(f,f.tracks[0].name);
-    const fs=(f.labelFontSize||24)+'px';
-    const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
     if(f.labelPos==='midline'&&f.tracks.length){
       const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
       const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
-      textPoly.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':fs,'font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      textPoly.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       textPoly._gpxFile=f;
       textPoly._zoomMin=f.labelZoomMin;
       textPoly._zoomMax=f.labelZoomMax;
@@ -1732,7 +1659,7 @@ D.forEach(f=>{
       const lbl=L.marker(pos,{
         icon:L.divIcon({
           className:'',
-          html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+',0 '+haloW+' 0 '+h+',0 -'+haloW+' 0 '+h+','+haloW+' 0 0 '+h+',-'+haloW+' 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
+          html:'<div style="color:'+f.color+';font-size:32px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-3px -3px 0 '+h+',3px -3px 0 '+h+',-3px 3px 0 '+h+',3px 3px 0 '+h+',0 3px 0 '+h+',0 -3px 0 '+h+',3px 0 0 '+h+',-3px 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
           iconAnchor:[0,0]
         }),
         interactive:false,zIndexOffset:200
@@ -1740,29 +1667,6 @@ D.forEach(f=>{
       lbl._zoomMin=f.labelZoomMin;
       lbl._zoomMax=f.labelZoomMax;
       labelLayers.push(lbl);
-    }
-  }
-  // --- Polygon centroid label (one per file, using name from first polygon) ---
-  if(f.showLabel&&(f.polygons||[]).length>0){
-    const polyName=(f.polygons[0].name)||getLabelText(f,null);
-    if(polyName){
-      const allPolyPts=f.polygons.flatMap(p=>p.rings[0]);
-      const cLat=allPolyPts.reduce((s,p)=>s+p[0],0)/allPolyPts.length;
-      const cLon=allPolyPts.reduce((s,p)=>s+p[1],0)/allPolyPts.length;
-      const h=contrastHalo(f.color);
-      const fs=(f.labelFontSize||24)+'px';
-      const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
-      const polyLbl=L.marker([cLat,cLon],{
-        icon:L.divIcon({
-          className:'',
-          html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+';transform:translate(-50%,-50%)">'+polyName+'</div>',
-          iconAnchor:[0,0]
-        }),
-        interactive:false,zIndexOffset:100
-      }).addTo(map);
-      polyLbl._zoomMin=f.labelZoomMin;
-      polyLbl._zoomMax=f.labelZoomMax;
-      labelLayers.push(polyLbl);
     }
   }
 });
