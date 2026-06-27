@@ -70,7 +70,7 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 .layer-move-btn:disabled{opacity:0.25;cursor:default}
 @media(prefers-color-scheme:dark){.layer-move-btn{border-color:#555;color:#aaa}.layer-move-btn:hover:not(:disabled){background:#3a3a3c;color:#eee}}
 input[type=color]{width:34px;height:28px;border:1px solid #ddd;border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0}
-label{font-size:13px;color:#222;display:block;margin-bottom:4px}
+label{font-size:13px;color:#666;display:block;margin-bottom:4px}
 input[type=text]{font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
 input[type=text]:focus{border-color:#4363d8}
 .row{display:flex;gap:10px;align-items:center}
@@ -84,7 +84,7 @@ input[type=range]{flex:1}
 #preview-wrap{border-radius:8px;overflow:hidden;border:1px solid #ddd;height:340px;display:none}
 #map{height:340px}
 .empty-map{height:200px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;border:1px dashed #ddd;border-radius:8px}
-.section-label{font-size:12px;font-weight:600;color:#222;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.section-label{font-size:11px;font-weight:600;color:#999;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 /* toggle switch */
 .toggle{position:relative;display:inline-block;width:34px;height:20px;flex-shrink:0}
@@ -93,7 +93,7 @@ input[type=range]{flex:1}
 .slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
 input:checked+.slider{background:#185FA5}
 input:checked+.slider:before{transform:translateX(14px)}
-.toggle-label{font-size:13px;color:#222;white-space:nowrap}
+.toggle-label{font-size:12px;color:#888;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -129,18 +129,18 @@ input:checked+.slider:before{transform:translateX(14px)}
       <label>GPS trail (direction line from own location)</label>
       <div class="row" style="gap:10px;margin-top:4px">
         <input type="color" id="gpstrail-color" value="#9b30d9" title="GPS trail color">
-        <span class="toggle-label" style="color:#222">width</span>
+        <span class="toggle-label" style="color:#aaa">width</span>
         <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
-        <span class="toggle-label" style="color:#222">px</span>
+        <span class="toggle-label" style="color:#aaa">px</span>
       </div>
       <div class="row" style="gap:10px;margin-top:8px">
-        <span class="toggle-label" style="color:#222">trail length</span>
+        <span class="toggle-label" style="color:#aaa">trail length</span>
         <select id="gpstrail-mode" class="posselect" onchange="document.getElementById('gpstrail-meters').style.display=this.value==='full'?'none':'';document.getElementById('gpstrail-meters-label').style.display=this.value==='full'?'none':''">
           <option value="distance">last</option>
           <option value="full" selected>whole ride (no limit)</option>
         </select>
         <input type="number" id="gpstrail-meters" value="50" min="5" max="5000" class="zoominput" style="width:64px;display:none">
-        <span class="toggle-label" style="color:#222;display:none" id="gpstrail-meters-label">meters</span>
+        <span class="toggle-label" style="color:#aaa;display:none" id="gpstrail-meters-label">meters</span>
       </div>
     </div>
     <div>
@@ -148,6 +148,20 @@ input:checked+.slider:before{transform:translateX(14px)}
       <div class="row">
         <input type="range" min="0" max="1" step="0.05" value="1" id="osmopacity" oninput="document.getElementById('osmopacityval').textContent=Math.round(this.value*100)+'%';updatePreview()">
         <span class="range-val" id="osmopacityval">100%</span>
+      </div>
+    </div>
+    <div>
+      <label>Waypoints visible from zoom <span style="color:#aaa;font-weight:400">(the icon/dot itself)</span></label>
+      <div class="row">
+        <input type="range" min="1" max="19" value="9" step="1" id="wptmarkerzoom" oninput="document.getElementById('wptmarkerzoomval').textContent=this.value;updatePreview()">
+        <span class="range-val" id="wptmarkerzoomval">9</span>
+      </div>
+    </div>
+    <div>
+      <label>Waypoint labels visible from zoom <span style="color:#aaa;font-weight:400">(only works for GPX files where "label" is on)</span></label>
+      <div class="row">
+        <input type="range" min="8" max="19" value="15" step="1" id="wptzoom" oninput="document.getElementById('wptzoomval').textContent=this.value;updatePreview()">
+        <span class="range-val" id="wptzoomval">15</span>
       </div>
     </div>
 
@@ -191,72 +205,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c07000","#888888","#a9a9a9","#000075"];
 
-// --- Persist extra layers and settings to localStorage so Ctrl+S + reopen restores them ---
-const STORAGE_KEY='trailcraft_layers_v1';
-
-function saveLayersToStorage(){
-  try{
-    const state={
-      layers:extraLayers.map(l=>({
-        type:l.type, url:l.url, wmsLayer:l.wmsLayer,
-        displayName:l.displayName, opacity:l.opacity,
-        zoomMin:l.zoomMin, zoomMax:l.zoomMax, defaultOn:l.defaultOn
-      })),
-      title:document.getElementById('title').value,
-      osmOpacity:document.getElementById('osmopacity').value
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }catch(e){}
-}
-
-function loadLayersFromStorage(){
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw) return;
-    const state=JSON.parse(raw);
-    if(state.layers&&state.layers.length>0){
-      state.layers.forEach(l=>addLayer(l));
-    }
-    if(state.title) document.getElementById('title').value=state.title;
-    if(state.osmOpacity){
-      const sl=document.getElementById('osmopacity');
-      sl.value=state.osmOpacity;
-      document.getElementById('osmopacityval').textContent=Math.round(state.osmOpacity*100)+'%';
-    }
-  }catch(e){}
-}
-
-// Hook save into all layer-mutating actions
-const _origAddLayer=addLayer;
-// Save whenever extraLayers changes
-['renderLayerList'].forEach(()=>{});
-// Use MutationObserver on the layer-list div to detect any change
-document.addEventListener('DOMContentLoaded',function(){
-  loadLayersFromStorage();
-});
-// Save on any input/change within the layer-list
-document.getElementById('layer-list').addEventListener('change',saveLayersToStorage);
-document.getElementById('layer-list').addEventListener('input',saveLayersToStorage);
-// Also save when add/remove/move layer buttons are used
-document.addEventListener('click',function(e){
-  if(e.target.closest('#layer-list')||e.target.closest('.btn[onclick*="addLayer"]')){
-    setTimeout(saveLayersToStorage,50);
-  }
-});
-// Save title changes
-document.getElementById('title').addEventListener('input',saveLayersToStorage);
-// Restore on page load (DOMContentLoaded may have already fired, call directly)
-loadLayersFromStorage();
-
-// Show a small notice so user knows state is saved
-(function(){
-  const notice=document.createElement('p');
-  notice.style.cssText='font-size:11px;color:#888;margin-top:4px;text-align:center';
-  notice.textContent='Extra layers and title are auto-saved in this browser.';
-  document.getElementById('exportbtn').closest('.card')||document.querySelector('.card:last-of-type');
-  const btn=document.getElementById('exportbtn');
-  if(btn&&btn.parentNode) btn.parentNode.insertBefore(notice, btn.nextSibling);
-})();
+// --- Set default page title to TrailCraft_yyyymmdd ---
 (function(){
   const d=new Date();
   const ymd=d.getFullYear().toString()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -315,14 +264,14 @@ function renderLayerList(){
         ${l.type==='wms'?`<input class="layer-name" type="text" placeholder="WMS layer name (LAYERS=...)" value="${l.wmsLayer.replace(/"/g,'&quot;')}" data-idx="${i}" title="Technical WMS layer name">`:``}
       </div>
       <div class="row" style="gap:8px">
-        <span class="toggle-label" style="color:#222">Opacity</span>
+        <span class="toggle-label" style="color:#aaa">Opacity</span>
         <input type="range" min="0" max="1" step="0.05" value="${l.opacity}" data-idx="${i}" class="opacity-slider" style="flex:1">
         <span class="range-val layer-opval">${Math.round(l.opacity*100)}%</span>
       </div>
       <div class="row" style="gap:6px">
-        <span class="toggle-label" style="color:#222">Zoom</span>
+        <span class="toggle-label" style="color:#aaa">Zoom</span>
         <input type="number" value="${l.zoomMin!=null?l.zoomMin:1}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommin" title="Zoom level from">
-        <span class="toggle-label" style="color:#222">to</span>
+        <span class="toggle-label" style="color:#aaa">to</span>
         <input type="number" value="${l.zoomMax!=null?l.zoomMax:22}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommax" title="Zoom level to">
         <label class="toggle" title="Layer on or off by default when the map is opened" style="margin-left:8px">
           <input type="checkbox" ${l.defaultOn===true?'checked':''} data-idx="${i}" class="layer-defaulton">
@@ -408,10 +357,7 @@ function handleFiles(fl){
       if(!parsed){alert('Could not read '+f.name+' as '+(isGpx?'GPX':'GeoJSON')+'.');return;}
       if(!parsed.tracks.length&&!parsed.waypoints.length&&!(parsed.polygons&&parsed.polygons.length)){alert('No routes or waypoints found in '+f.name+'.');return;}
       const displayName=f.name.replace(/\.(gpx|geojson|json)$/i,'');
-      // Default label position: 'start' if file has tracks or waypoints, 'centroid' for polygon-only files
-      const hasTracksOrWpts=parsed.tracks.length>0||parsed.waypoints.length>0;
-      const defaultLabelPos=hasTracksOrWpts?'start':'centroid';
-      files.push({name:f.name, displayName, color, showLabel:true, showStart:true, labelPos:defaultLabelPos, labelZoomMin:14, labelZoomMax:18, useElementName:true, lineWidth:3, mapZoomMin:1, mapZoomMax:19, showKmMarkers:false, polygons:parsed.polygons||[], ...parsed});
+      files.push({name:f.name, displayName, color, showLabel:true, showStart:true, labelPos:'midline', labelZoomMin:14, labelZoomMax:18, useElementName:true, lineWidth:3, mapZoomMin:1, mapZoomMax:19, showKmMarkers:false, polygons:parsed.polygons||[], ...parsed});
       renderList();
       updatePreview();
       document.getElementById('exportbtn').disabled=false;
@@ -513,12 +459,12 @@ function renderList(){
       <div class="file-row-main">
       <input type="color" value="${f.color}" title="Color" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Name on map" data-idx="${i}" class="nameinput" placeholder="Name">
-      <span class="toggle-label" style="color:#222">line width</span>
+      <span class="toggle-label" style="color:#aaa">line width</span>
       <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Line width of this track in pixels" style="width:56px">
-      <span class="toggle-label" style="color:#222">px</span>
-      <span class="toggle-label" style="color:#222;margin-left:4px">map zoom</span>
+      <span class="toggle-label" style="color:#aaa">px</span>
+      <span class="toggle-label" style="color:#aaa;margin-left:4px">map zoom</span>
       <input type="number" value="${f.mapZoomMin!=null?f.mapZoomMin:1}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints visible from zoom level">
-      <span class="toggle-label" style="color:#222">–</span>
+      <span class="toggle-label" style="color:#aaa">–</span>
       <input type="number" value="${f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level">
       <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
       <button class="delbtn" data-idx="${i}" title="Remove">&times;</button>
@@ -532,6 +478,7 @@ function renderList(){
       <select data-idx="${i}" class="posselect" title="Label position">
         <option value="centroid" ${f.labelPos==='centroid'?'selected':''}>centroid</option>
         <option value="start" ${f.labelPos==='start'?'selected':''}>start point</option>
+        <option value="midline" ${f.labelPos==='midline'?'selected':''}>on line</option>
       </select>
       <label class="toggle" title="Show start point on map">
         <input type="checkbox" ${f.showStart?'checked':''} data-idx="${i}" class="starttog">
@@ -548,26 +495,26 @@ function renderList(){
         <span class="slider"></span>
       </label>
       <span class="toggle-label">name label</span>
-      <span class="toggle-label" style="color:#222;margin-left:4px">label zoom</span>
+      <span class="toggle-label" style="color:#aaa;margin-left:4px">label zoom</span>
       <input type="number" value="${f.labelZoomMin}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommin" title="Label zoom level from">
-      <span class="toggle-label" style="color:#222">–</span>
+      <span class="toggle-label" style="color:#aaa">–</span>
       <input type="number" value="${f.labelZoomMax}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommax" title="Label zoom level to">
-      <span class="toggle-label" style="color:#222;margin-left:4px">font</span>
+      <span class="toggle-label" style="color:#aaa;margin-left:4px">font</span>
       <input type="number" value="${f.labelFontSize!=null?f.labelFontSize:24}" min="8" max="72" data-idx="${i}" class="zoominput labelfontsize" title="Label font size in pixels" style="width:52px">
-      <span class="toggle-label" style="color:#222">px</span>
+      <span class="toggle-label" style="color:#aaa">px</span>
       </div>
       ${f.waypoints.length>0?`
       <div class="file-row-wpticon">
-        <span class="toggle-label" style="color:#222">Waypoint icon</span>
+        <span class="toggle-label" style="color:#aaa">Waypoint icon</span>
         <div class="wpticon-preview" id="wpticon-preview-${i}" style="color:${f.color}">${f.wptIconSvg?f.wptIconSvg:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:14px"></i>'}</div>
         <button type="button" class="wpticon-upload-btn" data-idx="${i}" onclick="document.getElementById('wpticon-file-${i}').click()">
           <i class="ti ti-upload" aria-hidden="true"></i> Choose SVG
         </button>
         <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
         ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">remove</button>`:''}
-        <span class="toggle-label" style="color:#222;margin-left:6px">size</span>
+        <span class="toggle-label" style="color:#aaa;margin-left:6px">size</span>
         <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Icon size in pixels" style="width:60px">
-        <span class="toggle-label" style="color:#222">px</span>
+        <span class="toggle-label" style="color:#aaa">px</span>
         ${f.wptIconSvg?`
         <label class="toggle" title="Recolor the SVG with the GPX color (only works if the SVG has no hard-coded colors of its own)" style="margin-left:6px">
           <input type="checkbox" ${f.wptIconRecolor!==false?'checked':''} data-idx="${i}" class="wpticon-recolor">
@@ -1022,7 +969,7 @@ function updatePreview(){
       if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
       m._gpxWptMarker=true;
       // narrowest (strictest) range of global waypoint-marker-zoom and this GPX's map zoom
-      const wMarkerZoomMin=1;
+      const wMarkerZoomMin=parseInt(document.getElementById('wptmarkerzoom').value);
       m._zoomMin=Math.max(wMarkerZoomMin,fZMin);
       m._zoomMax=fZMax;
       layers.push(m);allCoords.push([w.lat,w.lon]);
@@ -1039,8 +986,8 @@ function updatePreview(){
           zIndexOffset:150
         }).addTo(map);
         wptLabel._gpxWptLabel=true;
-        wptLabel._zoomMin=f.labelZoomMin;
-        wptLabel._zoomMax=f.labelZoomMax;
+        wptLabel._zoomMin=parseInt(document.getElementById('wptzoom').value);
+        wptLabel._zoomMax=19;
         layers.push(wptLabel);
       }
     });
@@ -1048,26 +995,51 @@ function updatePreview(){
     if(f.showLabel&&f.tracks.length){
       const halo=contrastHalo(f.color);
       const mainLabel=getLabelText(f,f.tracks[0].name);
-      const allPts=f.tracks.flatMap(t=>t.coords);
-      let pos;
-      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-      else pos=labelAnchorCentroid(allPts);
-      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
-      const fs=(f.labelFontSize||24)+'px';
-      const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
-      const label=L.marker(pos,{
-        icon:L.divIcon({
-          className:'',
-          html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo},0 ${haloW} 0 ${halo},0 -${haloW} 0 ${halo},${haloW} 0 0 ${halo},-${haloW} 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
-          iconAnchor:[0,0]
-        }),
-        interactive:false,
-        zIndexOffset:100
-      }).addTo(map);
-      label._gpxLabel=true;
-      label._zoomMin=f.labelZoomMin;
-      label._zoomMax=f.labelZoomMax;
-      layers.push(label);
+      if(f.labelPos==='midline'){
+        // text along a straight line through the track midpoint
+        const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
+        const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
+        const fs=(f.labelFontSize||24)+'px';
+        textPoly.setText(mainLabel,{
+          center:true,
+          repeat:false,
+          attributes:{
+            'font-size':fs,
+            'font-weight':'bold',
+            'fill':f.color,
+            'paint-order':'stroke',
+            'stroke':halo,
+            'stroke-width':'3px',
+            'stroke-linejoin':'round'
+          }
+        });
+        textPoly._gpxFile=f;
+        textPoly._gpxLabel=true;
+        textPoly._zoomMin=f.labelZoomMin;
+        textPoly._zoomMax=f.labelZoomMax;
+        layers.push(textPoly);
+      } else {
+        const allPts=f.tracks.flatMap(t=>t.coords);
+        let pos;
+        if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+        else pos=labelAnchorCentroid(allPts);
+        const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
+        const fs=(f.labelFontSize||24)+'px';
+        const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+        const label=L.marker(pos,{
+          icon:L.divIcon({
+            className:'',
+            html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo},0 ${haloW} 0 ${halo},0 -${haloW} 0 ${halo},${haloW} 0 0 ${halo},-${haloW} 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
+            iconAnchor:[0,0]
+          }),
+          interactive:false,
+          zIndexOffset:100
+        }).addTo(map);
+        label._gpxLabel=true;
+        label._zoomMin=f.labelZoomMin;
+        label._zoomMax=f.labelZoomMax;
+        layers.push(label);
+      }
     }
     // Render polygons as filled areas with a darker outline
     (f.polygons||[]).forEach(p=>{
@@ -1175,8 +1147,8 @@ function exportMap(){
   const ymd=d.getFullYear().toString()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   const title=document.getElementById('title').value.trim()||('TrailCraft_'+ymd);
   const optFollow=document.getElementById('opt-follow').checked;
-  const wptZoom=1;
-  const wptMarkerZoom=1;
+  const wptZoom=parseInt(document.getElementById('wptzoom').value);
+  const wptMarkerZoom=parseInt(document.getElementById('wptmarkerzoom').value);
   const osmOpacity=parseFloat(document.getElementById('osmopacity').value);
   const trailColor=document.getElementById('gpstrail-color').value;
   const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
@@ -1188,7 +1160,7 @@ function exportMap(){
     color:f.color,
     showLabel:f.showLabel,
     showStart:f.showStart,
-    labelPos:(f.tracks.length>0||f.waypoints.length>0)?f.labelPos:'centroid',
+    labelPos:f.labelPos,
     labelZoomMin:f.labelZoomMin,
     labelZoomMax:f.labelZoomMax,
     labelFontSize:f.labelFontSize!=null?f.labelFontSize:24,
@@ -1715,7 +1687,7 @@ D.forEach(f=>{
     const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
     if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
-    m._trackZoomMin=fZMin;
+    m._trackZoomMin=Math.max(WPTMARKERZOOM,fZMin);
     m._trackZoomMax=fZMax;
     wptMarkerLayers.push(m);  // waypoints group only
 
@@ -1730,8 +1702,8 @@ D.forEach(f=>{
         }),
         interactive:false,zIndexOffset:150
       }).addTo(map);
-      wptLbl._zoomMin=f.labelZoomMin;  // use per-file label zoom setting
-      wptLbl._zoomMax=f.labelZoomMax;
+      wptLbl._zoomMin=WPTZOOM;
+      wptLbl._zoomMax=19;
       wptLbl._wptLabel=true;  // flag so waypoints toggle can target these specifically
       labelLayers.push(wptLbl);
     }
@@ -1743,22 +1715,32 @@ D.forEach(f=>{
     const mainLabel=getLabelText(f,f.tracks[0].name);
     const fs=(f.labelFontSize||24)+'px';
     const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
-    const allPts=f.tracks.flatMap(t=>t.coords);
-    let pos;
-    if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-    else pos=labelAnchorCentroid(allPts);
-    const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
-    const lbl=L.marker(pos,{
-      icon:L.divIcon({
-        className:'',
-        html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+',0 '+haloW+' 0 '+h+',0 -'+haloW+' 0 '+h+','+haloW+' 0 0 '+h+',-'+haloW+' 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
-        iconAnchor:[0,0]
-      }),
-      interactive:false,zIndexOffset:200
-    }).addTo(map);
-    lbl._zoomMin=f.labelZoomMin;
-    lbl._zoomMax=f.labelZoomMax;
-    labelLayers.push(lbl);
+    if(f.labelPos==='midline'&&f.tracks.length){
+      const simplified=buildTextPathLine(f.tracks[0].coords, mainLabel.length);
+      const textPoly=L.polyline(simplified,{opacity:0,weight:1}).addTo(map);
+      textPoly.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':fs,'font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      textPoly._gpxFile=f;
+      textPoly._zoomMin=f.labelZoomMin;
+      textPoly._zoomMax=f.labelZoomMax;
+      labelLayers.push(textPoly);
+    } else {
+      const allPts=f.tracks.flatMap(t=>t.coords);
+      let pos;
+      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+      else pos=labelAnchorCentroid(allPts);
+      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
+      const lbl=L.marker(pos,{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+',0 '+haloW+' 0 '+h+',0 -'+haloW+' 0 '+h+','+haloW+' 0 0 '+h+',-'+haloW+' 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
+          iconAnchor:[0,0]
+        }),
+        interactive:false,zIndexOffset:200
+      }).addTo(map);
+      lbl._zoomMin=f.labelZoomMin;
+      lbl._zoomMax=f.labelZoomMax;
+      labelLayers.push(lbl);
+    }
   }
   // --- Polygon centroid label (one per file, using name from first polygon) ---
   if(f.showLabel&&(f.polygons||[]).length>0){
@@ -2088,14 +2070,9 @@ map.on('zoomend',function(){
   // Hide polygon row if there are no polygons in the baked-in data
   const hasPolygons=D.some(f=>(f.polygons||[]).length>0);
   if(!hasPolygons) document.getElementById('vis-row-polygons').style.display='none';
+  // Hide waypoints row if there are none
   const hasWaypoints=D.some(f=>f.waypoints.length>0);
   if(!hasWaypoints) document.getElementById('vis-row-waypoints').style.display='none';
-  const hasTracks=D.some(f=>f.tracks.length>0);
-  if(!hasTracks) document.getElementById('vis-row-tracks').style.display='none';
-  // Hide the entire vis-overlay if there is no baked-in data at all
-  if(!hasTracks&&!hasWaypoints&&!hasPolygons){
-    document.getElementById('vis-overlay').style.display='none';
-  }
 }
 
 // =====================================================================
@@ -2165,11 +2142,11 @@ map.on('zoomend',function(){
     }catch(e){return null;}
   }
 
-  function buildArrowDecorator(coords, color){
-    // Arrows at 1km, 4km, 7km, 10km... (first at 1km then every 3km)
-    // Clicking shows only the km distance — no route name
+  function buildArrowDecorator(coords, color, routeName){
+    // Direction arrows every ~3km along the line.
+    // Clicking an arrow shows the cumulative distance at that point.
     const arrows=[];
-    let dist=0, nextArrow=1000;
+    let dist=0, nextArrow=1500;
     function hvDist(a,b){
       const R=6371000,lat1=a[0]*Math.PI/180,lat2=b[0]*Math.PI/180;
       const dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180;
@@ -2187,15 +2164,16 @@ map.on('zoomend',function(){
         const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
         const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
         const deg=brng(coords[i],coords[i+1]);
-        const kmLabel=Math.round(nextArrow/1000)+' km';
+        const kmLabel=(nextArrow/1000).toFixed(1)+' km';
         const svg='<svg width="18" height="18" viewBox="0 0 18 18" style="transform:rotate('+deg+'deg)"><polygon points="9,1 14,16 9,11 4,16" fill="'+color+'" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>';
         const marker=L.marker([lat,lon],{
           icon:L.divIcon({className:'',html:svg,iconSize:[18,18],iconAnchor:[9,9]}),
-          interactive:true, zIndexOffset:100
+          interactive:true,
+          zIndexOffset:100
         });
-        marker.bindPopup(kmLabel);
+        marker.bindPopup('<b>'+routeName+'</b><br>'+kmLabel);
         arrows.push(marker);
-        nextArrow+=1000;  // every 1km
+        nextArrow+=3000;
       }
       dist+=seg;
     }
@@ -2241,96 +2219,35 @@ map.on('zoomend',function(){
 
   function applyRouteStyle(idx){
     const r=userRoutes[idx];
-    // Remove old arrows, start icon, label
-    r.arrowLayers.forEach(l=>map.removeLayer(l)); r.arrowLayers=[];
-    if(r.startLayer){map.removeLayer(r.startLayer);r.startLayer=null;}
-    if(r.labelLayer){map.removeLayer(r.labelLayer);r.labelLayer=null;}
-
-    // Update geometry style
+    // Remove old arrow markers
+    r.arrowLayers.forEach(l=>map.removeLayer(l));
+    r.arrowLayers=[];
     r.layers.forEach(l=>{
-      if(!l.setStyle) return;
-      if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
-        l.setStyle({color:r.color,fillColor:r.color,weight:2,opacity:r.opacity,fillOpacity:r.opacity});
-      } else if(l instanceof L.Polygon){
-        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*0.22});
-      } else {
-        l.setStyle({color:r.color,weight:r.lineWidth,opacity:r.opacity});
+      if(l.setStyle){
+        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*0.25});
       }
     });
-
-    // Direction arrows
+    // Rebuild direction arrows with km popup on click
     if(r.showArrows){
       (r.parsed.tracks||[]).forEach(t=>{
-        buildArrowDecorator(t.coords,r.color).forEach(a=>{
+        const trackLabel=t.name||r.name;
+        buildArrowDecorator(t.coords,r.color,trackLabel).forEach(a=>{
           if(r.visible)a.addTo(map);
           r.arrowLayers.push(a);
         });
       });
     }
-
-    if(!r.showLabel) return;
-
-    const halo=r.color.length===7?(parseInt(r.color.slice(1,3),16)*299+parseInt(r.color.slice(3,5),16)*587+parseInt(r.color.slice(5,7),16)*114)/1000>140?'rgba(0,0,0,0.6)':'rgba(255,255,255,0.8)':'rgba(255,255,255,0.8)';
-    const shadow='-1.5px -1.5px 0 '+halo+',1.5px -1.5px 0 '+halo+',-1.5px 1.5px 0 '+halo+',1.5px 1.5px 0 '+halo;
-
-    const hasTracks=(r.parsed.tracks||[]).length>0;
-    const hasWaypoints=(r.parsed.waypoints||[]).length>0;
-    const hasPolygons=(r.parsed.polygons||[]).length>0;
-
-    if(hasTracks){
-      // Label at start point of first track
-      const sp=r.parsed.tracks[0].coords[0];
-      const labelText=r.parsed.tracks[0].name||r.name;
-
-      // Start icon (circle with play arrow)
-      r.startLayer=L.marker(sp,{
-        icon:L.divIcon({
-          className:'',
-          html:'<div style="width:20px;height:20px;background:'+r.color+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)"><span style="color:#fff;font-size:10px;margin-left:2px">&#9654;</span></div>',
-          iconSize:[0,0],iconAnchor:[0,0]
-        }),interactive:false,zIndexOffset:210
-      });
-      if(r.visible)r.startLayer.addTo(map);
-
-      // Label to the right of the start icon
-      r.labelLayer=L.marker(sp,{
-        icon:L.divIcon({
-          className:'',
-          html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(14px,-50%)">'+labelText+'</div>',
-          iconSize:[0,0],iconAnchor:[0,0]
-        }),interactive:false,zIndexOffset:200
-      });
-      if(r.visible)r.labelLayer.addTo(map);
-
-    } else if(hasWaypoints){
-      // Label next to EVERY waypoint with its own name
-      r.labelLayer=L.layerGroup();
-      r.parsed.waypoints.forEach(w=>{
-        const labelText=w.name||r.name;
-        const m=L.marker([w.lat,w.lon],{
-          icon:L.divIcon({
-            className:'',
-            html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(10px,-50%)">'+labelText+'</div>',
-            iconSize:[0,0],iconAnchor:[0,0]
-          }),interactive:false,zIndexOffset:200
-        });
-        r.labelLayer.addLayer(m);
-      });
-      if(r.visible)r.labelLayer.addTo(map);
-
-    } else if(hasPolygons&&r.bounds){
-      // Label at centroid of all polygon outer rings
-      const polyName=r.parsed.polygons[0].name||r.name;
-      const allPts=r.parsed.polygons.flatMap(p=>p.rings[0]);
-      const cLat=allPts.reduce((s,p)=>s+p[0],0)/allPts.length;
-      const cLon=allPts.reduce((s,p)=>s+p[1],0)/allPts.length;
-      r.labelLayer=L.marker([cLat,cLon],{
-        icon:L.divIcon({
-          className:'',
-          html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(-50%,-50%)">'+polyName+'</div>',
-          iconSize:[0,0],iconAnchor:[0,0]
-        }),interactive:false,zIndexOffset:200
-      });
+    // Label: use first track name if available, else the filename (r.name)
+    if(r.labelLayer){map.removeLayer(r.labelLayer);r.labelLayer=null;}
+    if(r.showLabel&&r.bounds){
+      const firstTrackName=(r.parsed.tracks&&r.parsed.tracks[0]&&r.parsed.tracks[0].name)||'';
+      const labelText=firstTrackName||r.name;
+      const center=[(r.bounds[0][0]+r.bounds[1][0])/2,(r.bounds[0][1]+r.bounds[1][1])/2];
+      r.labelLayer=L.marker(center,{icon:L.divIcon({
+        className:'',
+        html:'<div style="color:'+r.color+';font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-1.5px -1.5px 0 #fff,1.5px -1.5px 0 #fff,-1.5px 1.5px 0 #fff,1.5px 1.5px 0 #fff;transform:translate(-50%,-50%)">'+labelText+'</div>',
+        iconAnchor:[0,0]
+      }),interactive:false,zIndexOffset:200});
       if(r.visible)r.labelLayer.addTo(map);
     }
   }
@@ -2340,24 +2257,25 @@ map.on('zoomend',function(){
     r.opacity=op;
     r.layers.forEach(l=>{
       if(!l.setStyle) return;
-      if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
-        l.setStyle({opacity:op,fillOpacity:op});
+      // CircleMarker: set opacity+fillOpacity directly (changing radius would shrink it)
+      if(l instanceof L.CircleMarker && !(l instanceof L.Circle)){
+        l.setStyle({opacity:op, fillOpacity:op});
       } else if(l instanceof L.Polygon){
-        l.setStyle({opacity:op,fillOpacity:op*0.22});
+        l.setStyle({opacity:op, fillOpacity:op*0.22});
       } else {
         l.setStyle({opacity:op});
       }
     });
-    r.arrowLayers.forEach(a=>{const el=a.getElement&&a.getElement();if(el)el.style.opacity=op;});
-    // labelLayer can be a single Marker or a LayerGroup (for waypoints)
+    // Fade arrow markers via DOM opacity
+    r.arrowLayers.forEach(a=>{
+      const el=a.getElement&&a.getElement();
+      if(el)el.style.opacity=op;
+    });
+    // Fade the floating label too
     if(r.labelLayer){
-      if(r.labelLayer.eachLayer){
-        r.labelLayer.eachLayer(l=>{const el=l.getElement&&l.getElement();if(el)el.style.opacity=op;});
-      } else {
-        const el=r.labelLayer.getElement&&r.labelLayer.getElement();if(el)el.style.opacity=op;
-      }
+      const el=r.labelLayer.getElement&&r.labelLayer.getElement();
+      if(el)el.style.opacity=op;
     }
-    if(r.startLayer){const el=r.startLayer.getElement&&r.startLayer.getElement();if(el)el.style.opacity=op;}
   }
 
   function setRouteColor(idx,color){
@@ -2370,14 +2288,12 @@ map.on('zoomend',function(){
     userRoutes[idx].layers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
     userRoutes[idx].arrowLayers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
     if(userRoutes[idx].labelLayer){if(vis)map.addLayer(userRoutes[idx].labelLayer);else map.removeLayer(userRoutes[idx].labelLayer);}
-    if(userRoutes[idx].startLayer){if(vis)map.addLayer(userRoutes[idx].startLayer);else map.removeLayer(userRoutes[idx].startLayer);}
   }
 
   function removeUserRoute(idx){
     userRoutes[idx].layers.forEach(l=>map.removeLayer(l));
     userRoutes[idx].arrowLayers.forEach(l=>map.removeLayer(l));
     if(userRoutes[idx].labelLayer)map.removeLayer(userRoutes[idx].labelLayer);
-    if(userRoutes[idx].startLayer)map.removeLayer(userRoutes[idx].startLayer);
     userRoutes.splice(idx,1);
     renderRouteList();
   }
