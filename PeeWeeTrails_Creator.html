@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<title>PeeWeeTrails</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh;padding:1.5rem}
+@media(prefers-color-scheme:dark){
+  body{background:#1c1c1e;color:#eee}
+  .card{background:#2c2c2e;border-color:#3a3a3c}
+  input[type=text]{background:#3a3a3c;color:#eee;border-color:#555}
+  .file-row{background:#3a3a3c}
+  .dropzone{border-color:#555;color:#aaa}
+  .btn{background:#2c2c2e;color:#eee;border-color:#555}
+  .btn:hover{background:#3a3a3c}
+  label{color:#aaa}
+  .range-val{color:#aaa}
+  .section-label{color:#777}
+  .empty-map{border-color:#444;color:#666}
+}
+h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{font-size:14px;color:#666;margin-bottom:1.5rem}
+@media(prefers-color-scheme:dark){.sub{color:#aaa}}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.dropzone{border:2px dashed #bbb;border-radius:8px;padding:2.5rem 1rem;text-align:center;cursor:pointer;transition:background 0.15s;color:#888;font-size:14px}
+.dropzone:hover,.dropzone.over{background:#e8f4ff;border-color:#4363d8}
+.dropzone i{font-size:32px;display:block;margin-bottom:10px;color:#bbb}
+#file-list{margin-top:1rem;display:flex;flex-direction:column;gap:8px}
+.file-row{display:flex;flex-direction:column;gap:8px;font-size:13px;background:#f5f5f5;border-radius:8px;padding:8px 12px}
+.file-row-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.file-row-wpticon{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #e0e0e0}
+@media(prefers-color-scheme:dark){.file-row-wpticon{border-top-color:#4a4a4c}}
+.wpticon-upload-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:5px}
+@media(prefers-color-scheme:dark){.wpticon-upload-btn{background:#2c2c2e;color:#eee;border-color:#555}}
+.wpticon-preview{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd;border-radius:4px;background:#fff;flex-shrink:0}
+@media(prefers-color-scheme:dark){.wpticon-preview{background:#2c2c2e;border-color:#555}}
+.wpticon-preview svg,.wpticon-preview img{max-width:100%;max-height:100%}
+.wpticon-clear{font-size:12px;color:#888;background:none;border:none;cursor:pointer;text-decoration:underline}
+.file-name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.nameinput{flex:1;font-size:13px;font-weight:500;padding:4px 7px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0;outline:none}
+.nameinput:focus{border-color:#4363d8}
+@media(prefers-color-scheme:dark){.nameinput{background:#2c2c2e;color:#eee;border-color:#555}}
+.posselect{font-size:12px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;flex-shrink:0}
+@media(prefers-color-scheme:dark){.posselect{background:#2c2c2e;color:#eee;border-color:#555}}
+.zoominput{width:52px;font-size:15px;font-weight:600;padding:4px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;text-align:center;flex-shrink:0}
+@media(prefers-color-scheme:dark){.zoominput{background:#2c2c2e;color:#eee;border-color:#555}}
+.layer-row{display:flex;flex-direction:column;gap:6px;background:#f5f5f5;border-radius:8px;padding:10px 12px}
+@media(prefers-color-scheme:dark){.layer-row{background:#3a3a3c}}
+.layer-row-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.layer-url{flex:1;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0;font-family:monospace}
+.layer-url:focus{border-color:#4363d8;outline:none}
+@media(prefers-color-scheme:dark){.layer-url{background:#2c2c2e;color:#eee;border-color:#555}}
+.layer-name{width:90px;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;flex-shrink:0}
+@media(prefers-color-scheme:dark){.layer-name{background:#2c2c2e;color:#eee;border-color:#555}}
+.layer-displayname{flex:1;font-size:13px;font-weight:500;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0}
+@media(prefers-color-scheme:dark){.layer-displayname{background:#2c2c2e;color:#eee;border-color:#555}}
+.type-select{font-size:12px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;flex-shrink:0}
+@media(prefers-color-scheme:dark){.type-select{background:#2c2c2e;color:#eee;border-color:#555}}
+.file-pts{color:#888;font-size:12px;white-space:nowrap}
+.file-row .delbtn{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:0 2px;line-height:1;flex-shrink:0}
+.file-row .delbtn:hover{color:#e74c3c}
+.layer-move-btn{background:none;border:1px solid #ccc;border-radius:5px;cursor:pointer;color:#666;font-size:14px;padding:3px 7px;line-height:1;flex-shrink:0}
+.layer-move-btn:hover:not(:disabled){background:#eee;color:#222}
+.layer-move-btn:disabled{opacity:0.25;cursor:default}
+@media(prefers-color-scheme:dark){.layer-move-btn{border-color:#555;color:#aaa}.layer-move-btn:hover:not(:disabled){background:#3a3a3c;color:#eee}}
+input[type=color]{width:34px;height:28px;border:1px solid #ddd;border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0}
+label{font-size:13px;color:#222;display:block;margin-bottom:4px}
+input[type=text]{font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
+input[type=text]:focus{border-color:#4363d8}
+.row{display:flex;gap:10px;align-items:center}
+input[type=range]{flex:1}
+.range-val{font-size:13px;color:#666;min-width:24px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;font-family:inherit}
+.btn:hover{background:#f5f5f5}
+.btn.primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn.primary:hover{background:#0C447C;border-color:#0C447C}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+#preview-wrap{border-radius:8px;overflow:hidden;border:1px solid #ddd;height:340px;display:none}
+#map{height:340px}
+.empty-map{height:200px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;border:1px dashed #ddd;border-radius:8px}
+.section-label{font-size:12px;font-weight:600;color:#222;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+/* toggle switch */
+.toggle{position:relative;display:inline-block;width:34px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:20px;transition:.2s}
+.slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
+input:checked+.slider{background:#185FA5}
+input:checked+.slider:before{transform:translateX(14px)}
+.toggle-label{font-size:13px;color:#222;white-space:nowrap}
+</style>
+</head>
+<body>
+<h1>PeeWeeTrails</h1>
+<p class="sub">Drag GPX or GeoJSON files here, set colors, and download a map page to share.</p>
+
+<div class="card">
+  <div class="section-label">Files</div>
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('fileinput').click()">
+    <i class="ti ti-map-2" aria-hidden="true"></i>
+    Drag GPX or GeoJSON files here, or click to browse
+  </div>
+  <input type="file" id="fileinput" accept=".gpx,.geojson,.json" multiple style="display:none" onchange="handleFiles(this.files)">
+  <div id="file-list"></div>
+</div>
+
+<div class="card">
+  <div class="section-label">Settings</div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div>
+      <label for="title">Page title</label>
+      <input type="text" id="title" placeholder="My ride" id="title">
+    </div>
+    <div>
+      <label>Navigation options (in exported map)</label>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:inherit;margin-bottom:0">
+          <input type="checkbox" id="opt-follow" checked> Map follows own location automatically
+        </label>
+      </div>
+    </div>
+    <div>
+      <label>GPS trail (direction line from own location)</label>
+      <div class="row" style="gap:10px;margin-top:4px">
+        <input type="color" id="gpstrail-color" value="#9b30d9" title="GPS trail color">
+        <span class="toggle-label" style="color:#222">width</span>
+        <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
+        <span class="toggle-label" style="color:#222">px</span>
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        <span class="toggle-label" style="color:#222">trail length</span>
+        <select id="gpstrail-mode" class="posselect" onchange="document.getElementById('gpstrail-meters').style.display=this.value==='full'?'none':'';document.getElementById('gpstrail-meters-label').style.display=this.value==='full'?'none':''">
+          <option value="distance">last</option>
+          <option value="full" selected>whole ride (no limit)</option>
+        </select>
+        <input type="number" id="gpstrail-meters" value="50" min="5" max="5000" class="zoominput" style="width:64px;display:none">
+        <span class="toggle-label" style="color:#222;display:none" id="gpstrail-meters-label">meters</span>
+      </div>
+    </div>
+    <div>
+      <label>Background map opacity (OSM)</label>
+      <div class="row">
+        <input type="range" min="0" max="1" step="0.05" value="1" id="osmopacity" oninput="document.getElementById('osmopacityval').textContent=Math.round(this.value*100)+'%';updatePreview()">
+        <span class="range-val" id="osmopacityval">100%</span>
+      </div>
+    </div>
+
+<div class="card">
+  <div class="section-label">Extra map layers</div>
+  <p style="font-size:12px;color:#888;margin:-4px 0 8px">Top layer in list renders on top of the map. To change order use the arrows.</p>
+  <div id="layer-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+  <button class="btn" onclick="addLayer()" style="font-size:13px;padding:6px 12px">
+    <i class="ti ti-plus" aria-hidden="true"></i> Add layer
+  </button>
+</div>
+
+<div class="card">
+  <div class="section-label">Preview</div>
+  <div id="preview-empty" class="empty-map">Add GPX files to see a preview</div>
+  <div id="preview-wrap" style="position:relative">
+    <div id="map"></div>
+    <div id="preview-zoom-indicator" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;font-weight:600;color:#222;pointer-events:none">z–</div>
+    <button onclick="resetPreviewExtent()" title="Zoom to all GPX data" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">
+      <i class="ti ti-focus-2" aria-hidden="true"></i> Reset extent
+    </button>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn primary" id="exportbtn" onclick="exportMap()">
+    <i class="ti ti-download" aria-hidden="true"></i> Download map
+  </button>
+  <button class="btn" onclick="clearAll()">
+    <i class="ti ti-trash" aria-hidden="true"></i> Clear all
+  </button>
+</div>
+
+<script>
+// =============================================================================
+// TRAILCRAFT — INPUT HTML (editor / builder)
+// This page lets the map-maker upload GPX and GeoJSON files, style tracks,
+// configure extra tile layers (XYZ/WMTS/WMS), and export a self-contained
+// OUTPUT HTML map page that end-users can open in any browser.
+// =============================================================================
+
+const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c07000","#888888","#a9a9a9","#000075"];
+
+// --- Default extra layers (shown when no saved state exists) ---
+const DEFAULT_LAYERS=[
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false}
+];
+// Saving in renderLayerList() ensures all layer changes are captured.
+// A flag prevents saving during the restore pass itself.
+const STORAGE_KEY='peeweetrails_layers_v1';
+let _restoring=false;
+
+function saveLayersToStorage(){
+  if(_restoring) return;
+  try{
+    const state={
+      layers:extraLayers.map(l=>({
+        type:l.type, url:l.url, wmsLayer:l.wmsLayer||'',
+        displayName:l.displayName||'', opacity:l.opacity,
+        zoomMin:l.zoomMin, zoomMax:l.zoomMax, defaultOn:l.defaultOn||false
+      })),
+      title:document.getElementById('title').value,
+      osmOpacity:document.getElementById('osmopacity').value
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){}
+}
+
+function loadLayersFromStorage(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const layersToLoad=raw?JSON.parse(raw).layers:null;
+    const state=raw?JSON.parse(raw):null;
+
+    // Use saved layers, or fall back to the default set
+    const source=layersToLoad&&layersToLoad.length>0?layersToLoad:DEFAULT_LAYERS;
+    _restoring=true;
+    extraLayers.length=0;
+    source.forEach(l=>extraLayers.push({
+      type:l.type||'xyz', url:l.url||'', wmsLayer:l.wmsLayer||'',
+      displayName:l.displayName||'', opacity:l.opacity!=null?l.opacity:0.8,
+      zoomMin:l.zoomMin!=null?l.zoomMin:1, zoomMax:l.zoomMax!=null?l.zoomMax:22,
+      defaultOn:l.defaultOn||false
+    }));
+    renderLayerList();
+    _restoring=false;
+    if(state&&state.title) document.getElementById('title').value=state.title;
+    if(state&&state.osmOpacity!=null){
+      const sl=document.getElementById('osmopacity');
+      sl.value=state.osmOpacity;
+      document.getElementById('osmopacityval').textContent=Math.round(state.osmOpacity*100)+'%';
+    }
+  }catch(e){ _restoring=false; }
+}
+
+// Restore on page load — must wait for DOM to be ready
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', loadLayersFromStorage);
+} else {
+  loadLayersFromStorage(); // DOM already ready
+}
+
+// Save title changes
+document.getElementById('title').addEventListener('input',saveLayersToStorage);
+
+// Small notice under the export button
+(function(){
+  const notice=document.createElement('p');
+  notice.style.cssText='font-size:11px;color:#888;margin-top:6px;text-align:center';
+  notice.textContent='Extra layers & title are saved in this browser automatically.';
+  const btn=document.getElementById('exportbtn');
+  if(btn&&btn.parentNode) btn.parentNode.appendChild(notice);
+})();
+(function(){
+  const d=new Date();
+  const ymd=d.getFullYear().toString()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  document.getElementById('title').value='PeeWeeTrails_'+ymd;
+})();
+const MAX_ZOOM=19; // practical limit for standard OSM tiles; higher has no tile coverage
+let files=[];
+let map=null;
+let layers=[];
+let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
+let previewExtraLayers=[];
+let osmTileLayer=null;
+
+// --- Extra tile layer management (XYZ/WMTS/WMS) ---
+// Each entry in extraLayers becomes an overlay in the exported map.
+function addLayer(preset){
+  const idx=extraLayers.length;
+  extraLayers.push(preset||{type:'xyz',url:'',wmsLayer:'',displayName:'Layer '+(idx+1),opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false});
+  renderLayerList();
+  updatePreview();
+  saveLayersToStorage();
+}
+
+function removeLayer(i){
+  extraLayers.splice(i,1);
+  renderLayerList();
+  updatePreview();
+}
+
+function moveLayer(i, dir){
+  const j = dir==='up' ? i-1 : i+1;
+  if(j<0 || j>=extraLayers.length) return;
+  [extraLayers[i], extraLayers[j]] = [extraLayers[j], extraLayers[i]];
+  renderLayerList();
+  updatePreview();
+}
+
+function renderLayerList(){
+  const el=document.getElementById('layer-list');
+  el.innerHTML='';
+  extraLayers.forEach((l,i)=>{
+    const row=document.createElement('div');
+    row.className='layer-row';
+    row.innerHTML=`
+      <div class="layer-row-top">
+        <select class="type-select" data-idx="${i}">
+          <option value="xyz" ${l.type==='xyz'?'selected':''}>XYZ/WMTS</option>
+          <option value="wms" ${l.type==='wms'?'selected':''}>WMS</option>
+        </select>
+        <input class="layer-displayname" type="text" placeholder="Layer ${i+1}" value="${(l.displayName||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Name shown in the layers menu">
+        <button class="layer-move-btn" data-idx="${i}" data-dir="up" title="Move up (render earlier)" ${i===0?'disabled':''}>&#8593;</button>
+        <button class="layer-move-btn" data-idx="${i}" data-dir="down" title="Move down (render later)" ${i===extraLayers.length-1?'disabled':''}>&#8595;</button>
+        <button class="delbtn" data-idx="${i}" title="Remove" style="font-size:18px">&times;</button>
+      </div>
+      <div class="layer-row-top">
+        <input class="layer-url" type="text" placeholder="${l.type==='wms'?'WMS URL (without parameters)':'XYZ/WMTS URL with {z}/{x}/{y}'}" value="${l.url.replace(/"/g,'&quot;')}" data-idx="${i}">
+        ${l.type==='wms'?`<input class="layer-name" type="text" placeholder="WMS layer name (LAYERS=...)" value="${l.wmsLayer.replace(/"/g,'&quot;')}" data-idx="${i}" title="Technical WMS layer name">`:``}
+      </div>
+      <div class="row" style="gap:8px">
+        <span class="toggle-label" style="color:#222">Opacity</span>
+        <input type="range" min="0" max="1" step="0.05" value="${l.opacity}" data-idx="${i}" class="opacity-slider" style="flex:1">
+        <span class="range-val layer-opval">${Math.round(l.opacity*100)}%</span>
+      </div>
+      <div class="row" style="gap:6px">
+        <span class="toggle-label" style="color:#222">Zoom</span>
+        <input type="number" value="${l.zoomMin!=null?l.zoomMin:1}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommin" title="Zoom level from">
+        <span class="toggle-label" style="color:#222">to</span>
+        <input type="number" value="${l.zoomMax!=null?l.zoomMax:22}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommax" title="Zoom level to">
+        <label class="toggle" title="Layer on or off by default when the map is opened" style="margin-left:8px">
+          <input type="checkbox" ${l.defaultOn===true?'checked':''} data-idx="${i}" class="layer-defaulton">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">on by default</span>
+      </div>`;
+    el.appendChild(row);
+  });
+  el.querySelectorAll('.type-select').forEach(s=>{
+    s.addEventListener('change',e=>{extraLayers[parseInt(e.target.dataset.idx)].type=e.target.value;renderLayerList();updatePreview();});
+  });
+  el.querySelectorAll('.layer-displayname').forEach(inp=>{
+    inp.addEventListener('input',e=>{extraLayers[parseInt(e.target.dataset.idx)].displayName=e.target.value;updatePreview();});
+  });
+  el.querySelectorAll('.layer-url').forEach(inp=>{
+    inp.addEventListener('input',e=>{extraLayers[parseInt(e.target.dataset.idx)].url=e.target.value;updatePreview();});
+  });
+  el.querySelectorAll('.layer-name').forEach(inp=>{
+    inp.addEventListener('input',e=>{extraLayers[parseInt(e.target.dataset.idx)].wmsLayer=e.target.value;updatePreview();});
+  });
+  el.querySelectorAll('.opacity-slider').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].opacity=parseFloat(e.target.value);
+      e.target.closest('.layer-row').querySelector('.layer-opval').textContent=Math.round(extraLayers[i].opacity*100)+'%';
+      // update live without full redraw
+      if(previewExtraLayers[i])previewExtraLayers[i].setOpacity(extraLayers[i].opacity);
+    });
+  });
+  el.querySelectorAll('.layer-zoommin').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].zoomMin=parseInt(e.target.value)||0;
+      if(extraLayers[i].zoomMin>extraLayers[i].zoomMax)extraLayers[i].zoomMax=extraLayers[i].zoomMin;
+      updatePreview();renderLayerList();
+    });
+  });
+  el.querySelectorAll('.layer-zoommax').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].zoomMax=parseInt(e.target.value)||22;
+      if(extraLayers[i].zoomMax<extraLayers[i].zoomMin)extraLayers[i].zoomMin=extraLayers[i].zoomMax;
+      updatePreview();renderLayerList();
+    });
+  });
+  el.querySelectorAll('.layer-defaulton').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].defaultOn=e.target.checked;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.layer-move-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const idx=parseInt(e.currentTarget.dataset.idx);
+      const dir=e.currentTarget.dataset.dir;
+      moveLayer(idx,dir);
+    });
+  });
+  el.querySelectorAll('.delbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>removeLayer(parseInt(e.target.dataset.idx)));
+  });
+  saveLayersToStorage();  // persist after every render
+}
+
+// --- Drag-and-drop and file input for GPX / GeoJSON ---
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleFiles(e.dataTransfer.files)});
+
+function handleFiles(fl){
+  Array.from(fl).forEach(f=>{
+    const nameLow=f.name.toLowerCase();
+    const isGpx=nameLow.endsWith('.gpx');
+    const isGeojson=nameLow.endsWith('.geojson')||nameLow.endsWith('.json');
+    if(!isGpx&&!isGeojson)return;
+    if(files.find(x=>x.name===f.name))return;
+    const color=COLORS[files.length%COLORS.length];
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const parsed=isGpx ? parseGPX(ev.target.result) : parseGeoJSON(ev.target.result);
+      if(!parsed){alert('Could not read '+f.name+' as '+(isGpx?'GPX':'GeoJSON')+'.');return;}
+      if(!parsed.tracks.length&&!parsed.waypoints.length&&!(parsed.polygons&&parsed.polygons.length)){alert('No routes or waypoints found in '+f.name+'.');return;}
+      const displayName=f.name.replace(/\.(gpx|geojson|json)$/i,'');
+      // Default label position: 'start' if file has tracks or waypoints, 'centroid' for polygon-only files
+      const hasTracksOrWpts=parsed.tracks.length>0||parsed.waypoints.length>0;
+      const defaultLabelPos=hasTracksOrWpts?'start':'centroid';
+      files.push({name:f.name, displayName, color, showLabel:true, showStart:true, labelPos:defaultLabelPos, labelZoomMin:14, labelZoomMax:18, useElementName:true, lineWidth:3, mapZoomMin:1, mapZoomMax:19, showKmMarkers:false, polygons:parsed.polygons||[], ...parsed});
+      renderList();
+      updatePreview();
+      document.getElementById('exportbtn').disabled=false;
+    };
+    reader.readAsText(f);
+  });
+}
+
+// --- GPX parser: extracts tracks, routes and waypoints from a GPX XML string ---
+function parseGPX(text){
+  try{
+    const doc=new DOMParser().parseFromString(text,'application/xml');
+    const tracks=[];
+    const waypoints=[];
+    doc.querySelectorAll('trk,rte').forEach(el=>{
+      const name=el.querySelector('name')?.textContent||'';
+      const pts=[];
+      el.querySelectorAll('trkpt,rtept').forEach(pt=>{
+        const lat=parseFloat(pt.getAttribute('lat'));
+        const lon=parseFloat(pt.getAttribute('lon'));
+        if(!isNaN(lat)&&!isNaN(lon))pts.push([lat,lon]);
+      });
+      if(pts.length)tracks.push({name,coords:pts});
+    });
+    doc.querySelectorAll('wpt').forEach(wpt=>{
+      const lat=parseFloat(wpt.getAttribute('lat'));
+      const lon=parseFloat(wpt.getAttribute('lon'));
+      if(!isNaN(lat)&&!isNaN(lon))waypoints.push({
+        lat,lon,
+        name:wpt.querySelector('name')?.textContent||'',
+        desc:wpt.querySelector('desc')?.textContent||''
+      });
+    });
+    const npts=tracks.reduce((s,t)=>s+t.coords.length,0)+waypoints.length;
+    return{tracks,waypoints,npts};
+  }catch(e){return null;}
+}
+
+// --- GeoJSON parser: handles LineString, MultiLineString, Polygon, MultiPolygon,
+//     Point, MultiPoint and GeometryCollection.
+//     Returns { tracks, waypoints, polygons, npts } so each geometry type
+//     can be rendered and toggled independently in both the preview and the output map. ---
+function parseGeoJSON(text){
+  try{
+    const gj=JSON.parse(text);
+    const tracks=[];
+    const waypoints=[];
+    const polygons=[];   // kept separate so they render as filled areas, not lines
+    function handleGeom(geom, props){
+      if(!geom)return;
+      const name=(props&&(props.name||props.title||props.Name||props.NAME))||'';
+      const desc=(props&&(props.desc||props.description||props.Description))||'';
+      if(geom.type==='LineString'){
+        const coords=geom.coordinates.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
+        if(coords.length)tracks.push({name,coords});
+      } else if(geom.type==='MultiLineString'){
+        geom.coordinates.forEach(line=>{
+          const coords=line.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
+          if(coords.length)tracks.push({name,coords});
+        });
+      } else if(geom.type==='Polygon'){
+        // Each ring: outer ring + optional holes
+        const rings=geom.coordinates.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
+        if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
+      } else if(geom.type==='MultiPolygon'){
+        geom.coordinates.forEach(poly=>{
+          const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
+          if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
+        });
+      } else if(geom.type==='Point'){
+        const c=geom.coordinates;
+        if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
+      } else if(geom.type==='MultiPoint'){
+        geom.coordinates.forEach(c=>{
+          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
+        });
+      } else if(geom.type==='GeometryCollection'){
+        geom.geometries.forEach(g=>handleGeom(g,props));
+      }
+    }
+    const features=(gj.type==='FeatureCollection')?gj.features:
+                   (gj.type==='Feature')?[gj]:
+                   [{type:'Feature',geometry:gj,properties:{}}];
+    features.forEach(ft=>{
+      if(ft&&ft.geometry) handleGeom(ft.geometry, ft.properties||{});
+    });
+    const npts=tracks.reduce((s,t)=>s+t.coords.length,0)+waypoints.length+polygons.reduce((s,p)=>s+p.rings[0].length,0);
+    return{tracks,waypoints,polygons,npts};
+  }catch(e){return null;}
+}
+
+function renderList(){
+  const el=document.getElementById('file-list');
+  el.innerHTML='';
+  files.forEach((f,i)=>{
+    const row=document.createElement('div');
+    row.className='file-row';
+    row.innerHTML=`
+      <div class="file-row-main">
+      <input type="color" value="${f.color}" title="Color" data-idx="${i}" class="colorpick">
+      <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Name on map" data-idx="${i}" class="nameinput" placeholder="Name">
+      <span class="toggle-label" style="color:#222">line width</span>
+      <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Line width of this track in pixels" style="width:56px">
+      <span class="toggle-label" style="color:#222">px</span>
+      <span class="toggle-label" style="color:#222;margin-left:4px">map zoom</span>
+      <input type="number" value="${f.mapZoomMin!=null?f.mapZoomMin:1}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints visible from zoom level">
+      <span class="toggle-label" style="color:#222">–</span>
+      <input type="number" value="${f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level">
+      <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
+      <button class="delbtn" data-idx="${i}" title="Remove">&times;</button>
+      </div>
+      <div class="file-row-main">
+      <label class="toggle" title="Show name on map">
+        <input type="checkbox" ${f.showLabel?'checked':''} data-idx="${i}" class="labeltog">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">label</span>
+      <select data-idx="${i}" class="posselect" title="Label position">
+        <option value="centroid" ${f.labelPos==='centroid'?'selected':''}>centroid</option>
+        <option value="start" ${f.labelPos==='start'?'selected':''}>start point</option>
+      </select>
+      <label class="toggle" title="Show start point on map">
+        <input type="checkbox" ${f.showStart?'checked':''} data-idx="${i}" class="starttog">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">start</span>
+      <label class="toggle" title="Arrow with distance label every kilometer from the start point; click the arrow to see the number">
+        <input type="checkbox" ${f.showKmMarkers?'checked':''} data-idx="${i}" class="kmtog">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">km markers</span>
+      <label class="toggle" title="Show each track/waypoint's own <name> instead of the file name">
+        <input type="checkbox" ${f.useElementName?'checked':''} data-idx="${i}" class="elnametog">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">name label</span>
+      <span class="toggle-label" style="color:#222;margin-left:4px">label zoom</span>
+      <input type="number" value="${f.labelZoomMin}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommin" title="Label zoom level from">
+      <span class="toggle-label" style="color:#222">–</span>
+      <input type="number" value="${f.labelZoomMax}" min="1" max="19" data-idx="${i}" class="zoominput labelzoommax" title="Label zoom level to">
+      <span class="toggle-label" style="color:#222;margin-left:4px">font</span>
+      <input type="number" value="${f.labelFontSize!=null?f.labelFontSize:24}" min="8" max="72" data-idx="${i}" class="zoominput labelfontsize" title="Label font size in pixels" style="width:52px">
+      <span class="toggle-label" style="color:#222">px</span>
+      </div>
+      ${f.waypoints.length>0?`
+      <div class="file-row-wpticon">
+        <span class="toggle-label" style="color:#222">Waypoint icon</span>
+        <div class="wpticon-preview" id="wpticon-preview-${i}" style="color:${f.color}">${f.wptIconSvg?f.wptIconSvg:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:14px"></i>'}</div>
+        <button type="button" class="wpticon-upload-btn" data-idx="${i}" onclick="document.getElementById('wpticon-file-${i}').click()">
+          <i class="ti ti-upload" aria-hidden="true"></i> Choose SVG
+        </button>
+        <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
+        ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">remove</button>`:''}
+        <span class="toggle-label" style="color:#222;margin-left:6px">size</span>
+        <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Icon size in pixels" style="width:60px">
+        <span class="toggle-label" style="color:#222">px</span>
+        ${f.wptIconSvg?`
+        <label class="toggle" title="Recolor the SVG with the GPX color (only works if the SVG has no hard-coded colors of its own)" style="margin-left:6px">
+          <input type="checkbox" ${f.wptIconRecolor!==false?'checked':''} data-idx="${i}" class="wpticon-recolor">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">recolor</span>`:''}
+      </div>`:''}`;
+    el.appendChild(row);
+  });
+  el.querySelectorAll('.nameinput').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      files[parseInt(e.target.dataset.idx)].displayName=e.target.value;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.colorpick').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      files[parseInt(e.target.dataset.idx)].color=e.target.value;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.labeltog').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].showLabel=e.target.checked;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.posselect').forEach(sel=>{
+    sel.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].labelPos=e.target.value;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.starttog').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].showStart=e.target.checked;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.kmtog').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].showKmMarkers=e.target.checked;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.elnametog').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].useElementName=e.target.checked;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.labelzoommin').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].labelZoomMin=parseInt(e.target.value)||1;
+      if(files[i].labelZoomMin>files[i].labelZoomMax)files[i].labelZoomMax=files[i].labelZoomMin;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.labelzoommax').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].labelZoomMax=parseInt(e.target.value)||19;
+      if(files[i].labelZoomMax<files[i].labelZoomMin)files[i].labelZoomMin=files[i].labelZoomMax;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.labelfontsize').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].labelFontSize=parseInt(e.target.value)||24;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.linewidthinput').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].lineWidth=parseInt(e.target.value)||3;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.mapzoommin').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].mapZoomMin=parseInt(e.target.value)||1;
+      if(files[i].mapZoomMin>files[i].mapZoomMax)files[i].mapZoomMax=files[i].mapZoomMin;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.mapzoommax').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].mapZoomMax=parseInt(e.target.value)||MAX_ZOOM;
+      if(files[i].mapZoomMax<files[i].mapZoomMin)files[i].mapZoomMin=files[i].mapZoomMax;
+      updatePreview();renderList();
+    });
+  });
+  el.querySelectorAll('.wpticon-fileinput').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      const file=e.target.files[0];
+      if(!file)return;
+      if(!file.name.toLowerCase().endsWith('.svg')&&file.type!=='image/svg+xml'){
+        alert('Please choose an SVG file.');
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        let svgText=ev.target.result;
+        // basic validation: must contain an <svg> tag
+        if(!/<svg[\s>]/i.test(svgText)){
+          alert('This does not look like a valid SVG file.');
+          return;
+        }
+        files[i].wptIconSvgRaw=svgText;
+        files[i].wptIconSvg=prepareSvgForRecolor(svgText, files[i].wptIconRecolor!==false);
+        renderList();
+        updatePreview();
+      };
+      reader.readAsText(file);
+    });
+  });
+  el.querySelectorAll('.wpticon-clear').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconSvg=null;
+      files[i].wptIconSvgRaw=null;
+      renderList();
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.wpticon-size').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconSize=parseInt(e.target.value)||28;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.wpticon-recolor').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const i=parseInt(e.target.dataset.idx);
+      files[i].wptIconRecolor=e.target.checked;
+      if(files[i].wptIconSvgRaw){
+        files[i].wptIconSvg=prepareSvgForRecolor(files[i].wptIconSvgRaw, files[i].wptIconRecolor);
+      }
+      renderList();
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.delbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>removeFile(parseInt(e.target.dataset.idx)));
+  });
+}
+
+function removeFile(i){
+  files.splice(i,1);
+  renderList();
+  updatePreview();
+}
+
+function clearAll(){
+  files=[];renderList();updatePreview();
+}
+
+// centroid of all coords in a track for label placement
+function centroid(coords){
+  if(!coords.length)return[0,0];
+  let la=0,lo=0;
+  coords.forEach(p=>{la+=p[0];lo+=p[1];});
+  return[la/coords.length,lo/coords.length];
+}
+
+// Find the closest point ON a line (with interpolation between vertices) to a
+// given reference point. Used to make sure the label anchor point always falls
+// on the track, even when the geometric centroid of the track would sit off to
+// the side (e.g. for a horseshoe-shaped or strongly curved route).
+function nearestPointOnLine(point, lineCoords){
+  if(lineCoords.length===0) return point;
+  if(lineCoords.length===1) return lineCoords[0];
+  let best=lineCoords[0], bestDist=Infinity;
+  for(let i=0;i<lineCoords.length-1;i++){
+    const a=lineCoords[i], b=lineCoords[i+1];
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    let t = (dx===0&&dy===0) ? 0 : ((point[0]-a[0])*dx+(point[1]-a[1])*dy)/(dx*dx+dy*dy);
+    t = Math.max(0, Math.min(1, t));
+    const proj=[a[0]+t*dx, a[1]+t*dy];
+    const d=Math.hypot(point[0]-proj[0], point[1]-proj[1]);
+    if(d<bestDist){ bestDist=d; best=proj; }
+  }
+  return best;
+}
+
+// Label anchor for "centroid": compute the geometric center, then project it
+// back onto the track itself so the label is guaranteed to sit on the line.
+function labelAnchorCentroid(trackCoords){
+  const c=centroid(trackCoords);
+  return nearestPointOnLine(c, trackCoords);
+}
+
+// Distance in meters between two lat/lon points (haversine formula)
+function haversineMeters(p1,p2){
+  const R=6371000;
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLat=(p2[0]-p1[0])*Math.PI/180, dLon=(p2[1]-p1[1])*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Bearing in degrees from p1 to p2 (0=north), used for the direction of km markers
+function bearingPoints(p1,p2){
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLon=(p2[1]-p1[1])*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+// For a track, compute the position and direction of a marker at every full
+// kilometer (measured along the path from the start point). Returns a list of
+// {position, bearing, km} objects, one for each kilometer passed.
+function buildKmMarkers(coords){
+  if(coords.length<2) return [];
+  const markers=[];
+  let cumDist=0;
+  let nextKm=1000; // meters
+  for(let i=0;i<coords.length-1;i++){
+    const segDist=haversineMeters(coords[i],coords[i+1]);
+    while(cumDist+segDist>=nextKm){
+      const t=(nextKm-cumDist)/segDist;
+      const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
+      const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
+      markers.push({position:[lat,lon], bearing:bearingPoints(coords[i],coords[i+1]), km:nextKm/1000});
+      nextKm+=1000;
+    }
+    cumDist+=segDist;
+  }
+  return markers;
+}
+
+// Douglas-Peucker line simplification: removes unnecessary intermediate points so
+// that a winding track is reduced to the essential direction-defining points.
+function simplifyLine(points, tolerance){
+  if(points.length<3) return points;
+  function perpDist(pt,a,b){
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    if(dx===0&&dy===0) return Math.hypot(pt[0]-a[0],pt[1]-a[1]);
+    const t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/(dx*dx+dy*dy);
+    const tc=Math.max(0,Math.min(1,t));
+    const px=a[0]+tc*dx, py=a[1]+tc*dy;
+    return Math.hypot(pt[0]-px,pt[1]-py);
+  }
+  function dp(pts,tol){
+    if(pts.length<3) return pts;
+    let maxD=0,idx=0;
+    for(let i=1;i<pts.length-1;i++){
+      const d=perpDist(pts[i],pts[0],pts[pts.length-1]);
+      if(d>maxD){maxD=d;idx=i;}
+    }
+    if(maxD>tol){
+      const left=dp(pts.slice(0,idx+1),tol);
+      const right=dp(pts.slice(idx),tol);
+      return left.slice(0,-1).concat(right);
+    }
+    return [pts[0],pts[pts.length-1]];
+  }
+  return dp(points,tolerance);
+}
+
+// Pick and simplify a text path for "on line" labels: a strongly smoothed
+// version of the track, so the text doesn't follow every small bend of a GPS track.
+function buildTextPathLine(coords, labelLength){
+  // For "on line" labels we want letters on a SINGLE straight line, not following
+  // every GPS wiggle (which causes letters at different angles).
+  // Strategy: find the longest straight sub-segment of the track and use its
+  // two endpoints. This keeps the text readable and avoids upside-down letters.
+  if(coords.length<2) return coords;
+  if(coords.length===2) return normalizeDirection(coords);
+
+  // Compute cumulative distances to find the midpoint
+  const dists=[0];
+  for(let i=1;i<coords.length;i++){
+    const a=coords[i-1], b=coords[i];
+    const dx=b[1]-a[1], dy=b[0]-a[0];
+    dists.push(dists[i-1]+Math.sqrt(dx*dx+dy*dy));
+  }
+  const total=dists[dists.length-1];
+  // Estimate how much track length the label text needs (proportional to label chars)
+  const charSpan=Math.min(0.6, Math.max(0.2, (labelLength||10)*0.018));
+  const halfSpan=charSpan/2;
+
+  // Find the midpoint index
+  const mid=total*0.5;
+  let midIdx=0;
+  for(let i=0;i<dists.length;i++){if(dists[i]>=mid){midIdx=i;break;}}
+
+  // Walk back and forward from midpoint to cover charSpan fraction of total length
+  let startIdx=midIdx, endIdx=midIdx;
+  while(startIdx>0 && dists[midIdx]-dists[startIdx]<total*halfSpan) startIdx--;
+  while(endIdx<coords.length-1 && dists[endIdx]-dists[midIdx]<total*halfSpan) endIdx++;
+
+  // Return just 2 points so textpath draws on a perfectly straight line
+  return normalizeDirection([coords[startIdx], coords[endIdx]]);
+}
+
+// Normalize the direction of a coordinate sequence: make sure the line always
+// runs predominantly from west to east (increasing longitude). This prevents
+// TextPath from drawing the text upside down when the original GPX track runs
+// from right to left.
+function normalizeDirection(coords){
+  if(coords.length<2) return coords;
+  const start=coords[0], end=coords[coords.length-1];
+  const dLon=end[1]-start[1];
+  const dLat=end[0]-start[0];
+  const goingLeft = Math.abs(dLon) >= Math.abs(dLat) ? dLon < 0 : dLat < 0;
+  return goingLeft ? coords.slice().reverse() : coords;
+}
+
+// contrasting halo color (white or black based on line color)
+function contrastHalo(hex){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return(0.299*r+0.587*g+0.114*b)>140?'#000':'#fff';
+}
+
+// determine label text: own <name> if desired and present, otherwise file name
+function getLabelText(f, elementName){
+  if(f.useElementName && elementName && elementName.trim()) return elementName.trim();
+  return f.displayName;
+}
+
+// Make an SVG recolorable: replace all fill colors (root AND individual shapes such as
+// <path>, <circle>, etc.) door currentColor, zodat de hele tekening de GPX-kleur volgt.
+// fill="none" wordt met rust gelaten (meestal bewust transparant/outline).
+function prepareSvgForRecolor(svgText, recolor){
+  if(!recolor) return svgText;
+  return svgText.replace(/fill="([^"]*)"/gi, (match, value)=>{
+    if(value.trim().toLowerCase()==='none') return match;
+    return 'fill="currentColor"';
+  });
+}
+
+// build a waypoint marker: custom SVG icon if set, otherwise a standard colored circle
+function buildWaypointMarker(f, w){
+  if(f.wptIconSvg){
+    const sz=f.wptIconSize||28;
+    return L.marker([w.lat,w.lon],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:'+sz+'px;height:'+sz+'px;display:flex;align-items:center;justify-content:center;color:'+f.color+';filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">'+f.wptIconSvg+'</div>',
+        iconSize:[sz,sz],
+        iconAnchor:[sz/2,sz/2]
+      })
+    });
+  }
+  return L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2});
+}
+
+function resetPreviewExtent(){
+  if(map) map._extentSetOnce=false;
+  updatePreview();
+}
+
+function updatePreview(){
+  const empty=document.getElementById('preview-empty');
+  const wrap=document.getElementById('preview-wrap');
+  const hasLayers=extraLayers.some(l=>l.url.trim());
+  if(!files.length && !hasLayers){
+    empty.style.display='flex';wrap.style.display='none';
+    if(map){map.remove();map=null;}layers=[];return;
+  }
+  empty.style.display='none';wrap.style.display='block';
+  if(!map){
+    map=L.map('map');
+    osmTileLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+    map.on('zoomend',updateLabelVisibility);
+    const pzEl=document.getElementById('preview-zoom-indicator');
+    map.on('zoomend',()=>{pzEl.textContent='z'+map.getZoom();});
+    map.whenReady(()=>{pzEl.textContent='z'+map.getZoom();});
+  }
+  if(osmTileLayer) osmTileLayer.setOpacity(parseFloat(document.getElementById('osmopacity').value));
+  // remove old extra layers
+  previewExtraLayers.forEach(l=>{if(l&&map.hasLayer(l))map.removeLayer(l);});
+  previewExtraLayers=[];
+  // add extra layers (below GPX tracks)
+  extraLayers.forEach(el=>{
+    if(!el.url.trim())return;
+    try{
+      let tl;
+      const zMin=el.zoomMin!=null?el.zoomMin:0;
+      const zMax=el.zoomMax!=null?el.zoomMax:22;
+      if(el.type==='wms'){
+        tl=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
+      } else {
+        tl=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
+      }
+      tl.addTo(map);
+      previewExtraLayers.push(tl);
+    }catch(e){previewExtraLayers.push(null);}
+  });
+  layers.forEach(l=>map.removeLayer(l));layers=[];
+  const allCoords=[];
+  files.forEach(f=>{
+    const fLw=f.lineWidth!=null?f.lineWidth:3;
+    const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
+    const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
+    f.tracks.forEach(t=>{
+      const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
+      poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
+      poly._gpxFile=f;
+      poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
+      poly._trackZoomMin=fZMin;
+      poly._trackZoomMax=fZMax;
+      layers.push(poly);allCoords.push(...t.coords);
+    });
+    // start marker: tonen op basis van showStart toggle, binnen kaartzoom-bereik van deze GPX
+    if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
+      const startPt=f.tracks[0].coords[0];
+      const startIcon=L.divIcon({
+        className:'',
+        html:`<div style="width:22px;height:22px;background:${f.color};border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)"><span style="color:#fff;font-size:11px;line-height:1;margin-left:2px">&#9654;</span></div>`,
+        iconSize:[22,22],
+        iconAnchor:[11,11]
+      });
+      const startM=L.marker(startPt,{icon:startIcon,interactive:false,zIndexOffset:200}).addTo(map);
+      startM._gpxWptMarker=true;
+      startM._zoomMin=fZMin;
+      startM._zoomMax=fZMax;
+      layers.push(startM);
+    }
+    // KM direction markers: every kilometer along the combined tracks of this GPX
+    if(f.showKmMarkers&&f.tracks.length){
+      const allTrackCoords=f.tracks.flatMap(t=>t.coords);
+      const kmMarkers=buildKmMarkers(allTrackCoords);
+      kmMarkers.forEach(km=>{
+        const kmIcon=L.divIcon({
+          className:'',
+          html:`<svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate(${km.bearing}deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))"><polygon points="13,2 19,22 13,17 7,22" fill="${f.color}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+          iconSize:[26,26],
+          iconAnchor:[13,13]
+        });
+        const kmM=L.marker(km.position,{icon:kmIcon,zIndexOffset:180}).addTo(map);
+        kmM.bindPopup('<b>'+km.km+' km</b>');
+        kmM._gpxWptMarker=true;
+        kmM._zoomMin=fZMin;
+        kmM._zoomMax=fZMax;
+        layers.push(kmM);
+      });
+    }
+    f.waypoints.forEach(w=>{
+      const m=buildWaypointMarker(f,w).addTo(map);
+      const wLabel=getLabelText(f,w.name);
+      if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
+      m._gpxWptMarker=true;
+      // narrowest (strictest) range of global waypoint-marker-zoom and this GPX's map zoom
+      const wMarkerZoomMin=1;
+      m._zoomMin=Math.max(wMarkerZoomMin,fZMin);
+      m._zoomMax=fZMax;
+      layers.push(m);allCoords.push([w.lat,w.lon]);
+      // waypoint label: only if showLabel is on for this GPX
+      if(f.showLabel){
+        const halo=contrastHalo(f.color);
+        const wptLabel=L.marker([w.lat,w.lon],{
+          icon:L.divIcon({
+            className:'',
+            html:`<div style="color:${f.color};font-size:20px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-2.3px -2.3px 0 ${halo},2.3px -2.3px 0 ${halo},-2.3px 2.3px 0 ${halo},2.3px 2.3px 0 ${halo},0 2.3px 0 ${halo},0 -2.3px 0 ${halo};transform:translate(-50%,calc(-50% - 18px))">${wLabel}</div>`,
+            iconAnchor:[0,0]
+          }),
+          interactive:false,
+          zIndexOffset:150
+        }).addTo(map);
+        wptLabel._gpxWptLabel=true;
+        wptLabel._zoomMin=f.labelZoomMin;
+        wptLabel._zoomMax=f.labelZoomMax;
+        layers.push(wptLabel);
+      }
+    });
+    // determine label position based on setting
+    if(f.showLabel&&f.tracks.length){
+      const halo=contrastHalo(f.color);
+      const mainLabel=getLabelText(f,f.tracks[0].name);
+      const allPts=f.tracks.flatMap(t=>t.coords);
+      let pos;
+      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+      else pos=labelAnchorCentroid(allPts);
+      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
+      const fs=(f.labelFontSize||24)+'px';
+      const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+      const label=L.marker(pos,{
+        icon:L.divIcon({
+          className:'',
+          html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo},0 ${haloW} 0 ${halo},0 -${haloW} 0 ${halo},${haloW} 0 0 ${halo},-${haloW} 0 0 ${halo};${labelOffset}">${mainLabel}</div>`,
+          iconAnchor:[0,0]
+        }),
+        interactive:false,
+        zIndexOffset:100
+      }).addTo(map);
+      label._gpxLabel=true;
+      label._zoomMin=f.labelZoomMin;
+      label._zoomMax=f.labelZoomMax;
+      layers.push(label);
+    }
+    // Render polygons as filled areas with a darker outline
+    (f.polygons||[]).forEach(p=>{
+      const darkColor=f.color;
+      const poly=L.polygon(p.rings,{color:darkColor,weight:2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
+      if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||f.displayName)+'</b>'+(p.desc?'<br>'+p.desc:''));
+      poly._gpxTrack=true;
+      poly._trackZoomMin=fZMin;
+      poly._trackZoomMax=fZMax;
+      layers.push(poly);
+      p.rings.forEach(ring=>allCoords.push(...ring));
+    });
+    // Polygon label: one label per GeoJSON file at the overall centroid, using name from first polygon
+    if(f.showLabel&&(f.polygons||[]).length>0){
+      const polyName=(f.polygons[0].name)||f.displayName;
+      if(polyName){
+        // Compute centroid of all outer rings combined
+        const allPolyPts=f.polygons.flatMap(p=>p.rings[0]);
+        const cLat=allPolyPts.reduce((s,p)=>s+p[0],0)/allPolyPts.length;
+        const cLon=allPolyPts.reduce((s,p)=>s+p[1],0)/allPolyPts.length;
+        const halo=contrastHalo(f.color);
+        const fs=(f.labelFontSize||24)+'px';
+        const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+        const polyLabel=L.marker([cLat,cLon],{
+          icon:L.divIcon({
+            className:'',
+            html:`<div style="color:${f.color};font-size:${fs};font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-${haloW} -${haloW} 0 ${halo},${haloW} -${haloW} 0 ${halo},-${haloW} ${haloW} 0 ${halo},${haloW} ${haloW} 0 ${halo};transform:translate(-50%,-50%)">${polyName}</div>`,
+            iconAnchor:[0,0]
+          }),
+          interactive:false,zIndexOffset:100
+        }).addTo(map);
+        polyLabel._gpxLabel=true;
+        polyLabel._zoomMin=f.labelZoomMin;
+        polyLabel._zoomMax=f.labelZoomMax;
+        layers.push(polyLabel);
+      }
+    }
+  });
+  if(allCoords.length){
+    if(!map._extentSetOnce){
+      const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
+      map.fitBounds([[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],{padding:[20,20]});
+      map._extentSetOnce=true;
+    }
+  } else if(!map._loaded){
+    map.setView([52.1,5.3],8); // Netherlands default, only if no view has been set yet
+  }
+  updateLabelVisibility();
+}
+
+function updateLabelVisibility(){
+  if(!map)return;
+  const zoom=map.getZoom();
+  layers.forEach(l=>{
+    // Track visibility (the line itself, independent of any label on it) based on per-GPX map zoom
+    if(l._gpxTrack){
+      const tVisible=zoom>=l._trackZoomMin&&zoom<=l._trackZoomMax;
+      const el=l.getElement();
+      if(el)el.style.display=tVisible?'':'none';
+    }
+    if(!l._gpxLabel&&!l._gpxWptLabel&&!l._gpxWptMarker)return;
+    const zmin=l._zoomMin, zmax=l._zoomMax;
+    const visible=zoom>=zmin&&zoom<=zmax;
+    if(l.setText){
+      // TextPath polyline: set or clear text. The track itself (line visibility) is
+      // already handled above via _gpxTrack; this block only controls the text along it.
+      if(visible){
+        const f=l._gpxFile;
+        const halo=contrastHalo(f.color);
+        const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
+        l.setText(null);l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
+      } else {
+        l.setText(null);
+      }
+    } else {
+      const el=l.getElement();
+      if(el)el.style.display=visible?'':'none';
+    }
+  });
+}
+
+function exportMap(){
+  const exportBtn=document.getElementById('exportbtn');
+  const originalBtnHtml=exportBtn?exportBtn.innerHTML:'';
+  try{
+    if(exportBtn){exportBtn.disabled=true;exportBtn.innerHTML='<i class="ti ti-loader" aria-hidden="true"></i> Generating…';}
+
+    // Rough upfront estimate of the total data volume, so we can warn for a really
+    // large export (many files and/or many points) instead of the browser silently
+    // hanging without a clear message.
+    const totalPoints=files.reduce((sum,f)=>sum+f.tracks.reduce((s,t)=>s+t.coords.length,0)+f.waypoints.length,0);
+    if(files.length>150 || totalPoints>200000){
+      const proceed=confirm(
+        'This is a large export: '+files.length+' GPX files with about '+totalPoints.toLocaleString('en-US')+' points in total.\n\n'+
+        'Generating may take a while, and in rare cases the browser can hang with very large amounts of data.\n\n'+
+        'Continue generating?'
+      );
+      if(!proceed){
+        if(exportBtn){exportBtn.disabled=false;exportBtn.innerHTML=originalBtnHtml;}
+        return;
+      }
+    }
+
+  const d=new Date();
+  const ymd=d.getFullYear().toString()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const title=document.getElementById('title').value.trim()||('PeeWeeTrails_'+ymd);
+  const optFollow=document.getElementById('opt-follow').checked;
+  const wptZoom=1;
+  const wptMarkerZoom=1;
+  const osmOpacity=parseFloat(document.getElementById('osmopacity').value);
+  const trailColor=document.getElementById('gpstrail-color').value;
+  const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
+  const trailMode=document.getElementById('gpstrail-mode').value;
+  const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
+  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:22,defaultOn:l.defaultOn===true}));
+  const data=files.map(f=>({
+    filename:f.displayName,
+    color:f.color,
+    showLabel:f.showLabel,
+    showStart:f.showStart,
+    labelPos:(f.tracks.length>0||f.waypoints.length>0)?f.labelPos:'centroid',
+    labelZoomMin:f.labelZoomMin,
+    labelZoomMax:f.labelZoomMax,
+    labelFontSize:f.labelFontSize!=null?f.labelFontSize:24,
+    useElementName:f.useElementName,
+    lineWidth:f.lineWidth!=null?f.lineWidth:3,
+    mapZoomMin:f.mapZoomMin!=null?f.mapZoomMin:1,
+    mapZoomMax:f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM,
+    showKmMarkers:!!f.showKmMarkers,
+    wptIconSvg:f.wptIconSvg||null,
+    wptIconSize:f.wptIconSize||28,
+    tracks:f.tracks,
+    waypoints:f.waypoints,
+    polygons:f.polygons||[]
+  }));
+  const allCoords=[];
+  data.forEach(f=>{
+    f.tracks.forEach(t=>allCoords.push(...t.coords));
+    f.waypoints.forEach(w=>allCoords.push([w.lat,w.lon]));
+    (f.polygons||[]).forEach(p=>p.rings.forEach(r=>allCoords.push(...r)));
+  });
+  const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
+  const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
+  const safeTitle=title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const html=`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${safeTitle}</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{padding:9px 14px;background:#111;display:flex;align-items:center;flex-shrink:0}
+#hdr h1{font-size:15px;font-weight:600}
+#map-wrap{flex:1;position:relative;overflow:hidden}
+#map{position:absolute;top:0;left:0;width:100%;height:100%}
+/* Controls overlay: always on top */
+#controls-overlay{position:absolute;top:10px;left:10px;z-index:1000;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+#controls-overlay>*{pointer-events:auto}
+/* Hide Leaflet default zoom controls, we use our own */
+.leaflet-control-zoom{display:none!important}
+#notice{display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#ffc;padding:7px 16px;border-radius:20px;font-size:12px;pointer-events:none;z-index:1001}
+.ctrl-btn{width:34px;height:34px;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.ctrl-btn:hover{background:#f4f4f4}
+.ctrl-btn.on{background:#d4efff;border-color:#2980b9}
+.ctrl-btn.zoom{font-size:22px;font-weight:300}
+.zoom-sep{height:1px;background:#ccc;margin:0 4px}
+.zoom-group{background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.zoom-group .ctrl-btn{border:none;border-radius:0;box-shadow:none;width:34px;height:32px}
+.zoom-group .ctrl-btn:first-child{border-bottom:1px solid #ddd}
+#layers-overlay{display:none;position:absolute;top:54px;right:10px;z-index:1000}
+#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px}
+#layers-panel.open{display:block}
+#layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
+#zoom-indicator{position:absolute;top:10px;right:10px;z-index:1000;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:6px 10px;font-size:13px;font-weight:600;color:#222;pointer-events:none}
+.layer-toggle-row input{flex-shrink:0}
+.layer-toggle-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layer-opacity-row{display:flex;align-items:center;gap:6px;padding:2px 0 6px 22px;border-bottom:1px solid #eee}
+.layer-opacity-row:last-child{border-bottom:none;padding-bottom:2px}
+.layer-opacity-row input[type=range]{flex:1;height:4px;accent-color:#185FA5;cursor:pointer}
+.layer-opacity-row span{font-size:11px;color:#999;min-width:30px;text-align:right}
+.layer-section-label{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;padding:4px 0 2px}
+/* User route loader panel */
+#route-overlay{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:0}
+#route-btn{background:white;border:2px solid rgba(0,0,0,.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;gap:6px;white-space:nowrap}
+#route-btn:hover{background:#f4f4f4}
+#route-btn.has-routes{border-color:#2980b9;background:#d4efff}
+#route-panel{display:none;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;min-width:320px;max-width:380px;margin-bottom:6px;max-height:65vh;overflow-y:auto}
+#route-panel.open{display:block}
+#route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
+#route-panel-close{margin-left:auto;background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
+#route-panel-close:hover{color:#333}
+.user-route-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;color:#222}
+.user-route-row:last-child{border-bottom:none}
+.user-route-row input[type=color]{width:24px;height:24px;border:none;padding:0;border-radius:3px;cursor:pointer;flex-shrink:0}
+.user-route-row .route-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;color:#222}
+.user-route-row .route-del{background:none;border:none;color:#c0392b;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1}
+.user-route-row .route-fly{background:none;border:none;font-size:16px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1;color:#2980b9}
+.user-route-row .route-vis{background:none;border:none;font-size:16px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1;color:#333}
+.route-options-row{display:flex;align-items:center;gap:5px;padding:3px 0 8px 30px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
+.route-options-row:last-child{border-bottom:none}
+.route-options-row input[type=range]{width:72px;accent-color:#185FA5;cursor:pointer}
+.ro-label{font-size:12px;color:#444;font-weight:500}
+.ro-val{font-size:12px;color:#444;min-width:30px}
+.route-options-row input[type=number]{width:42px;font-size:12px;border:1px solid #ccc;border-radius:3px;padding:2px 4px;color:#222}
+.route-options-row label{display:flex;align-items:center;gap:3px;font-size:13px;color:#222;cursor:pointer;font-weight:500;margin-left:4px}
+#route-add-bar{display:flex;gap:6px;margin-top:10px}
+#route-add-bar button{flex:1;padding:7px 4px;border:1.5px solid #2980b9;border-radius:6px;background:white;color:#2980b9;font-size:13px;font-weight:600;cursor:pointer}
+#route-add-bar button:hover{background:#eaf4fd}
+/* Visibility panel: dropdown from the eye button, 3 geometry type rows */
+#vis-overlay{position:relative}
+#vis-panel{display:none;position:absolute;top:42px;left:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:200px;z-index:1001}
+#vis-panel.open{display:block}
+#vis-panel h3{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.vis-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;color:#222;border-bottom:1px solid #f0f0f0}
+.vis-row:last-child{border-bottom:none}
+.vis-row .vis-label{flex:1;font-weight:500}
+.vis-row .vis-eye{background:none;border:none;font-size:15px;cursor:pointer;color:#333;padding:0 2px;line-height:1}
+.vis-row .vis-op{width:65px;accent-color:#185FA5;cursor:pointer}
+.vis-row .vis-pct{font-size:11px;color:#888;min-width:30px;text-align:right}
+/* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
+</style>
+</head>
+<body>
+<div id="hdr"><h1>${safeTitle}</h1></div>
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="controls-overlay">
+    <div class="zoom-group">
+      <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Zoom in">+</button>
+      <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
+    </div>
+    <button class="ctrl-btn" id="loc-btn" title="My location">&#9737;</button>
+    <div id="vis-overlay">
+      <button class="ctrl-btn" id="vis-btn" title="Show/hide layers">&#128065;</button>
+      <div id="vis-panel">
+        <h3>Visibility</h3>
+        <div class="vis-row" id="vis-row-tracks">
+          <span class="vis-label">Tracks</span>
+          <button class="vis-eye" id="vis-eye-tracks" title="Toggle tracks">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-tracks" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-tracks">100%</span>
+        </div>
+        <div class="vis-row" id="vis-row-waypoints">
+          <span class="vis-label">Waypoints</span>
+          <button class="vis-eye" id="vis-eye-waypoints" title="Toggle waypoints">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-waypoints" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-waypoints">100%</span>
+        </div>
+        <div class="vis-row" id="vis-row-polygons">
+          <span class="vis-label">Polygons</span>
+          <button class="vis-eye" id="vis-eye-polygons" title="Toggle polygons">&#128065;</button>
+          <input type="range" class="vis-op" id="vis-op-polygons" min="0" max="100" value="100">
+          <span class="vis-pct" id="vis-pct-polygons">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
+  <div id="layers-overlay">
+    <button class="ctrl-btn" id="layers-btn" title="Map layers">&#9776;</button>
+    <div id="layers-panel"><h3>Map layers</h3><div id="layers-panel-content"></div></div>
+  </div>
+  <div id="notice">Background map unavailable (no connection)</div>
+  <!-- User route loader -->
+  <div id="route-overlay">
+    <div id="route-panel"><h3>Imported files<button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-gpx">+ GPX</button><button id="route-add-geojson">+ GeoJSON</button></div></div>
+    <button id="route-btn">&#8613; Import files</button>
+  </div>
+  <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""><\/script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"><\/script>
+<script>
+// =============================================================================
+// TRAILCRAFT — OUTPUT HTML (exported map page)
+// This self-contained page is generated by the PeeWeeTrails INPUT HTML editor.
+// It requires no server: all map data is embedded as JSON constants below.
+// Libraries loaded: Leaflet 1.9.4 (map engine) + leaflet-textpath (route labels)
+// =============================================================================
+
+// --- Embedded map data baked in at export time ---
+const D=${JSON.stringify(data)};   // Array of track/waypoint objects (GPX/GeoJSON files)
+const B=${JSON.stringify(bounds)}; // Combined bounding box of all tracks, or null
+const MAX_ZOOM=19;                 // Practical OSM tile limit
+const OPT_FOLLOW=${optFollow};     // Whether the map auto-centers on the user's GPS position
+const WPTZOOM=${wptZoom};          // Minimum zoom level for waypoint labels to appear
+const WPTMARKERZOOM=${wptMarkerZoom}; // Minimum zoom level for waypoint icons/dots
+const OSM_OPACITY=${osmOpacity};   // Opacity of the OpenStreetMap base layer (0–1)
+const TRAIL_COLOR=${JSON.stringify(trailColor)}; // Color of the GPS navigation trail
+const TRAIL_WIDTH=${trailWidth};   // Width in px of the GPS navigation trail
+
+// --- Geometry helpers used for label placement and km-marker calculation ---
+
+// Simple average centroid (used as a first estimate for label position)
+function centroid(coords){
+  if(!coords.length)return[0,0];
+  let la=0,lo=0;
+  coords.forEach(p=>{la+=p[0];lo+=p[1];});
+  return[la/coords.length,lo/coords.length];
+}
+
+function nearestPointOnLine(point, lineCoords){
+  if(lineCoords.length===0) return point;
+  if(lineCoords.length===1) return lineCoords[0];
+  let best=lineCoords[0], bestDist=Infinity;
+  for(let i=0;i<lineCoords.length-1;i++){
+    const a=lineCoords[i], b=lineCoords[i+1];
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    let t = (dx===0&&dy===0) ? 0 : ((point[0]-a[0])*dx+(point[1]-a[1])*dy)/(dx*dx+dy*dy);
+    t = Math.max(0, Math.min(1, t));
+    const proj=[a[0]+t*dx, a[1]+t*dy];
+    const d=Math.hypot(point[0]-proj[0], point[1]-proj[1]);
+    if(d<bestDist){ bestDist=d; best=proj; }
+  }
+  return best;
+}
+
+function labelAnchorCentroid(trackCoords){
+  const c=centroid(trackCoords);
+  return nearestPointOnLine(c, trackCoords);
+}
+
+function bearingPoints(p1,p2){
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLon=(p2[1]-p1[1])*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+function buildKmMarkers(coords){
+  if(coords.length<2) return [];
+  const markers=[];
+  let cumDist=0;
+  let nextKm=1000;
+  for(let i=0;i<coords.length-1;i++){
+    const segDist=haversineMeters(coords[i],coords[i+1]);
+    while(cumDist+segDist>=nextKm){
+      const t=(nextKm-cumDist)/segDist;
+      const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
+      const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
+      markers.push({position:[lat,lon], bearing:bearingPoints(coords[i],coords[i+1]), km:nextKm/1000});
+      nextKm+=1000;
+    }
+    cumDist+=segDist;
+  }
+  return markers;
+}
+
+function simplifyLine(points, tolerance){
+  if(points.length<3) return points;
+  function perpDist(pt,a,b){
+    const dx=b[0]-a[0], dy=b[1]-a[1];
+    if(dx===0&&dy===0) return Math.hypot(pt[0]-a[0],pt[1]-a[1]);
+    const t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/(dx*dx+dy*dy);
+    const tc=Math.max(0,Math.min(1,t));
+    const px=a[0]+tc*dx, py=a[1]+tc*dy;
+    return Math.hypot(pt[0]-px,pt[1]-py);
+  }
+  function dp(pts,tol){
+    if(pts.length<3) return pts;
+    let maxD=0,idx=0;
+    for(let i=1;i<pts.length-1;i++){
+      const d=perpDist(pts[i],pts[0],pts[pts.length-1]);
+      if(d>maxD){maxD=d;idx=i;}
+    }
+    if(maxD>tol){
+      const left=dp(pts.slice(0,idx+1),tol);
+      const right=dp(pts.slice(idx),tol);
+      return left.slice(0,-1).concat(right);
+    }
+    return [pts[0],pts[pts.length-1]];
+  }
+  return dp(points,tolerance);
+}
+
+function buildTextPathLine(coords, labelLength){
+  // Return a straight two-point line through the track midpoint so letters
+  // always render at a single consistent angle (no per-letter rotation).
+  if(coords.length<2) return coords;
+  if(coords.length===2) return normalizeDirection(coords);
+  const dists=[0];
+  for(let i=1;i<coords.length;i++){
+    const a=coords[i-1],b=coords[i];
+    const dx=b[1]-a[1],dy=b[0]-a[0];
+    dists.push(dists[i-1]+Math.sqrt(dx*dx+dy*dy));
+  }
+  const total=dists[dists.length-1];
+  const charSpan=Math.min(0.6,Math.max(0.2,(labelLength||10)*0.018));
+  const halfSpan=charSpan/2;
+  const mid=total*0.5;
+  let midIdx=0;
+  for(let i=0;i<dists.length;i++){if(dists[i]>=mid){midIdx=i;break;}}
+  let startIdx=midIdx,endIdx=midIdx;
+  while(startIdx>0&&dists[midIdx]-dists[startIdx]<total*halfSpan)startIdx--;
+  while(endIdx<coords.length-1&&dists[endIdx]-dists[midIdx]<total*halfSpan)endIdx++;
+  return normalizeDirection([coords[startIdx],coords[endIdx]]);
+}
+
+function normalizeDirection(coords){
+  if(coords.length<2) return coords;
+  const start=coords[0], end=coords[coords.length-1];
+  const dLon=end[1]-start[1];
+  const dLat=end[0]-start[0];
+  const goingLeft = Math.abs(dLon) >= Math.abs(dLat) ? dLon < 0 : dLat < 0;
+  return goingLeft ? coords.slice().reverse() : coords;
+}
+
+function contrastHalo(hex){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return(0.299*r+0.587*g+0.114*b)>140?'#000':'#fff';
+}
+
+function getLabelText(f, elementName){
+  if(f.useElementName && elementName && elementName.trim()) return elementName.trim();
+  return f.filename;
+}
+
+function buildWaypointMarker(f, w){
+  if(f.wptIconSvg){
+    const sz=f.wptIconSize||28;
+    return L.marker([w.lat,w.lon],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:'+sz+'px;height:'+sz+'px;display:flex;align-items:center;justify-content:center;color:'+f.color+';filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">'+f.wptIconSvg+'</div>',
+        iconSize:[sz,sz],
+        iconAnchor:[sz/2,sz/2]
+      })
+    });
+  }
+  return L.circleMarker([w.lat,w.lon],{radius:5,color:f.color,fillColor:f.color,fillOpacity:.9,weight:2});
+}
+
+function midpt(coords){return coords[Math.floor(coords.length/2)];}
+
+// --- Status in URL: extent en laag-zichtbaarheid kunnen via #-hash gedeeld worden ---
+// --- URL hash state: map position and layer visibility are stored in the #hash
+//     so the user can bookmark or share the exact current map view ---
+function parseStateFromHash(){
+  if(!location.hash || location.hash.length<2) return null;
+  const params=new URLSearchParams(location.hash.slice(1));
+  const lat=parseFloat(params.get('lat'));
+  const lng=parseFloat(params.get('lng'));
+  const z=parseInt(params.get('z'));
+  const layersParam=params.get('layers');
+  const out={};
+  if(!isNaN(lat)&&!isNaN(lng)&&!isNaN(z)){ out.lat=lat; out.lng=lng; out.z=z; }
+  if(layersParam!=null){ out.layerVis=layersParam.split(',').map(v=>v==='1'); }
+  return Object.keys(out).length?out:null;
+}
+
+function updateUrlHash(){
+  const c=map.getCenter();
+  const params=new URLSearchParams();
+  params.set('lat',c.lat.toFixed(6));
+  params.set('lng',c.lng.toFixed(6));
+  params.set('z',map.getZoom());
+  if(wmsLayerObjs.length){
+    params.set('layers',wmsLayerObjs.map(lo=>map.hasLayer(lo.layer)?'1':'0').join(','));
+  }
+  history.replaceState(null,'','#'+params.toString());
+}
+
+// --- Initialise Leaflet map and OSM base layer ---
+const urlState=parseStateFromHash();
+const map=L.map('map');
+const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
+
+// Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
+const EX=${JSON.stringify(exportExtra)};
+const wmsLayerObjs=new Array(EX.length);
+[...EX].reverse().forEach((el,ri)=>{
+  const i=EX.length-1-ri;
+  let lyr=null;
+  try{
+    if(el.type==='wms'){
+      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+    } else {
+      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+    }
+    // default on/off: from URL state if present, otherwise from layer setting
+    const defaultOn=(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn===true);
+    if(defaultOn) lyr.addTo(map);
+  }catch(e){}
+  wmsLayerObjs[i]={layer:lyr,name:el.displayName||('Layer '+(i+1)),visible:true};
+});
+
+// Layers panel top-right: always show (opacity sliders for all layers + OSM base)
+{
+  const layersBtn=document.getElementById('layers-btn');
+  const layersOverlay=document.getElementById('layers-overlay');
+  const layersPanel=document.getElementById('layers-panel');
+  const panelContent=document.getElementById('layers-panel-content');
+  layersOverlay.style.display='block';
+
+  function makeOpacitySlider(layer, initialOpacity, labelSuffix){
+    const opRow=document.createElement('div');
+    opRow.className='layer-opacity-row';
+    const val=Math.round(initialOpacity*100);
+    opRow.innerHTML='<input type="range" min="0" max="100" value="'+val+'" title="Opacity'+labelSuffix+'"><span>'+val+'%</span>';
+    const inp=opRow.querySelector('input');
+    const sp=opRow.querySelector('span');
+    inp.addEventListener('input',function(){
+      sp.textContent=inp.value+'%';
+      if(layer) layer.setOpacity(inp.value/100);
+    });
+    return opRow;
+  }
+
+  if(EX.length>0){
+    // Section: extra layers
+    const secExtra=document.createElement('div');
+    secExtra.className='layer-section-label';
+    secExtra.textContent='Map layers';
+    panelContent.appendChild(secExtra);
+
+    wmsLayerObjs.forEach((lo,i)=>{
+      const row=document.createElement('label');
+      row.className='layer-toggle-row';
+      const isOn=lo.layer&&map.hasLayer(lo.layer);
+      row.innerHTML='<input type="checkbox" '+(isOn?'checked':'')+' data-idx="'+i+'"><span>'+lo.name+'</span>';
+      panelContent.appendChild(row);
+      // opacity slider per extra layer
+      const opSlider=makeOpacitySlider(lo.layer, EX[i].opacity, ' '+lo.name);
+      panelContent.appendChild(opSlider);
+    });
+
+    panelContent.querySelectorAll('.layer-toggle-row input[type=checkbox]').forEach(inp=>{
+      inp.addEventListener('change',e=>{
+        const i=parseInt(e.target.dataset.idx);
+        const lo=wmsLayerObjs[i];
+        if(!lo.layer)return;
+        if(e.target.checked){map.addLayer(lo.layer);}else{map.removeLayer(lo.layer);}
+        updateUrlHash();
+      });
+    });
+
+    // Section: base map
+    const secBase=document.createElement('div');
+    secBase.className='layer-section-label';
+    secBase.style.marginTop='6px';
+    secBase.textContent='Base map';
+    panelContent.appendChild(secBase);
+  }
+
+  // OSM opacity slider (always present)
+  const osmRow=document.createElement('label');
+  osmRow.className='layer-toggle-row';
+  osmRow.innerHTML='<input type="checkbox" checked data-osm="1"><span>OpenStreetMap</span>';
+  panelContent.appendChild(osmRow);
+  const osmOpSlider=makeOpacitySlider(tiles, OSM_OPACITY, ' OSM');
+  panelContent.appendChild(osmOpSlider);
+
+  osmRow.querySelector('input').addEventListener('change',function(e){
+    if(e.target.checked){tiles.setOpacity(osmOpSlider.querySelector('input').value/100);}
+    else{tiles.setOpacity(0);}
+  });
+
+  layersBtn.onclick=function(){layersPanel.classList.toggle('open');};
+  document.addEventListener('click',function(e){
+    if(!layersOverlay.contains(e.target))layersPanel.classList.remove('open');
+  });
+}
+
+const labelLayers=[];
+const trackLineLayers=[];   // L.Polyline track lines only
+const trackDotLayers=[];    // start markers + km markers (belong to tracks, not waypoints)
+const wptMarkerLayers=[];   // waypoint markers + waypoint labels only
+const polygonLayers=[];     // L.Polygon filled areas only
+// zoomLayers built after D.forEach (see below)
+
+D.forEach(f=>{
+  const filePolys=[];
+  const fLw=f.lineWidth!=null?f.lineWidth:3;
+  const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
+  const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
+
+  // --- Render polygon areas (filled, with darker outline) ---
+  (f.polygons||[]).forEach(p=>{
+    const pg=L.polygon(p.rings,{color:f.color,weight:2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
+    if(p.name||p.desc)pg.bindPopup('<b>'+(p.name||f.filename)+'</b>'+(p.desc?'<br>'+p.desc:''));
+    pg._isPolygon=true;
+    pg._trackZoomMin=fZMin;
+    pg._trackZoomMax=fZMax;
+    polygonLayers.push(pg);
+  });
+
+  // --- Render line tracks ---
+  f.tracks.forEach(t=>{
+    const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
+    poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
+    poly._gpxFile=f;
+    poly._trackZoomMin=fZMin;
+    poly._trackZoomMax=fZMax;
+    trackLineLayers.push(poly);
+    filePolys.push(poly);
+  });
+
+  // --- Start marker (belongs to tracks, not waypoints) ---
+  if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
+    const sp=f.tracks[0].coords[0];
+    const startM=L.marker(sp,{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:22px;height:22px;background:'+f.color+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)"><span style="color:#fff;font-size:11px;line-height:1;margin-left:2px">&#9654;</span></div>',
+        iconSize:[22,22],iconAnchor:[11,11]
+      }),
+      interactive:false,zIndexOffset:300
+    }).addTo(map);
+    startM._trackZoomMin=fZMin;
+    startM._trackZoomMax=fZMax;
+    trackDotLayers.push(startM);  // track group, NOT waypoints
+  }
+
+  // --- KM direction markers (belong to tracks, not waypoints) ---
+  if(f.showKmMarkers&&f.tracks.length){
+    const allTrackCoords=f.tracks.flatMap(t=>t.coords);
+    const kmMarkers=buildKmMarkers(allTrackCoords);
+    kmMarkers.forEach(km=>{
+      const kmM=L.marker(km.position,{
+        icon:L.divIcon({
+          className:'',
+          html:'<svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate('+km.bearing+'deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))"><polygon points="13,2 19,22 13,17 7,22" fill="'+f.color+'" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+          iconSize:[26,26],iconAnchor:[13,13]
+        }),
+        zIndexOffset:180
+      }).addTo(map);
+      kmM.bindPopup('<b>'+km.km+' km</b>');
+      kmM._trackZoomMin=fZMin;
+      kmM._trackZoomMax=fZMax;
+      trackDotLayers.push(kmM);  // track group, NOT waypoints
+    });
+  }
+
+  // --- Waypoint markers (belong to waypoints group only) ---
+  f.waypoints.forEach(w=>{
+    const m=buildWaypointMarker(f,w).addTo(map);
+    const wLabel=getLabelText(f,w.name);
+    if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
+    m._trackZoomMin=fZMin;
+    m._trackZoomMax=fZMax;
+    wptMarkerLayers.push(m);  // waypoints group only
+
+    // Waypoint label marker
+    if(f.showLabel){
+      const h=contrastHalo(f.color);
+      const wptLbl=L.marker([w.lat,w.lon],{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+f.color+';font-size:20px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:-2.3px -2.3px 0 '+h+',2.3px -2.3px 0 '+h+',-2.3px 2.3px 0 '+h+',2.3px 2.3px 0 '+h+',0 2.3px 0 '+h+',0 -2.3px 0 '+h+';transform:translate(-50%,calc(-50% - 18px))">'+wLabel+'</div>',
+          iconAnchor:[0,0]
+        }),
+        interactive:false,zIndexOffset:150
+      }).addTo(map);
+      wptLbl._zoomMin=f.labelZoomMin;  // use per-file label zoom setting
+      wptLbl._zoomMax=f.labelZoomMax;
+      wptLbl._wptLabel=true;  // flag so waypoints toggle can target these specifically
+      labelLayers.push(wptLbl);
+    }
+  });
+
+  // --- Track labels ---
+  if(f.showLabel&&f.tracks.length){
+    const h=contrastHalo(f.color);
+    const mainLabel=getLabelText(f,f.tracks[0].name);
+    const fs=(f.labelFontSize||24)+'px';
+    const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+    const allPts=f.tracks.flatMap(t=>t.coords);
+    let pos;
+    if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+    else pos=labelAnchorCentroid(allPts);
+    const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
+    const lbl=L.marker(pos,{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+',0 '+haloW+' 0 '+h+',0 -'+haloW+' 0 '+h+','+haloW+' 0 0 '+h+',-'+haloW+' 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
+        iconAnchor:[0,0]
+      }),
+      interactive:false,zIndexOffset:200
+    }).addTo(map);
+    lbl._zoomMin=f.labelZoomMin;
+    lbl._zoomMax=f.labelZoomMax;
+    labelLayers.push(lbl);
+  }
+  // --- Polygon centroid label (one per file, using name from first polygon) ---
+  if(f.showLabel&&(f.polygons||[]).length>0){
+    const polyName=(f.polygons[0].name)||getLabelText(f,null);
+    if(polyName){
+      const allPolyPts=f.polygons.flatMap(p=>p.rings[0]);
+      const cLat=allPolyPts.reduce((s,p)=>s+p[0],0)/allPolyPts.length;
+      const cLon=allPolyPts.reduce((s,p)=>s+p[1],0)/allPolyPts.length;
+      const h=contrastHalo(f.color);
+      const fs=(f.labelFontSize||24)+'px';
+      const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+      const polyLbl=L.marker([cLat,cLon],{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+';transform:translate(-50%,-50%)">'+polyName+'</div>',
+          iconAnchor:[0,0]
+        }),
+        interactive:false,zIndexOffset:100
+      }).addTo(map);
+      polyLbl._zoomMin=f.labelZoomMin;
+      polyLbl._zoomMax=f.labelZoomMax;
+      labelLayers.push(polyLbl);
+    }
+  }
+});
+
+// Build zoomLayers after all D items processed.
+// trackLineLayers/trackDotLayers/polygonLayers: no getElement(), use addLayer/removeLayer.
+// wptMarkerLayers: L.Marker objects, use getElement() for zoom-visibility.
+const zoomLayers=[...trackLineLayers,...trackDotLayers,...polygonLayers];
+
+if(urlState&&urlState.z!=null){
+  map.setView([urlState.lat,urlState.lng],urlState.z);
+} else if(B){
+  map.fitBounds(B,{padding:[16,16]});
+} else {
+  map.setView([52,5],8);
+}
+
+// Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
+map.on('moveend',updateUrlHash);
+
+function updateLabels(){
+  const z=map.getZoom();
+
+  // --- Track labels (textpath + floating DivIcon) ---
+  labelLayers.forEach(l=>{
+    // If user toggled off: ensure removed from map and skip
+    if(l._userHidden){
+      if(l.setText) l.setText(null);
+      else if(map.hasLayer(l)) map.removeLayer(l);
+      return;
+    }
+    const visible=z>=l._zoomMin&&z<=l._zoomMax;
+    if(l.setText){
+      // Textpath: set/clear text based on zoom
+      if(visible){
+        const f=l._gpxFile;
+        const h=contrastHalo(f.color);
+        const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
+        l.setText(null);
+        l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+      } else {
+        l.setText(null);
+      }
+    } else {
+      // Floating DivIcon label: add/remove from map based on zoom
+      if(visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+      else { if(map.hasLayer(l)) map.removeLayer(l); }
+    }
+  });
+
+  // --- Waypoint markers ---
+  wptMarkerLayers.forEach(m=>{
+    if(m._userHidden){ if(map.hasLayer(m)) map.removeLayer(m); return; }
+    const visible=z>=m._trackZoomMin&&z<=m._trackZoomMax;
+    if(visible){ if(!map.hasLayer(m)) map.addLayer(m); }
+    else { if(map.hasLayer(m)) map.removeLayer(m); }
+  });
+
+  // --- Track lines, start/km dots, polygons ---
+  zoomLayers.forEach(l=>{
+    if(l._userHidden){ if(map.hasLayer(l)) map.removeLayer(l); return; }
+    const visible=z>=l._trackZoomMin&&z<=l._trackZoomMax;
+    if(visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+    else { if(map.hasLayer(l)) map.removeLayer(l); }
+  });
+}
+map.on('zoomend',updateLabels);
+map.whenReady(updateLabels);
+
+// Zoom level indicator (top right corner)
+const zoomValEl=document.getElementById('zoom-val');
+function updateZoomIndicator(){zoomValEl.textContent=map.getZoom();}
+map.on('zoomend',updateZoomIndicator);
+map.whenReady(updateZoomIndicator);
+
+// --- GPS location tracking and map-follow logic ---
+// The location button starts watchPosition(); a direction marker and accuracy
+// circle are shown. When OPT_FOLLOW is true the map re-centers automatically
+// after the user has been idle (no pan/zoom) for FOLLOW_RESUME_DELAY ms.
+const locBtn=document.getElementById('loc-btn');
+let wid=null,locTrail=null,lc=null,dirMarker=null;
+let followZoom=null; // fixed zoom level at start of following, prevents jitter from getZoom() during animation
+let locHistory=[]; // GPS points for direction trail (distance-based trimming, see trimTrail)
+const TRAIL_MODE=${JSON.stringify(trailMode)}; // 'distance' of 'full'
+const TRAIL_METERS=${trailMeters};
+const FOLLOW_RESUME_DELAY=5000; // ms to wait after last manual map interaction before auto-centering again
+let lastUserInteraction=0; // timestamp of last manual pan/zoom
+let programmaticMove=false; // flag to distinguish our own setView calls from user interaction
+
+function haversineMeters(p1,p2){
+  const R=6371000;
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLat=(p2[0]-p1[0])*Math.PI/180, dLon=(p2[1]-p1[1])*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Trim the trail: with 'full' everything is kept (whole ride, even after 50km), with 'distance'
+// only the points within the last TRAIL_METERS meters (measured along the path) are kept.
+function trimTrail(history){
+  if(TRAIL_MODE==='full' || history.length<2) return history;
+  let acc=0;
+  let cutIdx=0;
+  for(let i=history.length-1;i>0;i--){
+    acc+=haversineMeters(history[i-1],history[i]);
+    if(acc>=TRAIL_METERS){ cutIdx=i-1; break; }
+    cutIdx=0;
+  }
+  return history.slice(cutIdx);
+}
+
+function bearing(p1,p2){
+  // peiling in graden van p1 naar p2 (0=noord)
+  const lat1=p1[0]*Math.PI/180, lat2=p2[0]*Math.PI/180;
+  const dLon=(p2[1]-p1[1])*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+// Pointed triangle as SVG: rotation center exactly at the center of the shape, no skewed rendering
+function makeDirIcon(deg){
+  return L.divIcon({
+    className:'',
+    html:'<svg width="46" height="46" viewBox="0 0 46 46" style="transform:rotate('+deg+'deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">'
+        +'<polygon points="23,2 31,39 23,29 15,39" fill="'+TRAIL_COLOR+'" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>'
+        +'</svg>',
+    iconSize:[46,46],
+    iconAnchor:[23,23]
+  });
+}
+
+function stopLoc(){
+  if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
+  locBtn.classList.remove('on');locBtn.innerHTML='&#9737;';
+  if(locTrail){map.removeLayer(locTrail);locTrail=null;}
+  if(lc){map.removeLayer(lc);lc=null;}
+  if(dirMarker){map.removeLayer(dirMarker);dirMarker=null;}
+  followZoom=null;
+  locHistory=[];
+}
+
+// Detect manual map interaction (drag/zoom by user) to temporarily pause auto-centering
+map.on('dragstart zoomstart',function(){
+  if(!programmaticMove) lastUserInteraction=Date.now();
+});
+
+locBtn.onclick=function(){
+  if(wid!==null){stopLoc();return;}
+  if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
+  locBtn.innerHTML='&#8987;';
+
+  wid=navigator.geolocation.watchPosition(function(p){
+    const ll=[p.coords.latitude,p.coords.longitude];
+    locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
+
+    // update trail: with 'distance' only keep last X meters, with 'full' keep everything
+    locHistory.push(ll);
+    locHistory=trimTrail(locHistory);
+
+    // determine bearing: use GPS heading if available, otherwise compute from trail
+    let deg=0;
+    if(p.coords.heading!=null && !isNaN(p.coords.heading)){
+      deg=p.coords.heading;
+    } else if(locHistory.length>=2){
+      deg=bearing(locHistory[0],locHistory[locHistory.length-1]);
+    }
+
+    if(locTrail){
+      locTrail.setLatLngs(locHistory);
+      lc.setLatLng(ll).setRadius(p.coords.accuracy);
+      dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg));
+    } else {
+      lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
+      locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:.85,lineCap:'round'}).addTo(map);
+      dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
+    }
+
+    const idleLongEnough=(Date.now()-lastUserInteraction)>=FOLLOW_RESUME_DELAY;
+
+    if(OPT_FOLLOW && idleLongEnough){
+      // lock zoom level once at start of following, don't re-query during animation
+      if(followZoom===null) followZoom=Math.max(map.getZoom(),16);
+      programmaticMove=true;
+      map.setView(ll, followZoom, {animate:false});
+      programmaticMove=false;
+    } else if(!dirMarker._shown){
+      programmaticMove=true;
+      map.setView(ll, Math.max(map.getZoom(),16));
+      programmaticMove=false;
+      dirMarker._shown=true;
+    }
+  },function(e){
+    stopLoc();
+    alert('Location unavailable: '+e.message);
+  },{enableHighAccuracy:true,maximumAge:1000});
+};
+
+// If user manually zooms while following is active, remember new zoom level instead of snapping back
+map.on('zoomend',function(){
+  if(OPT_FOLLOW && wid!==null) followZoom=map.getZoom();
+});
+
+// --- Visibility panel: toggle and opacity control per geometry type ---
+// Each geometry type (tracks, waypoints, polygons) can be shown/hidden
+// and faded independently via the eye-button dropdown (left controls).
+{
+  const visBtn=document.getElementById('vis-btn');
+  const visPanel=document.getElementById('vis-panel');
+
+  // Open/close the panel when clicking the eye button
+  visBtn.onclick=function(e){e.stopPropagation();visPanel.classList.toggle('open');};
+  document.addEventListener('click',function(e){
+    const overlay=document.getElementById('vis-overlay');
+    if(!overlay.contains(e.target))visPanel.classList.remove('open');
+  });
+
+  // State per geometry type — strictly separate, zero overlap between arrays:
+  // tracks = lines + start dots + km markers (trackLineLayers + trackDotLayers)
+  // waypoints = waypoint markers only (wptMarkerLayers)
+  // polygons = polygon areas only (polygonLayers)
+  const trackAllLayers=[...trackLineLayers,...trackDotLayers];
+  const state={
+    tracks:   {visible:true, opacity:1, layers:trackAllLayers,  eye:'vis-eye-tracks',   op:'vis-op-tracks',   pct:'vis-pct-tracks'},
+    waypoints:{visible:true, opacity:1, layers:wptMarkerLayers, eye:'vis-eye-waypoints',op:'vis-op-waypoints', pct:'vis-pct-waypoints'},
+    polygons: {visible:true, opacity:1, layers:polygonLayers,   eye:'vis-eye-polygons', op:'vis-op-polygons',  pct:'vis-pct-polygons'}
+  };
+
+  // Helper: apply opacity to any layer type without side-effects (no radius change for circles)
+  function applyOpacity(l,op){
+    if(!l.setStyle&&!l.setOpacity&&!l.getElement) return;
+    if(l.setStyle){
+      if(l instanceof L.CircleMarker && !(l instanceof L.Circle)){
+        l.setStyle({opacity:op, fillOpacity:op});
+      } else if(l instanceof L.Polygon){
+        l.setStyle({opacity:op, fillOpacity:op*0.22});
+      } else {
+        l.setStyle({opacity:op});
+      }
+    } else if(l.setOpacity){
+      l.setOpacity(op);
+    }
+    // Also fade the DOM element (catches DivIcon markers like start/km markers)
+    const el=l.getElement&&l.getElement();
+    if(el)el.style.opacity=op;
+  }
+
+  Object.entries(state).forEach(([type,s])=>{
+    const eyeBtn=document.getElementById(s.eye);
+    const opSlider=document.getElementById(s.op);
+    const pctEl=document.getElementById(s.pct);
+
+    eyeBtn.addEventListener('click',function(){
+      s.visible=!s.visible;
+      eyeBtn.style.opacity=s.visible?'1':'0.35';
+
+      // Set _userHidden on every layer in this group and add/remove from map
+      s.layers.forEach(l=>{
+        l._userHidden=!s.visible;
+        if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+        else { if(map.hasLayer(l)) map.removeLayer(l); }
+      });
+
+      // Track toggle: show/hide track labels (NOT waypoint labels)
+      if(type==='tracks'){
+        labelLayers.forEach(l=>{
+          if(l._wptLabel) return;
+          l._userHidden=!s.visible;
+          if(l.setText){
+            if(!s.visible) l.setText(null);
+            // if visible, updateLabels() below will re-apply text at correct zoom
+          } else {
+            if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+            else { if(map.hasLayer(l)) map.removeLayer(l); }
+          }
+        });
+      }
+
+      // Waypoints toggle: show/hide waypoint labels
+      if(type==='waypoints'){
+        labelLayers.forEach(l=>{
+          if(!l._wptLabel) return;
+          l._userHidden=!s.visible;
+          if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+          else { if(map.hasLayer(l)) map.removeLayer(l); }
+        });
+      }
+
+      // Re-run zoom logic so layers respect zoom range when being shown again
+      if(s.visible) updateLabels();
+    });
+
+    opSlider.addEventListener('input',function(){
+      const op=parseInt(opSlider.value)/100;
+      s.opacity=op;
+      pctEl.textContent=opSlider.value+'%';
+      s.layers.forEach(l=>applyOpacity(l,op));
+      // Track opacity also fades track labels (not waypoint labels)
+      if(type==='tracks') labelLayers.forEach(l=>{if(!l._wptLabel)applyOpacity(l,op);});
+      // Waypoint opacity also fades waypoint labels
+      if(type==='waypoints') labelLayers.forEach(l=>{if(l._wptLabel)applyOpacity(l,op);});
+    });
+  });
+
+  // Hide polygon row if there are no polygons in the baked-in data
+  const hasPolygons=D.some(f=>(f.polygons||[]).length>0);
+  if(!hasPolygons) document.getElementById('vis-row-polygons').style.display='none';
+  const hasWaypoints=D.some(f=>f.waypoints.length>0);
+  if(!hasWaypoints) document.getElementById('vis-row-waypoints').style.display='none';
+  const hasTracks=D.some(f=>f.tracks.length>0);
+  if(!hasTracks) document.getElementById('vis-row-tracks').style.display='none';
+  // Hide the entire vis-overlay if there is no baked-in data at all
+  if(!hasTracks&&!hasWaypoints&&!hasPolygons){
+    document.getElementById('vis-overlay').style.display='none';
+  }
+}
+
+// =====================================================================
+// User route loader: load GPX / GeoJSON and display on map
+// =====================================================================
+(function(){
+  const USER_COLORS=['#e74c3c','#8e44ad','#16a085','#d35400','#2471a3','#1e8449','#b7950b','#717d7e'];
+  let userRoutes=[]; // {name, visible, opacity, color, lineWidth, showArrows, showLabel, layers:[], bounds}
+  let colorIdx=0;
+
+  function parseUserGPX(text){
+    try{
+      const doc=new DOMParser().parseFromString(text,'application/xml');
+      const tracks=[];const wpts=[];
+      doc.querySelectorAll('trk,rte').forEach(el=>{
+        const pts=[];
+        el.querySelectorAll('trkpt,rtept').forEach(pt=>{
+          const la=parseFloat(pt.getAttribute('lat')),lo=parseFloat(pt.getAttribute('lon'));
+          if(!isNaN(la)&&!isNaN(lo))pts.push([la,lo]);
+        });
+        if(pts.length)tracks.push({name:el.querySelector('name')?.textContent||'',coords:pts});
+      });
+      doc.querySelectorAll('wpt').forEach(w=>{
+        const la=parseFloat(w.getAttribute('lat')),lo=parseFloat(w.getAttribute('lon'));
+        if(!isNaN(la)&&!isNaN(lo))wpts.push({lat:la,lon:lo,name:w.querySelector('name')?.textContent||'',desc:w.querySelector('desc')?.textContent||''});
+      });
+      return{tracks,waypoints:wpts};
+    }catch(e){return null;}
+  }
+
+  function parseUserGeoJSON(text){
+    try{
+      const gj=JSON.parse(text);
+      const tracks=[];const waypoints=[];const polygons=[];
+      function handleGeom(geom,props){
+        if(!geom)return;
+        const name=(props&&(props.name||props.title||props.Name||props.NAME))||'';
+        const desc=(props&&(props.desc||props.description||props.Description))||'';
+        if(geom.type==='LineString'){
+          const c=geom.coordinates.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
+          if(c.length)tracks.push({name,coords:c});
+        } else if(geom.type==='MultiLineString'){
+          geom.coordinates.forEach(line=>{
+            const c=line.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
+            if(c.length)tracks.push({name,coords:c});
+          });
+        } else if(geom.type==='Polygon'){
+          const rings=geom.coordinates.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
+          if(rings.length)polygons.push({name,desc,rings});
+        } else if(geom.type==='MultiPolygon'){
+          geom.coordinates.forEach(poly=>{
+            const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
+            if(rings.length)polygons.push({name,desc,rings});
+          });
+        } else if(geom.type==='Point'){
+          const c=geom.coordinates;
+          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
+        } else if(geom.type==='MultiPoint'){
+          geom.coordinates.forEach(c=>{if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});});
+        } else if(geom.type==='GeometryCollection'){
+          geom.geometries.forEach(g=>handleGeom(g,props));
+        }
+      }
+      const features=(gj.type==='FeatureCollection')?gj.features:(gj.type==='Feature')?[gj]:[{type:'Feature',geometry:gj,properties:{}}];
+      features.forEach(ft=>{if(ft&&ft.geometry)handleGeom(ft.geometry,ft.properties||{});});
+      return{tracks,waypoints,polygons};
+    }catch(e){return null;}
+  }
+
+  function buildArrowDecorator(coords, color){
+    // Arrows at 1km, 4km, 7km, 10km... (first at 1km then every 3km)
+    // Clicking shows only the km distance — no route name
+    const arrows=[];
+    let dist=0, nextArrow=1000;
+    function hvDist(a,b){
+      const R=6371000,lat1=a[0]*Math.PI/180,lat2=b[0]*Math.PI/180;
+      const dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180;
+      const x=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+    function brng(a,b){
+      const lat1=a[0]*Math.PI/180,lat2=b[0]*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180;
+      return(Math.atan2(Math.sin(dLon)*Math.cos(lat2),Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon))*180/Math.PI+360)%360;
+    }
+    for(let i=0;i<coords.length-1;i++){
+      const seg=hvDist(coords[i],coords[i+1]);
+      while(dist+seg>=nextArrow){
+        const t=(nextArrow-dist)/seg;
+        const lat=coords[i][0]+t*(coords[i+1][0]-coords[i][0]);
+        const lon=coords[i][1]+t*(coords[i+1][1]-coords[i][1]);
+        const deg=brng(coords[i],coords[i+1]);
+        const kmLabel=Math.round(nextArrow/1000)+' km';
+        const svg='<svg width="18" height="18" viewBox="0 0 18 18" style="transform:rotate('+deg+'deg)"><polygon points="9,1 14,16 9,11 4,16" fill="'+color+'" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+        const marker=L.marker([lat,lon],{
+          icon:L.divIcon({className:'',html:svg,iconSize:[18,18],iconAnchor:[9,9]}),
+          interactive:true, zIndexOffset:100
+        });
+        marker.bindPopup(kmLabel);
+        arrows.push(marker);
+        nextArrow+=1000;  // every 1km
+      }
+      dist+=seg;
+    }
+    return arrows;
+  }
+
+  function addUserRoute(name, parsed, color){
+    const lyrGroup=[];
+    const allCoords=[];
+    parsed.tracks.forEach(t=>{
+      allCoords.push(...t.coords);
+      const poly=L.polyline(t.coords,{color,weight:4,opacity:0.85}).addTo(map);
+      const popupName=t.name||name;
+      poly.bindPopup('<b>'+popupName+'</b>');
+      poly._isLine=true;
+      lyrGroup.push(poly);
+    });
+    (parsed.polygons||[]).forEach(p=>{
+      allCoords.push(...p.rings[0]);
+      const poly=L.polygon(p.rings,{color,fillColor:color,fillOpacity:0.2,weight:2,opacity:0.85}).addTo(map);
+      if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||name)+'</b>'+(p.desc?'<br>'+p.desc:''));
+      lyrGroup.push(poly);
+    });
+    parsed.waypoints.forEach(w=>{
+      allCoords.push([w.lat,w.lon]);
+      const m=L.circleMarker([w.lat,w.lon],{radius:6,color,fillColor:color,fillOpacity:.85,weight:2}).addTo(map);
+      if(w.name||w.desc)m.bindPopup('<b>'+(w.name||name)+'</b>'+(w.desc?'<br>'+w.desc:''));
+      lyrGroup.push(m);
+    });
+    const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
+    const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
+    const idx=userRoutes.length;
+    userRoutes.push({name,visible:true,opacity:0.85,color,lineWidth:4,showArrows:false,showLabel:true,layers:lyrGroup,arrowLayers:[],labelLayer:null,bounds,parsed});
+    // Fit map to route bounds
+    if(bounds)map.fitBounds(bounds,{padding:[24,24]});
+    // Apply label immediately and ensure layers render
+    applyRouteStyle(idx);
+    // Rebuild the route list panel
+    renderRouteList();
+    // Open the panel so user sees the new entry
+    document.getElementById('route-panel').classList.add('open');
+  }
+
+  function applyRouteStyle(idx){
+    const r=userRoutes[idx];
+    // Remove old arrows, start icon, label
+    r.arrowLayers.forEach(l=>map.removeLayer(l)); r.arrowLayers=[];
+    if(r.startLayer){map.removeLayer(r.startLayer);r.startLayer=null;}
+    if(r.labelLayer){map.removeLayer(r.labelLayer);r.labelLayer=null;}
+
+    // Update geometry style
+    r.layers.forEach(l=>{
+      if(!l.setStyle) return;
+      if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
+        l.setStyle({color:r.color,fillColor:r.color,weight:2,opacity:r.opacity,fillOpacity:r.opacity});
+      } else if(l instanceof L.Polygon){
+        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*0.22});
+      } else {
+        l.setStyle({color:r.color,weight:r.lineWidth,opacity:r.opacity});
+      }
+    });
+
+    // Direction arrows
+    if(r.showArrows){
+      (r.parsed.tracks||[]).forEach(t=>{
+        buildArrowDecorator(t.coords,r.color).forEach(a=>{
+          if(r.visible)a.addTo(map);
+          r.arrowLayers.push(a);
+        });
+      });
+    }
+
+    if(!r.showLabel) return;
+
+    const halo=r.color.length===7?(parseInt(r.color.slice(1,3),16)*299+parseInt(r.color.slice(3,5),16)*587+parseInt(r.color.slice(5,7),16)*114)/1000>140?'rgba(0,0,0,0.6)':'rgba(255,255,255,0.8)':'rgba(255,255,255,0.8)';
+    const shadow='-1.5px -1.5px 0 '+halo+',1.5px -1.5px 0 '+halo+',-1.5px 1.5px 0 '+halo+',1.5px 1.5px 0 '+halo;
+
+    const hasTracks=(r.parsed.tracks||[]).length>0;
+    const hasWaypoints=(r.parsed.waypoints||[]).length>0;
+    const hasPolygons=(r.parsed.polygons||[]).length>0;
+
+    if(hasTracks){
+      // Label at start point of first track
+      const sp=r.parsed.tracks[0].coords[0];
+      const labelText=r.parsed.tracks[0].name||r.name;
+
+      // Start icon (circle with play arrow)
+      r.startLayer=L.marker(sp,{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="width:20px;height:20px;background:'+r.color+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)"><span style="color:#fff;font-size:10px;margin-left:2px">&#9654;</span></div>',
+          iconSize:[0,0],iconAnchor:[0,0]
+        }),interactive:false,zIndexOffset:210
+      });
+      if(r.visible)r.startLayer.addTo(map);
+
+      // Label to the right of the start icon
+      r.labelLayer=L.marker(sp,{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(14px,-50%)">'+labelText+'</div>',
+          iconSize:[0,0],iconAnchor:[0,0]
+        }),interactive:false,zIndexOffset:200
+      });
+      if(r.visible)r.labelLayer.addTo(map);
+
+    } else if(hasWaypoints){
+      // Label next to EVERY waypoint with its own name
+      r.labelLayer=L.layerGroup();
+      r.parsed.waypoints.forEach(w=>{
+        const labelText=w.name||r.name;
+        const m=L.marker([w.lat,w.lon],{
+          icon:L.divIcon({
+            className:'',
+            html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(10px,-50%)">'+labelText+'</div>',
+            iconSize:[0,0],iconAnchor:[0,0]
+          }),interactive:false,zIndexOffset:200
+        });
+        r.labelLayer.addLayer(m);
+      });
+      if(r.visible)r.labelLayer.addTo(map);
+
+    } else if(hasPolygons&&r.bounds){
+      // Label at centroid of all polygon outer rings
+      const polyName=r.parsed.polygons[0].name||r.name;
+      const allPts=r.parsed.polygons.flatMap(p=>p.rings[0]);
+      const cLat=allPts.reduce((s,p)=>s+p[0],0)/allPts.length;
+      const cLon=allPts.reduce((s,p)=>s+p[1],0)/allPts.length;
+      r.labelLayer=L.marker([cLat,cLon],{
+        icon:L.divIcon({
+          className:'',
+          html:'<div style="color:'+r.color+';font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:'+shadow+';transform:translate(-50%,-50%)">'+polyName+'</div>',
+          iconSize:[0,0],iconAnchor:[0,0]
+        }),interactive:false,zIndexOffset:200
+      });
+      if(r.visible)r.labelLayer.addTo(map);
+    }
+  }
+
+  function setRouteOpacity(idx,op){
+    const r=userRoutes[idx];
+    r.opacity=op;
+    r.layers.forEach(l=>{
+      if(!l.setStyle) return;
+      if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
+        l.setStyle({opacity:op,fillOpacity:op});
+      } else if(l instanceof L.Polygon){
+        l.setStyle({opacity:op,fillOpacity:op*0.22});
+      } else {
+        l.setStyle({opacity:op});
+      }
+    });
+    r.arrowLayers.forEach(a=>{const el=a.getElement&&a.getElement();if(el)el.style.opacity=op;});
+    // labelLayer can be a single Marker or a LayerGroup (for waypoints)
+    if(r.labelLayer){
+      if(r.labelLayer.eachLayer){
+        r.labelLayer.eachLayer(l=>{const el=l.getElement&&l.getElement();if(el)el.style.opacity=op;});
+      } else {
+        const el=r.labelLayer.getElement&&r.labelLayer.getElement();if(el)el.style.opacity=op;
+      }
+    }
+    if(r.startLayer){const el=r.startLayer.getElement&&r.startLayer.getElement();if(el)el.style.opacity=op;}
+  }
+
+  function setRouteColor(idx,color){
+    userRoutes[idx].color=color;
+    applyRouteStyle(idx);
+  }
+
+  function setRouteVisible(idx,vis){
+    userRoutes[idx].visible=vis;
+    userRoutes[idx].layers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
+    userRoutes[idx].arrowLayers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
+    if(userRoutes[idx].labelLayer){if(vis)map.addLayer(userRoutes[idx].labelLayer);else map.removeLayer(userRoutes[idx].labelLayer);}
+    if(userRoutes[idx].startLayer){if(vis)map.addLayer(userRoutes[idx].startLayer);else map.removeLayer(userRoutes[idx].startLayer);}
+  }
+
+  function removeUserRoute(idx){
+    userRoutes[idx].layers.forEach(l=>map.removeLayer(l));
+    userRoutes[idx].arrowLayers.forEach(l=>map.removeLayer(l));
+    if(userRoutes[idx].labelLayer)map.removeLayer(userRoutes[idx].labelLayer);
+    if(userRoutes[idx].startLayer)map.removeLayer(userRoutes[idx].startLayer);
+    userRoutes.splice(idx,1);
+    renderRouteList();
+  }
+
+  function renderRouteList(){
+    const el=document.getElementById('route-list');
+    el.innerHTML='';
+    userRoutes.forEach((r,i)=>{
+      const row=document.createElement('div');
+      row.className='user-route-row';
+      row.innerHTML=
+        '<input type="color" class="ur-color" value="'+r.color+'" title="Color">'+
+        '<span class="route-name" title="'+r.name+'">'+r.name+'</span>'+
+        '<button class="route-fly" title="Fit to route" data-i="'+i+'">&#x2316;</button>'+
+        '<button class="route-vis" title="Show/hide" data-i="'+i+'" style="opacity:'+(r.visible?1:.4)+'">&#128065;</button>'+
+        '<button class="route-del" title="Remove" data-i="'+i+'">&times;</button>';
+      el.appendChild(row);
+
+      // options row: opacity + linewidth + arrows + label
+      const opRow=document.createElement('div');
+      opRow.className='route-options-row';
+      const opVal=Math.round(r.opacity*100);
+      opRow.innerHTML=
+        '<span class="ro-label">Opacity</span>'+
+        '<input type="range" min="0" max="100" value="'+opVal+'" class="ur-op">'+
+        '<span class="ro-val">'+opVal+'%</span>'+
+        '<span class="ro-label" style="margin-left:6px">Width</span>'+
+        '<input type="number" min="1" max="20" value="'+r.lineWidth+'" class="ur-lw">'+
+        '<span class="ro-label">px</span>'+
+        '<label style="margin-left:6px"><input type="checkbox" class="ur-arrows" '+(r.showArrows?'checked':'')+'>&#x25B6; arrows</label>'+
+        '<label><input type="checkbox" class="ur-label" '+(r.showLabel?'checked':'')+'>label</label>';
+      el.appendChild(opRow);
+
+      row.querySelector('.ur-color').addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);});
+      row.querySelector('.route-fly').addEventListener('click',()=>{if(userRoutes[i].bounds)map.fitBounds(userRoutes[i].bounds,{padding:[24,24]});});
+      row.querySelector('.route-vis').addEventListener('click',e=>{
+        const nv=!userRoutes[i].visible;setRouteVisible(i,nv);e.currentTarget.style.opacity=nv?'1':'0.4';
+      });
+      row.querySelector('.route-del').addEventListener('click',()=>removeUserRoute(i));
+      opRow.querySelector('.ur-op').addEventListener('input',e=>{
+        const op=parseInt(e.target.value)/100;
+        setRouteOpacity(i,op);
+        opRow.querySelector('.ro-val').textContent=e.target.value+'%';
+      });
+      opRow.querySelector('.ur-lw').addEventListener('change',e=>{
+        userRoutes[i].lineWidth=Math.max(1,parseInt(e.target.value)||4);
+        applyRouteStyle(i);
+      });
+      opRow.querySelector('.ur-arrows').addEventListener('change',e=>{
+        userRoutes[i].showArrows=e.target.checked;
+        applyRouteStyle(i);
+      });
+      opRow.querySelector('.ur-label').addEventListener('change',e=>{
+        userRoutes[i].showLabel=e.target.checked;
+        applyRouteStyle(i);
+      });
+    });
+    document.getElementById('route-btn').classList.toggle('has-routes',userRoutes.length>0);
+  }
+
+  function loadFile(file, accept){
+    if(!file)return;
+    const nameLow=file.name.toLowerCase();
+    const isGpx=nameLow.endsWith('.gpx');
+    const isGj=nameLow.endsWith('.geojson')||nameLow.endsWith('.json');
+    if(!isGpx&&!isGj){alert('Please choose a .gpx or .geojson file.');return;}
+    if(accept==='gpx'&&!isGpx){alert('Please choose a .gpx file.');return;}
+    if(accept==='geojson'&&!isGj){alert('Please choose a .geojson or .json file.');return;}
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const parsed=isGpx?parseUserGPX(ev.target.result):parseUserGeoJSON(ev.target.result);
+      const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
+      if(!hasContent){alert('No features found in this file.');return;}
+      const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
+      addUserRoute(file.name.replace(/.(gpx|geojson|json)$/i,''),parsed,color);
+    };
+    reader.readAsText(file);
+  }
+
+  // Panel open/close — stop propagation on the whole overlay so clicks inside don't close it
+  const routeBtn=document.getElementById('route-btn');
+  const routePanel=document.getElementById('route-panel');
+  const routeOverlay=document.getElementById('route-overlay');
+  routeBtn.onclick=function(e){e.stopPropagation();routePanel.classList.toggle('open');};
+  routeOverlay.addEventListener('click',function(e){e.stopPropagation();});
+  document.addEventListener('click',function(){routePanel.classList.remove('open');});
+  document.getElementById('route-panel-close').addEventListener('click',function(e){
+    e.stopPropagation();
+    routePanel.classList.remove('open');
+  });
+
+  // GPX / GeoJSON buttons — reset input value each time so same file can be reloaded
+  const fileInput=document.getElementById('route-file-input');
+  let pendingAccept='any';
+
+  function triggerFilePick(accept){
+    pendingAccept=accept;
+    fileInput.accept=accept==='gpx'?'.gpx':accept==='geojson'?'.geojson,.json':'.gpx,.geojson,.json';
+    // Reset so the same filename can be picked again
+    fileInput.value='';
+    // Small delay so the panel-close click-outside doesn't steal focus
+    setTimeout(()=>fileInput.click(),50);
+  }
+
+  document.getElementById('route-add-gpx').onclick=function(e){e.stopPropagation();triggerFilePick('gpx');};
+  document.getElementById('route-add-geojson').onclick=function(e){e.stopPropagation();triggerFilePick('geojson');};
+
+  fileInput.addEventListener('change',function(){
+    Array.from(fileInput.files).forEach(f=>loadFile(f,pendingAccept));
+    // Reset so re-selecting the same file fires change again next time
+    fileInput.value='';
+  });
+
+  // Drag & drop on map
+  const mapEl=document.getElementById('map');
+  mapEl.addEventListener('dragover',e=>{e.preventDefault();mapEl.style.outline='3px dashed #2980b9';});
+  mapEl.addEventListener('dragleave',()=>{mapEl.style.outline='';});
+  mapEl.addEventListener('drop',e=>{
+    e.preventDefault();mapEl.style.outline='';
+    Array.from(e.dataTransfer.files).forEach(f=>loadFile(f,'any'));
+  });
+})();
+<\/script>
+</body>
+</html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=title.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.html';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+
+  if(exportBtn){exportBtn.disabled=false;exportBtn.innerHTML=originalBtnHtml;}
+  }catch(err){
+    console.error('Export failed:', err);
+    alert('Something went wrong while generating the map:\n\n'+err.message+'\n\nPlease check your files and settings, or try with fewer files.');
+    if(exportBtn){exportBtn.disabled=false;exportBtn.innerHTML=originalBtnHtml;}
+  }
+}
+</script>
+</body>
+</html>
