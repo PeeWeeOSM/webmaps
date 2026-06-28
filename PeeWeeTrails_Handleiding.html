@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeeWeeTrails – Handleiding</title>
+  <style>
+    :root {
+      --groen: #2e7d32;
+      --groen-licht: #e8f5e9;
+      --groen-mid: #a5d6a7;
+      --tekst: #1a1a1a;
+      --grijs: #f5f5f5;
+      --rand: #ddd;
+      --link: #1565c0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--tekst);
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    header {
+      background: var(--groen);
+      color: white;
+      padding: 32px 24px 24px;
+      margin: 0 -24px 40px;
+      border-bottom: 4px solid #1b5e20;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.88;
+    }
+
+    header a {
+      color: #b9f6ca;
+    }
+
+    nav {
+      background: var(--groen-licht);
+      border: 1px solid var(--groen-mid);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 40px;
+    }
+
+    nav p {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--groen);
+    }
+
+    nav ol {
+      padding-left: 20px;
+    }
+
+    nav ol li {
+      margin: 3px 0;
+    }
+
+    nav a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: var(--groen);
+      border-bottom: 2px solid var(--groen-mid);
+      padding-bottom: 6px;
+      margin: 48px 0 18px;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 28px 0 10px;
+      color: #333;
+    }
+
+    p {
+      margin-bottom: 12px;
+    }
+
+    ul, ol {
+      margin: 10px 0 14px 24px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    .stap {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--grijs);
+      border-left: 4px solid var(--groen);
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin: 14px 0;
+    }
+
+    .stap-nr {
+      background: var(--groen);
+      color: white;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .stap-inhoud strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .tip {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 0.95rem;
+    }
+
+    .tip::before {
+      content: "💡 Tip: ";
+      font-weight: 700;
+    }
+
+    .opmerking {
+      background: #e3f2fd;
+      border-left: 4px solid #1565c0;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 0.95rem;
+    }
+
+    .opmerking::before {
+      content: "ℹ️  ";
+    }
+
+    .screenshot-placeholder {
+      border: 2px dashed #bbb;
+      border-radius: 6px;
+      background: #fafafa;
+      padding: 28px 20px;
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: var(--groen);
+      color: white;
+      text-align: left;
+      padding: 9px 12px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--rand);
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: var(--grijs);
+    }
+
+    code {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.88em;
+    }
+
+    .deel {
+      border: 1px solid var(--groen-mid);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0;
+      background: var(--groen-licht);
+    }
+
+    .deel h2 {
+      margin-top: 0;
+      border-bottom-color: var(--groen);
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--rand);
+      margin: 40px 0;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--rand);
+      font-size: 0.85rem;
+      color: #777;
+    }
+
+    a { color: var(--link); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ PeeWeeTrails – Handleiding</h1>
+  <p>Maak en deel interactieve kaartpagina's van je GPX-routes &nbsp;·&nbsp;
+     <a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Creator.html" target="_blank">Open de tool ↗</a>
+  </p>
+</header>
+
+<nav>
+  <p>Inhoud</p>
+  <ol>
+    <li><a href="#inleiding">Wat is PeeWeeTrails?</a></li>
+    <li><a href="#deel1">Deel 1 – De Creator (de tool zelf)</a>
+      <ol>
+        <li><a href="#bestanden">Bestanden laden</a></li>
+        <li><a href="#instellingen">Instellingen</a></li>
+        <li><a href="#lagen">Extra kaartlagen</a></li>
+        <li><a href="#preview">Voorbeeld bekijken</a></li>
+        <li><a href="#downloaden">Kaartpagina downloaden</a></li>
+      </ol>
+    </li>
+    <li><a href="#deel2">Deel 2 – De resulterende kaartpagina</a>
+      <ol>
+        <li><a href="#navigeren">Kaart navigeren</a></li>
+        <li><a href="#gps">GPS-functies</a></li>
+        <li><a href="#lagen2">Kaartlagen</a></li>
+        <li><a href="#delen">Pagina delen</a></li>
+      </ol>
+    </li>
+    <li><a href="#publiceren">Publiceren op GitHub Pages</a></li>
+    <li><a href="#tips">Veelgestelde vragen en tips</a></li>
+  </ol>
+</nav>
+
+<!-- ===== INLEIDING ===== -->
+<h2 id="inleiding">Wat is PeeWeeTrails?</h2>
+
+<p>PeeWeeTrails bestaat uit twee onderdelen die samen werken:</p>
+
+<ul>
+  <li><strong>De Creator</strong> — een webpagina waarmee je GPX- of GeoJSON-bestanden inlaadt, de opmaak instelt en vervolgens een op zichzelf staande HTML-kaartpagina downloadt.</li>
+  <li><strong>De resulterende kaartpagina</strong> — de gedownloade HTML die je kunt delen, op een website zetten, of e-mailen. Bevat de route al ingebakken; de ontvanger hoeft niets te installeren.</li>
+</ul>
+
+<p>De tool draait volledig in de browser. Er worden geen bestanden naar een server geüpload: alles wordt lokaal verwerkt.</p>
+
+<div class="screenshot-placeholder">
+  [Screenshot: beginscherm van de Creator met lege dropzone]
+</div>
+
+<!-- ===== DEEL 1 ===== -->
+<div class="deel">
+<h2 id="deel1">Deel 1 – De Creator</h2>
+
+<p>Open <a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Creator.html" target="_blank">PeeWeeTrails_Creator.html</a> in je browser. Je ziet een formulier met drie secties: <em>Bestanden</em>, <em>Instellingen</em> en <em>Extra kaartlagen</em>, gevolgd door een kaartvoorbeeld.</p>
+
+<h3 id="bestanden">1.1 Bestanden laden</h3>
+
+<div class="stap">
+  <div class="stap-nr">1</div>
+  <div class="stap-inhoud">
+    <strong>Sleep GPX- of GeoJSON-bestanden naar de dropzone</strong>
+    Je kunt ook op de dropzone klikken om via de bestandsbrowser te kiezen. Meerdere bestanden tegelijk zijn mogelijk.
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">2</div>
+  <div class="stap-inhoud">
+    <strong>Per bestand verschijnen kleur- en lijnopties</strong>
+    Stel voor elke route een kleur en lijndikte in. Zo zijn meerdere routes in één kaart visueel te onderscheiden.
+  </div>
+</div>
+
+<div class="screenshot-placeholder">
+  [Screenshot: dropzone met geladen GPX-bestand en kleurkiezer]
+</div>
+
+<table>
+  <tr><th>Bestandstype</th><th>Wanneer gebruiken</th></tr>
+  <tr><td><code>.gpx</code></td><td>Standaard uitvoer van fietscomputers, RideWithGPS, OsmAnd, Garmin, etc.</td></tr>
+  <tr><td><code>.geojson</code></td><td>Uitvoer van GIS-tools (QGIS, GDAL, Overpass). Ondersteunt punten, lijnen en vlakken.</td></tr>
+</table>
+
+<div class="tip">
+  Je kunt een GeoJSON-bestand vooraf aanmaken in QGIS en via "Opslaan als → GeoJSON" exporteren. Handig voor aanvullende lagen zoals POI's of gebiedsgrenzen.
+</div>
+
+<h3 id="instellingen">1.2 Instellingen</h3>
+
+<p>Onder het kopje <strong>Settings</strong> stel je het gedrag van de gedownloade kaartpagina in:</p>
+
+<table>
+  <tr><th>Instelling</th><th>Uitleg</th></tr>
+  <tr>
+    <td>Paginatitel</td>
+    <td>De titel die bovenaan de kaartpagina en in het browsertabblad verschijnt.</td>
+  </tr>
+  <tr>
+    <td>Navigatie-opties</td>
+    <td>Welke bedieningsknoppen zichtbaar zijn in de gedownloade kaart (zoom, north-up, enz.).</td>
+  </tr>
+  <tr>
+    <td>Kaart volgt eigen locatie</td>
+    <td>Wanneer ingeschakeld beweegt de kaart automatisch mee als de GPS-positie verandert. Handig bij navigatie onderweg.</td>
+  </tr>
+  <tr>
+    <td>GPS-spoor (richtingslijn)</td>
+    <td>Tekent een lijn vanuit je huidige positie in de rijrichting.</td>
+  </tr>
+  <tr>
+    <td>Breedte (px)</td>
+    <td>Dikte van het GPS-spoor in pixels.</td>
+  </tr>
+  <tr>
+    <td>Spoorlengte</td>
+    <td>Hoe ver het spoor terugloopt: <em>gehele rit</em> (geen limiet) of een vaste afstand in meters.</td>
+  </tr>
+  <tr>
+    <td>Achtergrondkaart opaciteit (OSM)</td>
+    <td>Instelling van 0–100%. Bij 100% is de OSM-ondergrond volledig zichtbaar; lager maakt de routes meer prominent.</td>
+  </tr>
+</table>
+
+<div class="screenshot-placeholder">
+  [Screenshot: het instellingenpaneel met de schuifregelaar voor opaciteit]
+</div>
+
+<h3 id="lagen">1.3 Extra kaartlagen</h3>
+
+<p>Onder <strong>Extra map layers</strong> voeg je aanvullende WMS/WMTS- of tegellagen toe die in de gedownloade kaart beschikbaar zijn als schakelbare overlay.</p>
+
+<div class="stap">
+  <div class="stap-nr">1</div>
+  <div class="stap-inhoud">
+    <strong>Klik op "Add layer"</strong>
+    Er verschijnt een invoerveld voor een laagnaam en een URL (tegellayer of WMS-endpoint).
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">2</div>
+  <div class="stap-inhoud">
+    <strong>Gebruik de pijltjes om volgorde te wijzigen</strong>
+    De bovenste laag in de lijst tekent het verst naar voren op de kaart.
+  </div>
+</div>
+
+<div class="tip">
+  Voorbeelden van bruikbare lagen voor Nederland: de BRT-achtergrondkaart van PDOK (<code>https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0</code>) of de luchtfoto's van Beeldmateriaal.nl.
+</div>
+
+<h3 id="preview">1.4 Voorbeeld bekijken</h3>
+
+<p>Zodra je een of meer bestanden hebt geladen verschijnt onder de instellingen een interactieve kaartpreview. Hierin zie je al hoe de routes eruitzien met de ingestelde kleuren en eventuele extra lagen. De preview is uitsluitend bedoeld als controle — de werkelijke kaartpagina download je via de downloadknop.</p>
+
+<div class="screenshot-placeholder">
+  [Screenshot: kaartpreview met een GPX-route in de geselecteerde kleur]
+</div>
+
+<p>De knoppen in de preview:</p>
+<ul>
+  <li><strong>z– / z+</strong> — handmatig in- of uitzoomen.</li>
+  <li><strong>Reset extent</strong> — zoom terug naar de volledige routeomvang.</li>
+</ul>
+
+<h3 id="downloaden">1.5 Kaartpagina downloaden</h3>
+
+<div class="stap">
+  <div class="stap-nr">1</div>
+  <div class="stap-inhoud">
+    <strong>Klik op "Download map"</strong>
+    De browser slaat een HTML-bestand op. De naam is gebaseerd op de ingestelde paginatitel.
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">2</div>
+  <div class="stap-inhoud">
+    <strong>Open of deel het HTML-bestand</strong>
+    Het bestand werkt als losstaande pagina, zonder internetverbinding voor de routedata (de kaartondergrond vereist wel internet).
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">3</div>
+  <div class="stap-inhoud">
+    <strong>Klik op "Clear all" om opnieuw te beginnen</strong>
+    Dit verwijdert alle geladen bestanden en zet de instellingen terug.
+  </div>
+</div>
+
+<div class="opmerking">
+  De routedata wordt <em>ingebakken</em> in het HTML-bestand. De ontvanger heeft geen toegang nodig tot jouw GPX-bestanden.
+</div>
+
+</div><!-- einde deel 1 -->
+
+
+<!-- ===== DEEL 2 ===== -->
+<div class="deel">
+<h2 id="deel2">Deel 2 – De resulterende kaartpagina</h2>
+
+<p>Dit is de HTML die je hebt gedownload met de Creator, of een kale versie zonder route — bijvoorbeeld als je de pagina direct deelt als sjabloon. De kaartpagina is gebaseerd op Leaflet.js en werkt in elke moderne browser, ook op mobiel.</p>
+
+<div class="screenshot-placeholder">
+  [Screenshot: de gedownloade kaartpagina met route en bedieningselementen]
+</div>
+
+<h3 id="navigeren">2.1 Kaart navigeren</h3>
+
+<table>
+  <tr><th>Actie</th><th>Muis / trackpad</th><th>Touchscreen</th></tr>
+  <tr><td>Verschuiven</td><td>Slepen</td><td>Slepen met één vinger</td></tr>
+  <tr><td>Inzoomen</td><td>Scrollwiel omhoog of <code>+</code>-knop</td><td>Twee vingers uit elkaar</td></tr>
+  <tr><td>Uitzoomen</td><td>Scrollwiel omlaag of <code>–</code>-knop</td><td>Twee vingers naar elkaar</td></tr>
+  <tr><td>Klik op route</td><td>Toont attribuutinfo (indien aanwezig)</td><td>Tikken</td></tr>
+</table>
+
+<p>Linksboven staan de standaard Leaflet-zoomknoppen. De route wordt direct getoond op het scherm bij openen; de kaart centreert automatisch op de volledige route.</p>
+
+<h3 id="gps">2.2 GPS-functies</h3>
+
+<p>Als de Creator-instelling <em>Kaart volgt eigen locatie</em> was ingeschakeld, verschijnt er een locatieknop op de kaart. Gedrag:</p>
+
+<ul>
+  <li>Bij de eerste klik vraagt de browser om toestemming voor locatietoegang.</li>
+  <li>Daarna toont een pulserende stip je huidige positie.</li>
+  <li>De kaart beweegt automatisch mee als je rijdt of loopt.</li>
+  <li>Als het GPS-spoor is ingeschakeld, zie je een lijn die de afgelegde weg bijhoudt (tot de ingestelde lengte in meters, of de gehele rit).</li>
+</ul>
+
+<div class="opmerking">
+  GPS werkt het best in Chrome of Safari op mobiel. Op desktop hangt de nauwkeurigheid af van je wifi-positiebepaling.
+</div>
+
+<h3 id="lagen2">2.3 Kaartlagen</h3>
+
+<p>Als je bij het aanmaken extra lagen hebt toegevoegd, verschijnt rechtsboven een laagkiezer (Leaflet layers control). Hiermee schakel je lagen aan of uit:</p>
+
+<ul>
+  <li><strong>Achtergrondkaarten</strong> (radio-knoppen): slechts één tegelijk actief, bijv. OSM of luchtfoto.</li>
+  <li><strong>Overlays</strong> (checkboxen): meerdere tegelijk zichtbaar, bijv. een hoogteprofiel of POI-laag.</li>
+</ul>
+
+<div class="tip">
+  Op mobiel is de laagkiezer ingeklapt tot een klein icoontje rechtsboven. Klik erop om het paneel te openen.
+</div>
+
+<h3 id="delen">2.4 Pagina delen</h3>
+
+<p>De gedownloade HTML is volledig op zichzelf staand. Deelmogelijkheden:</p>
+
+<ul>
+  <li><strong>E-mail als bijlage</strong> — de ontvanger opent het bestand lokaal in de browser.</li>
+  <li><strong>GitHub Pages</strong> — upload het HTML-bestand naar een repository en schakel GitHub Pages in (zie sectie 3).</li>
+  <li><strong>Webserver of NAS</strong> — kopieer het bestand naar een willekeurige map die via HTTP bereikbaar is.</li>
+  <li><strong>Dropbox / OneDrive / Google Drive</strong> — via de publieke deellink (Let op: sommige diensten renderen HTML niet rechtstreeks).</li>
+</ul>
+
+</div><!-- einde deel 2 -->
+
+
+<!-- ===== PUBLICEREN ===== -->
+<h2 id="publiceren">Publiceren op GitHub Pages</h2>
+
+<p>GitHub Pages is gratis en ideaal voor het hosten van losse HTML-bestanden zoals de Creator en de gegenereerde kaartpagina's.</p>
+
+<div class="stap">
+  <div class="stap-nr">1</div>
+  <div class="stap-inhoud">
+    <strong>Maak een repository aan op GitHub</strong>
+    Bijvoorbeeld <code>webmaps</code>. Kies "Public" als je de pagina's openbaar wilt delen.
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">2</div>
+  <div class="stap-inhoud">
+    <strong>Upload de HTML-bestanden</strong>
+    Sleep bestanden naar de repository-pagina, of gebruik <code>git push</code>. Zet de Creator en/of de kaartpagina's in de root of een submap.
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">3</div>
+  <div class="stap-inhoud">
+    <strong>Schakel GitHub Pages in</strong>
+    Ga naar <em>Settings → Pages</em>. Kies bij "Source" de branch <code>main</code> en map <code>/ (root)</code> of <code>/docs</code>. Klik op Save.
+  </div>
+</div>
+
+<div class="stap">
+  <div class="stap-nr">4</div>
+  <div class="stap-inhoud">
+    <strong>Bezoek de URL</strong>
+    Na een paar seconden is de pagina beschikbaar op <code>https://&lt;gebruikersnaam&gt;.github.io/&lt;repository&gt;/bestand.html</code>.
+  </div>
+</div>
+
+<div class="opmerking">
+  PeeWeeOSM's eigen Creator staat al op GitHub Pages via <a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Creator.html" target="_blank">peeweeosm.github.io/webmaps/…</a>. Gegenereerde kaartpagina's kun je in dezelfde repository plaatsen en zo permanent delen via een directe URL.
+</div>
+
+<h3>Alternatieve hostingopties</h3>
+
+<table>
+  <tr><th>Platform</th><th>Gratis?</th><th>Geschikt voor</th></tr>
+  <tr><td>GitHub Pages</td><td>Ja</td><td>Eenvoudige HTML, versiehistorie, CI/CD</td></tr>
+  <tr><td>Netlify / Vercel</td><td>Ja (basis)</td><td>Zelfde als GitHub Pages, met automatische deploys</td></tr>
+  <tr><td>Eigen webserver / NAS</td><td>n.v.t.</td><td>Intern delen, geen publieke toegang nodig</td></tr>
+  <tr><td>QGISCloud</td><td>Beperkt</td><td>Combineren met WMS-lagen uit QGIS Server</td></tr>
+</table>
+
+
+<!-- ===== TIPS ===== -->
+<h2 id="tips">Veelgestelde vragen en tips</h2>
+
+<h3>De kaart is leeg na het openen</h3>
+<p>Controleer of het HTML-bestand volledig is gedownload. Een getrunceerd bestand geeft een lege kaart. Open de browserconsole (<code>F12</code>) voor foutmeldingen.</p>
+
+<h3>GPX-bestand wordt niet herkend</h3>
+<p>Zorg dat het bestand de extensie <code>.gpx</code> heeft en geldige XML bevat. Sommige fietsapps exporteren een ZIP — pak deze eerst uit.</p>
+
+<h3>Meerdere routes combineren</h3>
+<p>Sleep meerdere GPX-bestanden tegelijk naar de dropzone. Elk bestand krijgt een eigen kleur en kan onafhankelijk worden ingesteld.</p>
+
+<h3>Route is zichtbaar in preview maar niet in download</h3>
+<p>Dit kan gebeuren als je de download start voordat het bestand volledig is ingelezen. Wacht tot de preview volledig geladen is voordat je downloadt.</p>
+
+<h3>Kaartpagina offline gebruiken</h3>
+<p>De routedata is offline beschikbaar (ingebakken in het HTML-bestand), maar de kaartondergrond (OSM-tegels) vereist internetverbinding. Gebruik voor offline navigatie een app als OsmAnd.</p>
+
+<h3>Handleiding bijwerken</h3>
+<p>Plaatjes kunnen later worden toegevoegd door de <code>&lt;div class="screenshot-placeholder"&gt;</code>-elementen te vervangen door <code>&lt;img src="screenshots/naam.png" alt="..."&gt;</code>.</p>
+
+<hr>
+
+<footer>
+  <p>PeeWeeTrails is een project van <a href="https://github.com/PeeWeeOSM" target="_blank">PeeWeeOSM</a> &nbsp;·&nbsp;
+     Gebouwd met <a href="https://leafletjs.com" target="_blank">Leaflet.js</a> &nbsp;·&nbsp;
+     Kaartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap-bijdragers</a>
+  </p>
+</footer>
+
+</body>
+</html>
