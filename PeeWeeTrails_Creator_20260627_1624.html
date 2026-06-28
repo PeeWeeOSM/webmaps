@@ -194,16 +194,16 @@ const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c070
 
 // --- Default extra layers (shown when no saved state exists) ---
 const DEFAULT_LAYERS=[
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:19,defaultOn:false,previewOn:true}
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false},
+  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false}
 ];
 // Saving in renderLayerList() ensures all layer changes are captured.
 // A flag prevents saving during the restore pass itself.
-const STORAGE_KEY='PeeWeeTrails_layers_v1';
+const STORAGE_KEY='peeweetrails_layers_v1';
 let _restoring=false;
 
 function saveLayersToStorage(){
@@ -213,8 +213,7 @@ function saveLayersToStorage(){
       layers:extraLayers.map(l=>({
         type:l.type, url:l.url, wmsLayer:l.wmsLayer||'',
         displayName:l.displayName||'', opacity:l.opacity,
-        zoomMin:Math.min(l.zoomMin||1,19), zoomMax:Math.min(l.zoomMax||19,19),
-        defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false
+        zoomMin:l.zoomMin, zoomMax:l.zoomMax, defaultOn:l.defaultOn||false
       })),
       title:document.getElementById('title').value,
       osmOpacity:document.getElementById('osmopacity').value
@@ -236,10 +235,8 @@ function loadLayersFromStorage(){
     source.forEach(l=>extraLayers.push({
       type:l.type||'xyz', url:l.url||'', wmsLayer:l.wmsLayer||'',
       displayName:l.displayName||'', opacity:l.opacity!=null?l.opacity:0.8,
-      zoomMin:Math.min(l.zoomMin!=null?l.zoomMin:1,19),
-      zoomMax:Math.min(l.zoomMax!=null?l.zoomMax:19,19),
-      defaultOn:l.defaultOn||false,
-      previewOn:l.previewOn!==false
+      zoomMin:l.zoomMin!=null?l.zoomMin:1, zoomMax:l.zoomMax!=null?l.zoomMax:22,
+      defaultOn:l.defaultOn||false
     }));
     renderLayerList();
     _restoring=false;
@@ -335,14 +332,9 @@ function renderLayerList(){
       </div>
       <div class="row" style="gap:6px">
         <span class="toggle-label" style="color:#222">Zoom</span>
-        <input type="number" value="${Math.min(l.zoomMin!=null?l.zoomMin:1,19)}" min="0" max="19" data-idx="${i}" class="zoominput layer-zoommin" title="Zoom level from">
+        <input type="number" value="${l.zoomMin!=null?l.zoomMin:1}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommin" title="Zoom level from">
         <span class="toggle-label" style="color:#222">to</span>
-        <input type="number" value="${Math.min(l.zoomMax!=null?l.zoomMax:19,19)}" min="0" max="19" data-idx="${i}" class="zoominput layer-zoommax" title="Zoom level to (max 19)">
-        <label class="toggle" title="Show this layer in the preview map" style="margin-left:8px">
-          <input type="checkbox" ${l.previewOn!==false?'checked':''} data-idx="${i}" class="layer-previewon">
-          <span class="slider"></span>
-        </label>
-        <span class="toggle-label">in preview</span>
+        <input type="number" value="${l.zoomMax!=null?l.zoomMax:22}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommax" title="Zoom level to">
         <label class="toggle" title="Layer on or off by default when the map is opened" style="margin-left:8px">
           <input type="checkbox" ${l.defaultOn===true?'checked':''} data-idx="${i}" class="layer-defaulton">
           <span class="slider"></span>
@@ -375,7 +367,7 @@ function renderLayerList(){
   el.querySelectorAll('.layer-zoommin').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      extraLayers[i].zoomMin=Math.min(parseInt(e.target.value)||0,19);
+      extraLayers[i].zoomMin=parseInt(e.target.value)||0;
       if(extraLayers[i].zoomMin>extraLayers[i].zoomMax)extraLayers[i].zoomMax=extraLayers[i].zoomMin;
       updatePreview();renderLayerList();
     });
@@ -383,19 +375,15 @@ function renderLayerList(){
   el.querySelectorAll('.layer-zoommax').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      extraLayers[i].zoomMax=Math.min(parseInt(e.target.value)||19,19);
+      extraLayers[i].zoomMax=parseInt(e.target.value)||22;
       if(extraLayers[i].zoomMax<extraLayers[i].zoomMin)extraLayers[i].zoomMin=extraLayers[i].zoomMax;
       updatePreview();renderLayerList();
     });
   });
   el.querySelectorAll('.layer-defaulton').forEach(inp=>{
     inp.addEventListener('change',e=>{
-      extraLayers[parseInt(e.target.dataset.idx)].defaultOn=e.target.checked;
-    });
-  });
-  el.querySelectorAll('.layer-previewon').forEach(inp=>{
-    inp.addEventListener('change',e=>{
-      extraLayers[parseInt(e.target.dataset.idx)].previewOn=e.target.checked;
+      const i=parseInt(e.target.dataset.idx);
+      extraLayers[i].defaultOn=e.target.checked;
       updatePreview();
     });
   });
@@ -541,9 +529,9 @@ function renderList(){
       <input type="number" value="${f.lineWidth!=null?f.lineWidth:3}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="Line width of this track in pixels" style="width:56px">
       <span class="toggle-label" style="color:#222">px</span>
       <span class="toggle-label" style="color:#222;margin-left:4px">map zoom</span>
-      <input type="number" value="${Math.min(f.mapZoomMin!=null?f.mapZoomMin:1,19)}" min="1" max="19" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints visible from zoom level">
+      <input type="number" value="${f.mapZoomMin!=null?f.mapZoomMin:1}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints visible from zoom level">
       <span class="toggle-label" style="color:#222">–</span>
-      <input type="number" value="${Math.min(f.mapZoomMax!=null?f.mapZoomMax:19,19)}" min="1" max="19" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level (max 19)">
+      <input type="number" value="${f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level">
       <span class="file-pts">${f.tracks.length}t &middot; ${f.npts}pt</span>
       <button class="delbtn" data-idx="${i}" title="Remove">&times;</button>
       </div>
@@ -675,7 +663,7 @@ function renderList(){
   el.querySelectorAll('.mapzoommin').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      files[i].mapZoomMin=Math.min(parseInt(e.target.value)||1,19);
+      files[i].mapZoomMin=parseInt(e.target.value)||1;
       if(files[i].mapZoomMin>files[i].mapZoomMax)files[i].mapZoomMax=files[i].mapZoomMin;
       updatePreview();renderList();
     });
@@ -683,7 +671,7 @@ function renderList(){
   el.querySelectorAll('.mapzoommax').forEach(inp=>{
     inp.addEventListener('change',e=>{
       const i=parseInt(e.target.dataset.idx);
-      files[i].mapZoomMax=Math.min(parseInt(e.target.value)||19,19);
+      files[i].mapZoomMax=parseInt(e.target.value)||MAX_ZOOM;
       if(files[i].mapZoomMax<files[i].mapZoomMin)files[i].mapZoomMin=files[i].mapZoomMax;
       updatePreview();renderList();
     });
@@ -975,13 +963,13 @@ function updatePreview(){
   // remove old extra layers
   previewExtraLayers.forEach(l=>{if(l&&map.hasLayer(l))map.removeLayer(l);});
   previewExtraLayers=[];
-  // add extra layers (below GPX tracks) — only if previewOn is not false
+  // add extra layers (below GPX tracks)
   extraLayers.forEach(el=>{
-    if(!el.url.trim()||el.previewOn===false){previewExtraLayers.push(null);return;}
+    if(!el.url.trim())return;
     try{
       let tl;
       const zMin=el.zoomMin!=null?el.zoomMin:0;
-      const zMax=Math.min(el.zoomMax!=null?el.zoomMax:19,19);
+      const zMax=el.zoomMax!=null?el.zoomMax:22;
       if(el.type==='wms'){
         tl=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
       } else {
