@@ -432,6 +432,8 @@ const wptMarkerLayers=[];   // waypoint markers + waypoint labels only
 const polygonLayers=[];     // L.Polygon filled areas only
 // zoomLayers built after D.forEach (see below)
 
+
+  // Helper: render polygon as Leaflet layer — MultiPolygon via L.geoJSON, plain via L.polygon
 D.forEach(f=>{
   const filePolys=[];
   const fLw=f.lineWidth!=null?f.lineWidth:3;
@@ -439,6 +441,7 @@ D.forEach(f=>{
   const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
 
   // --- Render polygon areas (filled, with darker outline) ---
+  // For plain Polygon: pass rings normally.
   (f.polygons||[]).forEach(p=>{
     const pg=L.polygon(p.rings,{color:f.color,weight:2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
     if(p.name||p.desc)pg.bindPopup('<b>'+(p.name||f.filename)+'</b>'+(p.desc?'<br>'+p.desc:''));
@@ -525,7 +528,15 @@ D.forEach(f=>{
   // --- Track labels ---
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
-    const mainLabel=getLabelText(f,f.tracks[0].name);
+    // Compute km suffix if showTrackDist is on and there is exactly one track
+    let kmSuffix='';
+    if(f.showTrackDist&&f.tracks.length===1&&f.tracks[0].coords.length>1){
+      let d=0;
+      const c=f.tracks[0].coords;
+      for(let i=1;i<c.length;i++)d+=haversineMeters(c[i-1],c[i]);
+      kmSuffix=' ('+(d/1000).toFixed(1).replace('.',',')+' km)';
+    }
+    const mainLabel=getLabelText(f,f.tracks[0].name)+kmSuffix;
     const fs=(f.labelFontSize||24)+'px';
     const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
     const allPts=f.tracks.flatMap(t=>t.coords);
@@ -561,27 +572,16 @@ D.forEach(f=>{
       }).addTo(map);
       lbl._zoomMin=f.labelZoomMin;
       lbl._zoomMax=f.labelZoomMax;
-      lbl._wptLabel=true;
+      lbl._polLabel=true;
       labelLayers.push(lbl);
     };
-    const pnames=f.polygons.map(p=>p.name||'');
-    const allSame=pnames.every(n=>n===pnames[0]);
-    if(allSame){
-      const combinedName=pnames[0]||getLabelText(f,null);
-      if(combinedName){
-        const allPts=f.polygons.flatMap(p=>p.rings[0]);
-        const cLat=allPts.reduce((s,p)=>s+p[0],0)/allPts.length;
-        const cLon=allPts.reduce((s,p)=>s+p[1],0)/allPts.length;
-        makePolyLbl(cLat,cLon,combinedName);
-      }
-    } else {
-      f.polygons.forEach(p=>{
-        if(!p.name) return;
-        const pts=p.rings[0];
-        const cLat=pts.reduce((s,c)=>s+c[0],0)/pts.length;
-        const cLon=pts.reduce((s,c)=>s+c[1],0)/pts.length;
-        makePolyLbl(cLat,cLon,p.name);
-      });
+    // One label for the whole row — centroid of all polygons combined
+    const polLabelName=f.polygons[0].name||getLabelText(f,null);
+    if(polLabelName){
+      const allOuterPts=f.polygons.flatMap(p=>p.rings[0]);
+      const cLat=allOuterPts.reduce((s,c)=>s+c[0],0)/allOuterPts.length;
+      const cLon=allOuterPts.reduce((s,c)=>s+c[1],0)/allOuterPts.length;
+      makePolyLbl(cLat,cLon,polLabelName);
     }
   }
 });
@@ -650,6 +650,14 @@ function updateLabels(){
 }
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
+
+// Warn before closing/refreshing if GPS trail is active
+window.addEventListener('beforeunload',function(e){
+  if(locHistory.length>0&&wid!==null){
+    e.preventDefault();
+    e.returnValue='Your GPS trail will be lost if you close this page.';
+  }
+});
 
 // Zoom level indicator (top right corner)
 const zoomValEl=document.getElementById('zoom-val');
@@ -851,15 +859,23 @@ map.on('zoomend',function(){
       // Track toggle: show/hide track labels (NOT waypoint labels)
       if(type==='tracks'){
         labelLayers.forEach(l=>{
-          if(l._wptLabel) return;
+          if(l._wptLabel||l._polLabel) return;
           l._userHidden=!s.visible;
           if(l.setText){
             if(!s.visible) l.setText(null);
-            // if visible, updateLabels() below will re-apply text at correct zoom
           } else {
             if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
             else { if(map.hasLayer(l)) map.removeLayer(l); }
           }
+        });
+      }
+      // Polygons toggle: show/hide polygon labels
+      if(type==='polygons'){
+        labelLayers.forEach(l=>{
+          if(!l._polLabel) return;
+          l._userHidden=!s.visible;
+          if(s.visible){ if(!map.hasLayer(l)) map.addLayer(l); }
+          else { if(map.hasLayer(l)) map.removeLayer(l); }
         });
       }
 
@@ -883,9 +899,9 @@ map.on('zoomend',function(){
       pctEl.textContent=opSlider.value+'%';
       s.layers.forEach(l=>applyOpacity(l,op));
       // Track opacity also fades track labels (not waypoint labels)
-      if(type==='tracks') labelLayers.forEach(l=>{if(!l._wptLabel)applyOpacity(l,op);});
-      // Waypoint opacity also fades waypoint labels
+      if(type==='tracks') labelLayers.forEach(l=>{if(!l._wptLabel&&!l._polLabel)applyOpacity(l,op);});
       if(type==='waypoints') labelLayers.forEach(l=>{if(l._wptLabel)applyOpacity(l,op);});
+      if(type==='polygons') labelLayers.forEach(l=>{if(l._polLabel)applyOpacity(l,op);});
     });
   });
 
@@ -952,7 +968,7 @@ map.on('zoomend',function(){
         } else if(geom.type==='MultiPolygon'){
           geom.coordinates.forEach(poly=>{
             const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
-            if(rings.length)polygons.push({name,desc,rings});
+            if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
           });
         } else if(geom.type==='Point'){
           const c=geom.coordinates;
@@ -1006,6 +1022,8 @@ map.on('zoomend',function(){
     return arrows;
   }
 
+
+  // Helper: render polygon as Leaflet layer — MultiPolygon via L.geoJSON, plain via L.polygon
   function addUserRoute(name, parsed, color){
     const lyrGroup=[];
     const allCoords=[];
@@ -1054,7 +1072,15 @@ map.on('zoomend',function(){
     const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
     const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
     const idx=userRoutes.length;
-    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,lineWidth:4,showArrows:false,showLabel:true,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
+    // Defaults match input HTML per geometry type
+    const hasTrk=parsed.tracks.length>0;
+    const hasWpt=!hasTrk&&parsed.waypoints.length>0;
+    const routeDefaults=hasTrk
+      ? {lineWidth:3,showArrows:true,showLabel:true,labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,labelZoomMin:14,labelZoomMax:17,labelFontSize:24,mapZoomMin:1,mapZoomMax:19}
+      : hasWpt
+      ? {lineWidth:3,showArrows:false,showLabel:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:19,labelFontSize:24,mapZoomMin:9,mapZoomMax:19}
+      : {lineWidth:3,showArrows:false,showLabel:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:18,labelFontSize:24,mapZoomMin:1,mapZoomMax:19};
+    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,...routeDefaults,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
     // Fit map to route bounds
     if(bounds)map.fitBounds(bounds,{padding:[24,24]});
     // Apply label immediately and ensure layers render
@@ -1301,8 +1327,47 @@ map.on('zoomend',function(){
       const parsed=isGpx?parseUserGPX(ev.target.result):parseUserGeoJSON(ev.target.result);
       const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
       if(!hasContent){alert('No features found in this file.');return;}
-      const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
-      addUserRoute(file.name.replace(/.(gpx|geojson|json)$/i,''),parsed,color);
+      const baseName=file.name.replace(/.(gpx|geojson|json)$/i,'');
+
+      // SPLIT: one route entry per track
+      parsed.tracks.forEach((trk,tIdx)=>{
+        const name=trk.name&&trk.name.trim()?trk.name.trim():parsed.tracks.length===1?baseName:baseName+'_trk'+(tIdx+1);
+        const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
+        addUserRoute(name,{tracks:[trk],waypoints:[],polygons:[]},color);
+      });
+
+      // SPLIT: one entry for all waypoints combined
+      if(parsed.waypoints.length){
+        const name=baseName+'_wpt';
+        const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
+        addUserRoute(name,{tracks:[],waypoints:parsed.waypoints,polygons:[]},color);
+      }
+
+      // SPLIT: group polygons by name (MultiPolygon parts share the same name → one row)
+      let vPolCounter=0;
+      const vPolGroups=[];
+      (parsed.polygons||[]).forEach(pol=>{
+        const nm=pol.name&&pol.name.trim()?pol.name.trim():null;
+        if(nm){
+          const ex=vPolGroups.find(g=>g.name===nm);
+          if(ex){ex.polygons.push(pol);}
+          else{vPolGroups.push({name:nm,polygons:[pol]});}
+        } else {
+          vPolCounter++;
+          vPolGroups.push({name:'__unnamed__'+vPolCounter,polygons:[pol]});
+        }
+      });
+      const vUnnamed=vPolGroups.filter(g=>g.name.startsWith('__unnamed__'));
+      vPolGroups.forEach(g=>{
+        if(g.name.startsWith('__unnamed__')){
+          const n=parseInt(g.name.replace('__unnamed__',''));
+          g.name=vUnnamed.length===1?baseName:baseName+'_pol'+n;
+        }
+      });
+      vPolGroups.forEach(g=>{
+        const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
+        addUserRoute(g.name,{tracks:[],waypoints:[],polygons:g.polygons},color);
+      });
     };
     reader.readAsText(file);
   }
