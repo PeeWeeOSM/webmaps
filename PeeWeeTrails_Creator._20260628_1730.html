@@ -101,7 +101,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </head>
 <body>
 <h1>PeeWeeTrails</h1>
-<p class="sub">Drag GPX or GeoJSON files here. Change settings if desired. See preview for result.</p>
+<p class="sub">Drag GPX or GeoJSON files here, set colors, and download a map page to share.</p>
 
 <div class="card">
   <div class="section-label">Files</div>
@@ -442,7 +442,7 @@ function handleFiles(fl){
       // Priority: track > waypoint > polygon
       let defaults;
       if(hasTrk){
-        defaults={showLabel:true,labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,useElementName:true,labelZoomMin:14,labelZoomMax:17,labelFontSize:24,lineWidth:3,mapZoomMin:1,mapZoomMax:19};
+        defaults={showLabel:true,labelPos:'start',showStart:true,showKmMarkers:true,useElementName:true,labelZoomMin:14,labelZoomMax:17,labelFontSize:24,lineWidth:3,mapZoomMin:1,mapZoomMax:19};
       } else if(hasWpt){
         defaults={showLabel:true,labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:19,labelFontSize:24,lineWidth:3,mapZoomMin:9,mapZoomMax:19};
       } else {
@@ -582,12 +582,6 @@ function renderList(){
         <span class="slider"></span>
       </label>
       <span class="toggle-label">km markers</span>
-      ${f.tracks.length>0?`
-      <label class="toggle" title="Show total track distance in the map label, e.g. My Track (12,3 km)">
-        <input type="checkbox" ${f.showTrackDist!==false?'checked':''} data-idx="${i}" class="trackdisttog">
-        <span class="slider"></span>
-      </label>
-      <span class="toggle-label">track distance</span>`:''}
       <label class="toggle" title="Show each track/waypoint's own <name> instead of the file name">
         <input type="checkbox" ${f.useElementName?'checked':''} data-idx="${i}" class="elnametog">
         <span class="slider"></span>
@@ -655,12 +649,6 @@ function renderList(){
   el.querySelectorAll('.kmtog').forEach(inp=>{
     inp.addEventListener('change',e=>{
       files[parseInt(e.target.dataset.idx)].showKmMarkers=e.target.checked;
-      updatePreview();
-    });
-  });
-  el.querySelectorAll('.trackdisttog').forEach(inp=>{
-    inp.addEventListener('change',e=>{
-      files[parseInt(e.target.dataset.idx)].showTrackDist=e.target.checked;
       updatePreview();
     });
   });
@@ -984,12 +972,15 @@ function resetPreviewExtent(){
 function updatePreview(){
   const empty=document.getElementById('preview-empty');
   const wrap=document.getElementById('preview-wrap');
-  // Always show the map (OSM base layer) even before files are loaded
+  const hasLayers=extraLayers.some(l=>l.url.trim());
+  if(!files.length && !hasLayers){
+    empty.style.display='flex';wrap.style.display='none';
+    if(map){map.remove();map=null;}layers=[];return;
+  }
   empty.style.display='none';wrap.style.display='block';
   if(!map){
     map=L.map('map');
     osmTileLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
-    map.setView([52.1,5.1],8); // default centre (Netherlands) until files set the view
     map.on('zoomend',updateLabelVisibility);
     const pzEl=document.getElementById('preview-zoom-indicator');
     map.on('zoomend',()=>{pzEl.textContent='z'+map.getZoom();});
@@ -1095,13 +1086,7 @@ function updatePreview(){
     // determine label position based on setting
     if(f.showLabel&&f.tracks.length){
       const halo=contrastHalo(f.color);
-      let kmSuffix='';
-      if(f.showTrackDist!==false&&f.tracks.length===1&&f.tracks[0].coords.length>1){
-        let d=0; const c=f.tracks[0].coords;
-        for(let i=1;i<c.length;i++)d+=haversineMeters(c[i-1],c[i]);
-        kmSuffix=' ('+(d/1000).toFixed(1).replace('.',',')+' km)';
-      }
-      const mainLabel=getLabelText(f,f.tracks[0].name)+kmSuffix;
+      const mainLabel=getLabelText(f,f.tracks[0].name);
       const allPts=f.tracks.flatMap(t=>t.coords);
       let pos;
       if(f.labelPos==='start') pos=f.tracks[0].coords[0];
@@ -1268,7 +1253,6 @@ function exportMap(){
     mapZoomMin:f.mapZoomMin!=null?f.mapZoomMin:1,
     mapZoomMax:f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM,
     showKmMarkers:!!f.showKmMarkers,
-    showTrackDist:f.tracks.length>0&&f.showTrackDist!==false,
     wptIconSvg:f.wptIconSvg||null,
     wptIconSize:f.wptIconSize||28,
     tracks:f.tracks,
@@ -1812,15 +1796,7 @@ D.forEach(f=>{
   // --- Track labels ---
   if(f.showLabel&&f.tracks.length){
     const h=contrastHalo(f.color);
-    // Compute km suffix if showTrackDist is on and there is exactly one track
-    let kmSuffix='';
-    if(f.showTrackDist&&f.tracks.length===1&&f.tracks[0].coords.length>1){
-      let d=0;
-      const c=f.tracks[0].coords;
-      for(let i=1;i<c.length;i++)d+=haversineMeters(c[i-1],c[i]);
-      kmSuffix=' ('+(d/1000).toFixed(1).replace('.',',')+' km)';
-    }
-    const mainLabel=getLabelText(f,f.tracks[0].name)+kmSuffix;
+    const mainLabel=getLabelText(f,f.tracks[0].name);
     const fs=(f.labelFontSize||24)+'px';
     const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
     const allPts=f.tracks.flatMap(t=>t.coords);
@@ -1945,14 +1921,6 @@ function updateLabels(){
 }
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
-
-// Warn before closing/refreshing if GPS trail is active
-window.addEventListener('beforeunload',function(e){
-  if(locHistory.length>0&&wid!==null){
-    e.preventDefault();
-    e.returnValue='Your GPS trail will be lost if you close this page.';
-  }
-});
 
 // Zoom level indicator (top right corner)
 const zoomValEl=document.getElementById('zoom-val');
