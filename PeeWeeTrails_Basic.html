@@ -271,10 +271,14 @@ function normalizeDirection(coords){
 
 // inline SVG icon for a label, matching the geometry-type icons used in the file list
 function labelGeomIconHtml(type, color, sizePx){
+  // Label prefix icons are intentionally always black, regardless of the
+  // element's own color, and use 3 distinct shapes so the geometry type is
+  // instantly clear and the icon is never mistaken for the real (colored,
+  // filled) shape drawn on the map.
   const sz=sizePx||16;
-  if(type==='wpt') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><circle cx="9" cy="9" r="5" fill="'+color+'" stroke="#fff" stroke-width="1.5"/></svg>';
-  if(type==='pol') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><polygon points="3,13 5,4 13,3 15,11 9,15" fill="'+color+'" fill-opacity="0.35" stroke="'+color+'" stroke-width="1.5"/></svg>';
-  return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><path d="M2,15 Q5,3 9,9 T16,3" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round"/></svg>';
+  if(type==='wpt') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><circle cx="9" cy="9" r="5" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
+  if(type==='pol') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><polygon points="9,3 15,15 3,15" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><path d="M2,15 Q5,3 9,9 T16,3" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>';
 }
 
 function contrastHalo(hex){
@@ -457,9 +461,10 @@ D.forEach(f=>{
   // --- Render polygon areas (filled, with darker outline) ---
   // For plain Polygon: pass rings normally.
   (f.polygons||[]).forEach(p=>{
-    const pg=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:0.2}).addTo(map);
+    const pg=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2)}).addTo(map);
     if(p.name||p.desc)pg.bindPopup('<b>'+(p.name||f.filename)+'</b>'+(p.desc?'<br>'+p.desc:''));
     pg._isPolygon=true;
+    pg._baseFillOpacity=(f.fillOpacity!=null?f.fillOpacity:0.2);
     pg._trackZoomMin=fZMin;
     pg._trackZoomMax=fZMax;
     polygonLayers.push(pg);
@@ -589,13 +594,25 @@ D.forEach(f=>{
       lbl._polLabel=true;
       labelLayers.push(lbl);
     };
-    // One label for the whole row — centroid of all polygons combined
-    const polLabelName=getLabelText(f,f.polygons[0].name);
-    if(polLabelName){
-      const allOuterPts=f.polygons.flatMap(p=>p.rings[0]);
-      const cLat=allOuterPts.reduce((s,c)=>s+c[0],0)/allOuterPts.length;
-      const cLon=allOuterPts.reduce((s,c)=>s+c[1],0)/allOuterPts.length;
-      makePolyLbl(cLat,cLon,polLabelName);
+    const polNames=f.polygons.map(p=>getLabelText(f,p.name));
+    const polAllSameName=polNames.every(n=>n===polNames[0]);
+    if(polAllSameName){
+      const polLabelName=polNames[0];
+      if(polLabelName){
+        const allOuterPts=f.polygons.flatMap(p=>p.rings[0]);
+        const cLat=allOuterPts.reduce((s,c)=>s+c[0],0)/allOuterPts.length;
+        const cLon=allOuterPts.reduce((s,c)=>s+c[1],0)/allOuterPts.length;
+        makePolyLbl(cLat,cLon,polLabelName);
+      }
+    } else {
+      f.polygons.forEach((p,pIdx)=>{
+        const nm=polNames[pIdx];
+        if(!nm)return;
+        const pts=p.rings[0];
+        const cLat=pts.reduce((s,c)=>s+c[0],0)/pts.length;
+        const cLon=pts.reduce((s,c)=>s+c[1],0)/pts.length;
+        makePolyLbl(cLat,cLon,nm);
+      });
     }
   }
 });
@@ -842,7 +859,7 @@ map.on('zoomend',function(){
       if(l instanceof L.CircleMarker && !(l instanceof L.Circle)){
         l.setStyle({opacity:op, fillOpacity:op});
       } else if(l instanceof L.Polygon){
-        l.setStyle({opacity:op, fillOpacity:op*0.22});
+        l.setStyle({opacity:op, fillOpacity:op*(l._baseFillOpacity!=null?l._baseFillOpacity:0.22)});
       } else {
         l.setStyle({opacity:op});
       }
@@ -1094,7 +1111,7 @@ map.on('zoomend',function(){
       : hasWpt
       ? {lineWidth:8,showArrows:false,showLabel:true,labelMode:'nametag',useElementName:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:19,labelFontSize:24,mapZoomMin:1,mapZoomMax:19}
       : {lineWidth:2,showArrows:false,showLabel:true,labelMode:'nametag',useElementName:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:18,labelFontSize:24,mapZoomMin:1,mapZoomMax:19};
-    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
+    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
     // Fit map to route bounds
     if(bounds)map.fitBounds(bounds,{padding:[24,24]});
     // Apply label immediately and ensure layers render
@@ -1162,7 +1179,7 @@ map.on('zoomend',function(){
       if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
         l.setStyle({color:r.color,fillColor:r.color,weight:1,opacity:r.opacity,fillOpacity:r.opacity,radius:r.lineWidth||8});
       } else if(l instanceof L.Polygon){
-        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*0.22});
+        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*(r.fillOpacity!=null?r.fillOpacity:0.2)});
       } else {
         l.setStyle({color:r.color,weight:r.lineWidth,opacity:r.opacity});
       }
@@ -1287,7 +1304,7 @@ map.on('zoomend',function(){
       if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
         l.setStyle({opacity:op,fillOpacity:op});
       } else if(l instanceof L.Polygon){
-        l.setStyle({opacity:op,fillOpacity:op*0.22});
+        l.setStyle({opacity:op,fillOpacity:op*(r.fillOpacity!=null?r.fillOpacity:0.2)});
       } else {
         l.setStyle({opacity:op});
       }
@@ -1328,10 +1345,11 @@ map.on('zoomend',function(){
 
   // Small geometry-type icon (track / waypoint / polygon), matches input HTML styling
   function labelGeomIconHtml(type,color,sizePx){
+    // Always black + 3 distinct shapes, regardless of element color (see input HTML for rationale).
     const sz=sizePx||16;
-    if(type==='wpt') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><circle cx="9" cy="9" r="5" fill="'+color+'" stroke="#fff" stroke-width="1.5"/></svg>';
-    if(type==='pol') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><polygon points="3,13 5,4 13,3 15,11 9,15" fill="'+color+'" fill-opacity="0.35" stroke="'+color+'" stroke-width="1.5"/></svg>';
-    return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><path d="M2,15 Q5,3 9,9 T16,3" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round"/></svg>';
+    if(type==='wpt') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><circle cx="9" cy="9" r="5" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
+    if(type==='pol') return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><polygon points="9,3 15,15 3,15" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+    return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 18 18" style="vertical-align:middle;flex:0 0 auto"><path d="M2,15 Q5,3 9,9 T16,3" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>';
   }
   function geomIconSvg(r,color){
     const hasTrk=(r.parsed.tracks||[]).length>0;
@@ -1360,6 +1378,8 @@ map.on('zoomend',function(){
       const opVal=Math.round(r.opacity*100);
       const elZoomMin=r.mapZoomMin!=null?r.mapZoomMin:1;
       const lblZoomMin=r.labelZoomMin!=null?r.labelZoomMin:1;
+      const hasPol=(r.parsed.polygons||[]).length>0;
+      const fillVal=Math.round((r.fillOpacity!=null?r.fillOpacity:0.2)*100);
       opRow.innerHTML=
         '<span class="ro-label">Opacity</span>'+
         '<input type="range" min="0" max="100" value="'+opVal+'" class="ur-op">'+
@@ -1367,6 +1387,11 @@ map.on('zoomend',function(){
         '<span class="ro-label" style="margin-left:6px">Width</span>'+
         '<input type="number" min="1" max="20" value="'+r.lineWidth+'" class="ur-lw">'+
         '<span class="ro-label">px</span>'+
+        (hasPol?(
+        '<span class="ro-label" style="margin-left:6px" title="Fill opacity of the polygon area. 0% = fully transparent (outline only), 100% = fully solid.">Fill</span>'+
+        '<input type="number" min="0" max="100" step="5" value="'+fillVal+'" class="ur-fill" style="width:48px">'+
+        '<span class="ro-label">%</span>'
+        ):'')+
         '<label style="margin-left:6px"><input type="checkbox" class="ur-label" '+(r.showLabel?'checked':'')+'>label</label>';
       el.appendChild(opRow);
 
@@ -1395,6 +1420,17 @@ map.on('zoomend',function(){
         userRoutes[i].lineWidth=Math.max(1,parseInt(e.target.value)||4);
         applyRouteStyle(i);
       });
+      const urFillInp=opRow.querySelector('.ur-fill');
+      if(urFillInp){
+        urFillInp.addEventListener('change',e=>{
+          let pct=parseInt(e.target.value);
+          if(isNaN(pct))pct=20;
+          pct=Math.max(0,Math.min(100,pct));
+          e.target.value=pct;
+          userRoutes[i].fillOpacity=pct/100;
+          applyRouteStyle(i);
+        });
+      }
       opRow.querySelector('.ur-label').addEventListener('change',e=>{
         userRoutes[i].showLabel=e.target.checked;
         applyRouteStyle(i);
