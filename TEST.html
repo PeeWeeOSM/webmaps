@@ -1494,7 +1494,7 @@ map.on('zoomend',function(){
       const parsed=isGpx?parseUserGPX(ev.target.result):parseUserGeoJSON(ev.target.result);
       const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
       if(!hasContent){alert('No features found in this file.');return;}
-      const baseName=file.name.replace(/.(gpx|geojson|json)$/i,'');
+      const baseName=file.name.replace(/\.(gpx|geojson|json)$/i,'');
 
       // SPLIT: one route entry per track
       parsed.tracks.forEach((trk,tIdx)=>{
@@ -1620,7 +1620,7 @@ map.on('zoomend',function(){
     function openAction(a){
       if(!currentLatLng) return;
       const url=fillTemplate(a.urlTemplate,currentLatLng);
-      if(/^https?:///i.test(url)){
+      if(/^https?:/i.test(url)){
         window.open(url,'_blank','noopener');
       } else {
         // Non-http URI (e.g. geo:...) — hand off directly so the OS/browser can route it
