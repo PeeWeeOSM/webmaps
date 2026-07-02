@@ -28,6 +28,7 @@
     margin-left: -100vmax;
     margin-top: -100vmax;
     transform-origin: center center;
+    transition: transform 0.25s linear;
   }
 
   #controls {
@@ -135,6 +136,12 @@
   let mode = null;       // 'north' of 'drive'
   let marker = null;
   let accuracyCircle = null;
+  let smoothedHeading = null;
+
+  // Kortste hoekverschil tussen twee richtingen (-180..180), voor nette afvlakking rond 0/360
+  function angleDelta(a, b) {
+    return ((b - a + 540) % 360) - 180;
+  }
 
   const arrowIcon = L.divIcon({
     className: 'heading-marker',
@@ -166,21 +173,32 @@
     return { lat: lat2 * 180 / Math.PI, lng: lon2 * 180 / Math.PI };
   }
 
-  function startWatch(selectedMode) {
+  function switchMode(selectedMode) {
     if (!navigator.geolocation) {
       setStatus('Geolocatie wordt niet ondersteund door deze browser.');
       return;
     }
+
+    // Oude marker/cirkel altijd verwijderen: type verschilt per modus
+    // (rond stipje bij noord-boven, pijl bij rijrichting), dus die kunnen
+    // niet hergebruikt worden bij het wisselen.
+    if (marker) { map.removeLayer(marker); marker = null; }
+    if (accuracyCircle) { map.removeLayer(accuracyCircle); accuracyCircle = null; }
+    mapEl.style.transform = 'rotate(0deg)';
+    smoothedHeading = null;
+
     mode = selectedMode;
     optionsPanel.classList.add('hidden');
     stopBtn.classList.remove('hidden');
-    setStatus('Bezig met ophalen van locatie...');
 
-    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-      timeout: 15000
-    });
+    if (watchId === null) {
+      setStatus('Bezig met ophalen van locatie...');
+      watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 15000
+      });
+    }
   }
 
   function stopWatch() {
@@ -224,7 +242,15 @@
 
     } else if (mode === 'drive') {
       const hasHeading = (heading !== null && !isNaN(heading));
-      const hdg = hasHeading ? heading : 0;
+      const rawHdg = hasHeading ? heading : 0;
+
+      // Afvlakken: kaart draait rustiger mee, minder gevoelig voor GPS-ruis
+      if (smoothedHeading === null) {
+        smoothedHeading = rawHdg;
+      } else if (hasHeading) {
+        smoothedHeading = (smoothedHeading + angleDelta(smoothedHeading, rawHdg) * 0.3 + 360) % 360;
+      }
+      const hdg = smoothedHeading;
 
       if (!marker) {
         marker = L.marker(latlng, { icon: arrowIcon }).addTo(map);
@@ -244,7 +270,7 @@
       const mpp = metersPerPixel(latitude, zoom);
       // iets minder dan de helft van het scherm, zodat het puntje niet exact op de rand staat
       const distance = (H / 2) * mpp * 0.8;
-      const dest = destinationPoint(latitude, longitude, distance, (hdg + 180) % 360);
+      const dest = destinationPoint(latitude, longitude, distance, hdg);
 
       map.setView([dest.lat, dest.lng], zoom, { animate: false });
       mapEl.style.transform = 'rotate(' + (-hdg) + 'deg)';
@@ -261,8 +287,8 @@
     optionsPanel.classList.toggle('hidden');
   });
   optCancel.addEventListener('click', () => optionsPanel.classList.add('hidden'));
-  optNorth.addEventListener('click', () => startWatch('north'));
-  optDrive.addEventListener('click', () => startWatch('drive'));
+  optNorth.addEventListener('click', () => switchMode('north'));
+  optDrive.addEventListener('click', () => switchMode('drive'));
   stopBtn.addEventListener('click', stopWatch);
 </script>
 </body>
