@@ -332,9 +332,14 @@ function parseStateFromHash(){
   const lng=parseFloat(params.get('lng'));
   const z=parseInt(params.get('z'));
   const layersParam=params.get('layers');
+  const markerParam=params.get('marker');
   const out={};
   if(!isNaN(lat)&&!isNaN(lng)&&!isNaN(z)){ out.lat=lat; out.lng=lng; out.z=z; }
   if(layersParam!=null){ out.layerVis=layersParam.split(',').map(v=>v==='1'); }
+  if(markerParam!=null){
+    const parts=markerParam.split(',').map(parseFloat);
+    if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])) out.marker=[parts[0],parts[1]];
+  }
   return Object.keys(out).length?out:null;
 }
 
@@ -359,7 +364,7 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
 const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":null,"defaultOn":false},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":null,"defaultOn":false}];
-const MAP_ACTIONS=[{"group":"Ga naar","name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}"},{"group":"Ga naar","name":"OsmAnd","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Ga naar","name":"Google Maps","urlTemplate":"https://www.google.com/maps/@{lat},{lon},{zoom}z"},{"group":"Locatie delen","name":"Google Maps (pin)","urlTemplate":"https://www.google.com/maps?q={lat},{lon}"}];
+const MAP_ACTIONS=[{"group":"Go to","name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}"},{"group":"Go to","name":"OsmAnd","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Go to","name":"Google Maps","urlTemplate":"https://www.google.com/maps/@{lat},{lon},{zoom}z"},{"group":"Go to","name":"Choose app (Android)","urlTemplate":"geo:{lat},{lon}?z={zoom}"}];
 const wmsLayerObjs=new Array(EX.length);
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
@@ -639,6 +644,22 @@ if(urlState&&urlState.z!=null){
   map.fitBounds(B,{padding:[16,16]});
 } else {
   map.setView([52,5],8);
+}
+
+// If this page was opened via a "Share this map here" link, drop a distinct pin
+// at the shared location so the recipient sees exactly the spot that was shared.
+if(urlState&&urlState.marker){
+  const [mLat,mLon]=urlState.marker;
+  const sharedPinIcon=L.divIcon({
+    className:'',
+    html:'<svg width="30" height="40" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#e74c3c" stroke="#fff" stroke-width="2"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>',
+    iconSize:[30,40],
+    iconAnchor:[15,40]
+  });
+  L.marker([mLat,mLon],{icon:sharedPinIcon,zIndexOffset:2000})
+    .addTo(map)
+    .bindPopup('Shared location<br>'+mLat.toFixed(5)+', '+mLon.toFixed(5))
+    .openPopup();
 }
 
 // Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
@@ -1580,7 +1601,6 @@ map.on('zoomend',function(){
       if(!groupMap[a.group]){ groupMap[a.group]=[]; groupOrder.push(a.group); }
       groupMap[a.group].push(a);
     });
-    if(groupOrder.length===0 && !navigator.share) return; // nothing configured, nothing to wire up
 
     let currentLatLng=null;
 
@@ -1599,35 +1619,82 @@ map.on('zoomend',function(){
 
     function openAction(a){
       if(!currentLatLng) return;
-      window.open(fillTemplate(a.urlTemplate,currentLatLng),'_blank','noopener');
+      const url=fillTemplate(a.urlTemplate,currentLatLng);
+      if(/^https?:///i.test(url)){
+        window.open(url,'_blank','noopener');
+      } else {
+        // Non-http URI (e.g. geo:...) — hand off directly so the OS/browser can route it
+        // to an installed app; window.open() is unreliable for custom schemes.
+        window.location.href=url;
+      }
+      closeMenu();
+    }
+
+    function buildShareMapUrl(latlng){
+      const lat=latlng.lat.toFixed(6), lon=latlng.lng.toFixed(6), zoom=Math.round(map.getZoom());
+      return location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
+    }
+
+    function showToast(msg){
+      let t=document.getElementById('mam-toast');
+      if(!t){
+        t=document.createElement('div');
+        t.id='mam-toast';
+        t.style.cssText='position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:1400;pointer-events:none;transition:opacity .3s';
+        document.getElementById('map-wrap').appendChild(t);
+      }
+      t.textContent=msg;
+      t.style.opacity='1';
+      clearTimeout(t._hideTimer);
+      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },2000);
+    }
+
+    function shareThisMap(){
+      if(!currentLatLng) return;
+      const url=buildShareMapUrl(currentLatLng);
+      if(navigator.share){
+        navigator.share({title:document.title,url:url}).catch(()=>{});
+      } else if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard')).catch(()=>window.prompt('Copy this link:',url));
+      } else {
+        window.prompt('Copy this link:',url);
+      }
+      closeMenu();
+    }
+
+    function shareLocation(){
+      if(!currentLatLng) return;
+      const lat=currentLatLng.lat.toFixed(5), lon=currentLatLng.lng.toFixed(5);
+      const url='https://www.google.com/maps?q='+lat+','+lon;
+      if(navigator.share){
+        navigator.share({title:'Location',text:lat+', '+lon,url:url}).catch(()=>{});
+      } else if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard')).catch(()=>window.prompt('Copy this link:',url));
+      } else {
+        window.prompt('Copy this link:',url);
+      }
       closeMenu();
     }
 
     function renderGroupLevel(){
-      let html='<div class="mam-header">Kies een optie</div>';
-      if(navigator.share){
-        html+='<button class="mam-item" data-share="1"><span class="mam-icon">&#128228;</span>Delen via...</button>';
-      }
+      let html='<div class="mam-header">Choose an action</div>';
+      html+='<button class="mam-item" data-share-loc="1"><span class="mam-icon">&#128228;</span>Share location</button>';
+      html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
       groupOrder.forEach(g=>{
         html+='<button class="mam-item" data-group="'+esc(g)+'"><span class="mam-icon">&#128205;</span>'+esc(g)+'</button>';
       });
       menuEl.innerHTML=html;
-      const shareBtn=menuEl.querySelector('[data-share]');
-      if(shareBtn){
-        shareBtn.addEventListener('click',()=>{
-          if(!currentLatLng) return;
-          const lat=currentLatLng.lat.toFixed(5), lon=currentLatLng.lng.toFixed(5);
-          navigator.share({title:'Locatie',text:lat+', '+lon,url:'https://www.google.com/maps?q='+lat+','+lon}).catch(()=>{});
-          closeMenu();
-        });
-      }
+      const shareLocBtn=menuEl.querySelector('[data-share-loc]');
+      if(shareLocBtn) shareLocBtn.addEventListener('click',shareLocation);
+      const shareMapBtn=menuEl.querySelector('[data-share-map]');
+      if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
       menuEl.querySelectorAll('[data-group]').forEach(btn=>{
         btn.addEventListener('click',()=>renderActionLevel(btn.dataset.group));
       });
     }
 
     function renderActionLevel(group){
-      let html='<div class="mam-header"><button class="mam-back" title="Terug">&#8592;</button>'+esc(group)+'</div>';
+      let html='<div class="mam-header"><button class="mam-back" title="Back">&#8592;</button>'+esc(group)+'</div>';
       (groupMap[group]||[]).forEach((a,i)=>{
         html+='<button class="mam-item" data-idx="'+i+'"><span class="mam-icon">&#128205;</span>'+esc(a.name)+'</button>';
       });
@@ -1651,6 +1718,13 @@ map.on('zoomend',function(){
       menuEl.style.left=x+'px';
       menuEl.style.top=y+'px';
     }
+
+    // Clicks inside the menu must never bubble to the document-level "close on
+    // outside click" listener below — otherwise, since a click's own handler
+    // above already replaces menuEl's contents (destroying the clicked button
+    // node), menuEl.contains(e.target) would wrongly evaluate to false once
+    // the event bubbles up, instantly closing the menu we just re-rendered.
+    menuEl.addEventListener('click',e=>e.stopPropagation());
 
     document.addEventListener('click',e=>{
       if(!menuEl.contains(e.target)) closeMenu();
