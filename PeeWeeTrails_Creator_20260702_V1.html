@@ -210,18 +210,6 @@ input:checked+.slider:before{transform:translateX(14px)}
   </button>
 </div>
 
-<div class="card">
-  <div class="section-label">Map actions</div>
-  <p style="font-size:12px;color:#888;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. Two extra items — "Share location" (via the device's own share menu) and "Share this map here" (a link back to this same map with a marker) — are always shown too and don't need to be added here.</p>
-  <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
-  <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
-    <i class="ti ti-plus" aria-hidden="true"></i> Add action
-  </button>
-  <button class="btn" onclick="resetMapActionsToDefault()" title="Discard your current map-actions list and restore the built-in defaults" style="font-size:13px;padding:6px 12px;margin-left:6px">
-    <i class="ti ti-refresh" aria-hidden="true"></i> Reset actions to default
-  </button>
-</div>
-
 <div class="actions">
   <button class="btn primary" id="exportbtn" onclick="exportMap()">
     <i class="ti ti-download" aria-hidden="true"></i> Create your map
@@ -247,18 +235,6 @@ const DEFAULT_LAYERS=[
   {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
   {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true}
 ];
-// --- Default map actions (long-press / right-click menu in the output map) ---
-// {lat}, {lon} and {zoom} are placeholders filled in with the tapped location and
-// current zoom level when the visitor picks an action on the exported map.
-// Note: "Share location" and "Share this map here" are always available on the
-// exported map as separate built-in buttons, so they don't need a row here.
-const DEFAULT_MAP_ACTIONS=[
-  {group:'Go to',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}'},
-  {group:'Go to',name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
-  {group:'Go to',name:'Google Maps',urlTemplate:'https://www.google.com/maps/@{lat},{lon},{zoom}z'},
-  {group:'Go to',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'}
-];
-let mapActions=[];
 // Saving in renderLayerList() ensures all layer changes are captured.
 // A flag prevents saving during the restore pass itself.
 // The storage key is scoped to this file's own location (path/filename), not just
@@ -279,7 +255,6 @@ function saveLayersToStorage(){
         nativeZoomMax:l.nativeZoomMax||null,
         defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false
       })),
-      mapActions:mapActions.map(a=>({group:a.group||'',name:a.name||'',urlTemplate:a.urlTemplate||''})),
       title:document.getElementById('title').value,
       osmOpacity:document.getElementById('osmopacity').value
     };
@@ -307,13 +282,6 @@ function loadLayersFromStorage(){
       previewOn:l.previewOn!==false
     }));
     renderLayerList();
-
-    const actionsToLoad=state&&state.mapActions;
-    const actionsSource=actionsToLoad&&actionsToLoad.length>0?actionsToLoad:DEFAULT_MAP_ACTIONS;
-    mapActions.length=0;
-    actionsSource.forEach(a=>mapActions.push({group:a.group||'',name:a.name||'',urlTemplate:a.urlTemplate||''}));
-    renderMapActionsList();
-
     _restoring=false;
     if(state&&state.title) document.getElementById('title').value=state.title;
     if(state&&state.osmOpacity!=null){
@@ -393,35 +361,6 @@ function moveLayer(i, dir){
   [extraLayers[i], extraLayers[j]] = [extraLayers[j], extraLayers[i]];
   renderLayerList();
   updatePreview();
-}
-
-// --- Map actions: long-press / right-click menu on the exported map ---
-function addMapAction(preset){
-  mapActions.push(preset||{group:'Ga naar',name:'',urlTemplate:''});
-  renderMapActionsList();
-  saveLayersToStorage();
-}
-
-function removeMapAction(i){
-  mapActions.splice(i,1);
-  renderMapActionsList();
-  saveLayersToStorage();
-}
-
-function moveMapAction(i, dir){
-  const j = dir==='up' ? i-1 : i+1;
-  if(j<0 || j>=mapActions.length) return;
-  [mapActions[i], mapActions[j]] = [mapActions[j], mapActions[i]];
-  renderMapActionsList();
-  saveLayersToStorage();
-}
-
-function resetMapActionsToDefault(){
-  if(!confirm('This discards your current map-actions list and restores the built-in default actions. This cannot be undone. Continue?')) return;
-  mapActions.length=0;
-  DEFAULT_MAP_ACTIONS.forEach(a=>mapActions.push({...a}));
-  renderMapActionsList();
-  saveLayersToStorage();
 }
 
 function renderLayerList(){
@@ -527,50 +466,6 @@ function renderLayerList(){
     btn.addEventListener('click',e=>removeLayer(parseInt(e.target.dataset.idx)));
   });
   saveLayersToStorage();  // persist after every render
-}
-
-function renderMapActionsList(){
-  const el=document.getElementById('mapactions-list');
-  if(!el) return;
-  el.innerHTML='';
-  mapActions.forEach((a,i)=>{
-    const row=document.createElement('div');
-    row.className='layer-row';
-    row.innerHTML=`
-      <div class="layer-row-top">
-        <input class="ma-group" type="text" placeholder="Group (e.g. Ga naar)" value="${(a.group||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Menu group shown on the map (items with the same group are shown together)" style="width:120px">
-        <input class="ma-name" type="text" placeholder="Name" value="${(a.name||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Name shown in the menu" style="flex:1;min-width:100px">
-        <button class="ma-move-btn" data-idx="${i}" data-dir="up" title="Move up" ${i===0?'disabled':''}>&#8593;</button>
-        <button class="ma-move-btn" data-idx="${i}" data-dir="down" title="Move down" ${i===mapActions.length-1?'disabled':''}>&#8595;</button>
-        <button class="ma-delbtn" data-idx="${i}" title="Remove" style="font-size:18px">&times;</button>
-      </div>
-      <div class="layer-row-top">
-        <input class="ma-url" type="text" placeholder="URL template, e.g. https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}" value="${(a.urlTemplate||'').replace(/"/g,'&quot;')}" data-idx="${i}" style="flex:1">
-      </div>`;
-    el.appendChild(row);
-  });
-  el.querySelectorAll('.ma-group').forEach(inp=>{
-    inp.addEventListener('input',e=>{mapActions[parseInt(e.target.dataset.idx)].group=e.target.value;});
-    inp.addEventListener('change',()=>saveLayersToStorage());
-  });
-  el.querySelectorAll('.ma-name').forEach(inp=>{
-    inp.addEventListener('input',e=>{mapActions[parseInt(e.target.dataset.idx)].name=e.target.value;});
-    inp.addEventListener('change',()=>saveLayersToStorage());
-  });
-  el.querySelectorAll('.ma-url').forEach(inp=>{
-    inp.addEventListener('input',e=>{mapActions[parseInt(e.target.dataset.idx)].urlTemplate=e.target.value;});
-    inp.addEventListener('change',()=>saveLayersToStorage());
-  });
-  el.querySelectorAll('.ma-move-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const idx=parseInt(e.currentTarget.dataset.idx);
-      const dir=e.currentTarget.dataset.dir;
-      moveMapAction(idx,dir);
-    });
-  });
-  el.querySelectorAll('.ma-delbtn').forEach(btn=>{
-    btn.addEventListener('click',e=>removeMapAction(parseInt(e.target.dataset.idx)));
-  });
 }
 
 // --- Drag-and-drop and file input for GPX / GeoJSON ---
@@ -1514,7 +1409,6 @@ function exportMap(){
   const trailMode=document.getElementById('gpstrail-mode').value;
   const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,nativeZoomMax:l.nativeZoomMax||null,defaultOn:l.defaultOn===true}));
-  const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Acties',name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const data=files.map(f=>({
     filename:f.displayName,
     color:f.color,
@@ -1628,14 +1522,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .vis-row .vis-eye{background:none;border:none;font-size:15px;cursor:pointer;color:#333;padding:0 2px;line-height:1}
 .vis-row .vis-op{width:65px;accent-color:#185FA5;cursor:pointer}
 .vis-row .vis-pct{font-size:11px;color:#888;min-width:30px;text-align:right}
-/* Map actions: long-press / right-click menu */
-.map-actions-menu{display:none;position:absolute;z-index:1300;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.3);padding:6px;min-width:190px;max-width:250px;font-size:13px;max-height:70vh;overflow-y:auto}
-.map-actions-menu.open{display:block}
-.mam-header{display:flex;align-items:center;gap:6px;padding:2px 6px 8px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #f0f0f0;margin-bottom:4px}
-.mam-back{background:none;border:none;cursor:pointer;font-size:16px;color:#2980b9;padding:0;line-height:1;flex-shrink:0}
-.mam-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;padding:9px 8px;border-radius:6px;cursor:pointer;font-size:13.5px;color:#222;font-weight:500}
-.mam-item:hover,.mam-item:active{background:#eaf4fd}
-.mam-icon{flex:0 0 auto;font-size:16px;width:18px;text-align:center}
 /* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
 </style>
 </head>
@@ -1689,7 +1575,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
     <button id="route-btn">&#8613; Import files</button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
-  <div id="map-actions-menu" class="map-actions-menu"></div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""><\/script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"><\/script>
@@ -1882,14 +1767,9 @@ function parseStateFromHash(){
   const lng=parseFloat(params.get('lng'));
   const z=parseInt(params.get('z'));
   const layersParam=params.get('layers');
-  const markerParam=params.get('marker');
   const out={};
   if(!isNaN(lat)&&!isNaN(lng)&&!isNaN(z)){ out.lat=lat; out.lng=lng; out.z=z; }
   if(layersParam!=null){ out.layerVis=layersParam.split(',').map(v=>v==='1'); }
-  if(markerParam!=null){
-    const parts=markerParam.split(',').map(parseFloat);
-    if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])) out.marker=[parts[0],parts[1]];
-  }
   return Object.keys(out).length?out:null;
 }
 
@@ -1914,7 +1794,6 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
 const EX=${JSON.stringify(exportExtra)};
-const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const wmsLayerObjs=new Array(EX.length);
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
@@ -2194,22 +2073,6 @@ if(urlState&&urlState.z!=null){
   map.fitBounds(B,{padding:[16,16]});
 } else {
   map.setView([52,5],8);
-}
-
-// If this page was opened via a "Share this map here" link, drop a distinct pin
-// at the shared location so the recipient sees exactly the spot that was shared.
-if(urlState&&urlState.marker){
-  const [mLat,mLon]=urlState.marker;
-  const sharedPinIcon=L.divIcon({
-    className:'',
-    html:'<svg width="30" height="40" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#e74c3c" stroke="#fff" stroke-width="2"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>',
-    iconSize:[30,40],
-    iconAnchor:[15,40]
-  });
-  L.marker([mLat,mLon],{icon:sharedPinIcon,zIndexOffset:2000})
-    .addTo(map)
-    .bindPopup('Shared location<br>'+mLat.toFixed(5)+', '+mLon.toFixed(5))
-    .openPopup();
 }
 
 // Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
@@ -3044,7 +2907,7 @@ map.on('zoomend',function(){
       const parsed=isGpx?parseUserGPX(ev.target.result):parseUserGeoJSON(ev.target.result);
       const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
       if(!hasContent){alert('No features found in this file.');return;}
-      const baseName=file.name.replace(/\\.(gpx|geojson|json)$/i,'');
+      const baseName=file.name.replace(/\.(gpx|geojson|json)$/i,'');
 
       // SPLIT: one route entry per track
       parsed.tracks.forEach((trk,tIdx)=>{
@@ -3138,178 +3001,6 @@ map.on('zoomend',function(){
     e.preventDefault();mapEl.style.outline='';
     Array.from(e.dataTransfer.files).forEach(f=>loadFile(f,'any'));
   });
-
-  // --- Map actions: long-press (touch) / right-click (desktop) menu ---
-  (function(){
-    const menuEl=document.getElementById('map-actions-menu');
-    if(!menuEl) return;
-
-    // Group MAP_ACTIONS by their "group" field, preserving first-seen order
-    const groupOrder=[];
-    const groupMap={};
-    MAP_ACTIONS.forEach(a=>{
-      if(!groupMap[a.group]){ groupMap[a.group]=[]; groupOrder.push(a.group); }
-      groupMap[a.group].push(a);
-    });
-
-    let currentLatLng=null;
-
-    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
-
-    function fillTemplate(tpl,latlng){
-      const lat=latlng.lat.toFixed(5), lon=latlng.lng.toFixed(5), zoom=Math.round(map.getZoom());
-      return tpl.replace(/{lat}/g,lat).replace(/{lon}/g,lon).replace(/{zoom}/g,zoom);
-    }
-
-    function closeMenu(){
-      menuEl.classList.remove('open');
-      menuEl.innerHTML='';
-      currentLatLng=null;
-    }
-
-    function openAction(a){
-      if(!currentLatLng) return;
-      const url=fillTemplate(a.urlTemplate,currentLatLng);
-      if(/^https?:/i.test(url)){
-        window.open(url,'_blank','noopener');
-      } else {
-        // Non-http URI (e.g. geo:...) — hand off directly so the OS/browser can route it
-        // to an installed app; window.open() is unreliable for custom schemes.
-        window.location.href=url;
-      }
-      closeMenu();
-    }
-
-    function buildShareMapUrl(latlng){
-      const lat=latlng.lat.toFixed(6), lon=latlng.lng.toFixed(6), zoom=Math.round(map.getZoom());
-      return location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
-    }
-
-    function showToast(msg){
-      let t=document.getElementById('mam-toast');
-      if(!t){
-        t=document.createElement('div');
-        t.id='mam-toast';
-        t.style.cssText='position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:1400;pointer-events:none;transition:opacity .3s';
-        document.getElementById('map-wrap').appendChild(t);
-      }
-      t.textContent=msg;
-      t.style.opacity='1';
-      clearTimeout(t._hideTimer);
-      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },2000);
-    }
-
-    function shareThisMap(){
-      if(!currentLatLng) return;
-      const url=buildShareMapUrl(currentLatLng);
-      if(navigator.share){
-        navigator.share({title:document.title,url:url}).catch(()=>{});
-      } else if(navigator.clipboard&&navigator.clipboard.writeText){
-        navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard')).catch(()=>window.prompt('Copy this link:',url));
-      } else {
-        window.prompt('Copy this link:',url);
-      }
-      closeMenu();
-    }
-
-    function shareLocation(){
-      if(!currentLatLng) return;
-      const lat=currentLatLng.lat.toFixed(5), lon=currentLatLng.lng.toFixed(5);
-      const url='https://www.google.com/maps?q='+lat+','+lon;
-      if(navigator.share){
-        navigator.share({title:'Location',text:lat+', '+lon,url:url}).catch(()=>{});
-      } else if(navigator.clipboard&&navigator.clipboard.writeText){
-        navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard')).catch(()=>window.prompt('Copy this link:',url));
-      } else {
-        window.prompt('Copy this link:',url);
-      }
-      closeMenu();
-    }
-
-    function renderGroupLevel(){
-      let html='<div class="mam-header">Choose an action</div>';
-      html+='<button class="mam-item" data-share-loc="1"><span class="mam-icon">&#128228;</span>Share location</button>';
-      html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
-      groupOrder.forEach(g=>{
-        html+='<button class="mam-item" data-group="'+esc(g)+'"><span class="mam-icon">&#128205;</span>'+esc(g)+'</button>';
-      });
-      menuEl.innerHTML=html;
-      const shareLocBtn=menuEl.querySelector('[data-share-loc]');
-      if(shareLocBtn) shareLocBtn.addEventListener('click',shareLocation);
-      const shareMapBtn=menuEl.querySelector('[data-share-map]');
-      if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
-      menuEl.querySelectorAll('[data-group]').forEach(btn=>{
-        btn.addEventListener('click',()=>renderActionLevel(btn.dataset.group));
-      });
-    }
-
-    function renderActionLevel(group){
-      let html='<div class="mam-header"><button class="mam-back" title="Back">&#8592;</button>'+esc(group)+'</div>';
-      (groupMap[group]||[]).forEach((a,i)=>{
-        html+='<button class="mam-item" data-idx="'+i+'"><span class="mam-icon">&#128205;</span>'+esc(a.name)+'</button>';
-      });
-      menuEl.innerHTML=html;
-      menuEl.querySelector('.mam-back').addEventListener('click',renderGroupLevel);
-      menuEl.querySelectorAll('[data-idx]').forEach(btn=>{
-        btn.addEventListener('click',()=>openAction(groupMap[group][parseInt(btn.dataset.idx)]));
-      });
-    }
-
-    function openMenuAt(latlng, clientX, clientY){
-      currentLatLng=latlng;
-      renderGroupLevel();
-      menuEl.classList.add('open');
-      const wrap=document.getElementById('map-wrap');
-      const wrapRect=wrap.getBoundingClientRect();
-      menuEl.style.left='0px'; menuEl.style.top='0px'; // reset before measuring actual size
-      const mw=menuEl.offsetWidth||200, mh=menuEl.offsetHeight||120;
-      let x=Math.min(Math.max(8,clientX-wrapRect.left), wrapRect.width-mw-8);
-      let y=Math.min(Math.max(8,clientY-wrapRect.top), wrapRect.height-mh-8);
-      menuEl.style.left=x+'px';
-      menuEl.style.top=y+'px';
-    }
-
-    // Clicks inside the menu must never bubble to the document-level "close on
-    // outside click" listener below — otherwise, since a click's own handler
-    // above already replaces menuEl's contents (destroying the clicked button
-    // node), menuEl.contains(e.target) would wrongly evaluate to false once
-    // the event bubbles up, instantly closing the menu we just re-rendered.
-    menuEl.addEventListener('click',e=>e.stopPropagation());
-
-    document.addEventListener('click',e=>{
-      if(!menuEl.contains(e.target)) closeMenu();
-    });
-
-    // Desktop: right-click
-    map.on('contextmenu',e=>{
-      e.originalEvent.preventDefault();
-      openMenuAt(e.latlng, e.originalEvent.clientX, e.originalEvent.clientY);
-    });
-
-    // Mobile/touch: long-press without significant finger movement
-    let lpTimer=null, lpStart=null;
-    const LP_MS=550, LP_TOL=12;
-    mapEl.addEventListener('touchstart',e=>{
-      if(e.touches.length!==1){ clearTimeout(lpTimer); lpStart=null; return; }
-      const t=e.touches[0];
-      lpStart=[t.clientX,t.clientY];
-      clearTimeout(lpTimer);
-      lpTimer=setTimeout(()=>{
-        const latlng=map.mouseEventToLatLng(t);
-        openMenuAt(latlng,t.clientX,t.clientY);
-      },LP_MS);
-    },{passive:true});
-    mapEl.addEventListener('touchmove',e=>{
-      if(!lpStart||e.touches.length!==1) return;
-      const t=e.touches[0];
-      const dx=t.clientX-lpStart[0], dy=t.clientY-lpStart[1];
-      if(Math.sqrt(dx*dx+dy*dy)>LP_TOL){ clearTimeout(lpTimer); lpStart=null; }
-    },{passive:true});
-    mapEl.addEventListener('touchend',()=>{ clearTimeout(lpTimer); lpStart=null; });
-    mapEl.addEventListener('touchcancel',()=>{ clearTimeout(lpTimer); lpStart=null; });
-    // Prevent iOS' text-selection callout from popping up during a long-press on the map
-    mapEl.style.webkitTouchCallout='none';
-  })();
 })();
 <\/script>
 </body>
