@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Locatie op kaart</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  html, body { margin:0; padding:0; height:100%; font-family: system-ui, sans-serif; }
+
+  /* Zichtbaar venster: dit blijft vast staan, alles erbinnen mag draaien */
+  #map-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #ddd;
+  }
+
+  /* De echte Leaflet-kaart: ruim groter dan het venster en gecentreerd,
+     zodat er bij draaien geen lege hoeken zichtbaar worden. */
+  #map {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    margin-left: -100vmax;
+    margin-top: -100vmax;
+    transform-origin: center center;
+    transition: transform 0.25s linear;
+  }
+
+  #controls {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 260px;
+  }
+
+  button {
+    font-size: 15px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #1976d2;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  button:hover { background: #1560ac; }
+
+  #optionsPanel {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #optionsPanel p { margin: 0 0 4px 0; font-size: 14px; color: #333; }
+  #optionsPanel button { background: #eef3fb; color: #1976d2; text-align: left; }
+  #optionsPanel button:hover { background: #dce8f7; }
+  #optCancel { background: none; color: #888; font-size: 13px; padding: 4px; box-shadow: none; }
+
+  #stopBtn { background: #c62828; }
+  #stopBtn:hover { background: #a92222; }
+
+  .hidden { display: none !important; }
+
+  #status {
+    background: rgba(255,255,255,0.9);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #444;
+  }
+
+  /* Pijl-icoon voor "in rijrichting" modus */
+  .heading-marker { display:flex; align-items:center; justify-content:center; }
+  .heading-marker .arrow {
+    width: 0; height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 20px solid #1976d2;
+    transform-origin: 50% 65%;
+    filter: drop-shadow(0 0 2px white) drop-shadow(0 0 2px white);
+  }
+</style>
+</head>
+<body>
+
+<div id="map-container">
+  <div id="map"></div>
+</div>
+
+<div id="controls">
+  <button id="locBtn">📍 Toon mijn locatie</button>
+
+  <div id="optionsPanel" class="hidden">
+    <p>Hoe wil je de locatie tonen?</p>
+    <button id="optNorth">Midden, noord boven</button>
+    <button id="optDrive">Onder, in rijrichting</button>
+    <button id="optCancel">Annuleren</button>
+  </div>
+
+  <button id="stopBtn" class="hidden">⏹ Stop met volgen</button>
+  <div id="status"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map', { zoomControl: true }).setView([52.1, 5.1], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap-auteurs'
+  }).addTo(map);
+
+  const mapEl = document.getElementById('map');
+  const mapContainer = document.getElementById('map-container');
+  const statusEl = document.getElementById('status');
+
+  const locBtn = document.getElementById('locBtn');
+  const optionsPanel = document.getElementById('optionsPanel');
+  const optNorth = document.getElementById('optNorth');
+  const optDrive = document.getElementById('optDrive');
+  const optCancel = document.getElementById('optCancel');
+  const stopBtn = document.getElementById('stopBtn');
+
+  let watchId = null;
+  let mode = null;       // 'north' of 'drive'
+  let marker = null;
+  let accuracyCircle = null;
+  let smoothedHeading = null;
+
+  // Kortste hoekverschil tussen twee richtingen (-180..180), voor nette afvlakking rond 0/360
+  function angleDelta(a, b) {
+    return ((b - a + 540) % 360) - 180;
+  }
+
+  const arrowIcon = L.divIcon({
+    className: 'heading-marker',
+    html: '<div class="arrow"></div>',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  // Afstand in meters die 1 pixel voorstelt, op gegeven breedtegraad/zoom
+  function metersPerPixel(lat, zoom) {
+    return 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
+  }
+
+  // Bereken een geografisch punt op afstand + richting vanaf een startpunt
+  function destinationPoint(lat, lng, distanceM, bearingDeg) {
+    const R = 6371000;
+    const brng = bearingDeg * Math.PI / 180;
+    const lat1 = lat * Math.PI / 180, lon1 = lng * Math.PI / 180;
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(distanceM / R) +
+      Math.cos(lat1) * Math.sin(distanceM / R) * Math.cos(brng)
+    );
+    const lon2 = lon1 + Math.atan2(
+      Math.sin(brng) * Math.sin(distanceM / R) * Math.cos(lat1),
+      Math.cos(distanceM / R) - Math.sin(lat1) * Math.sin(lat2)
+    );
+    return { lat: lat2 * 180 / Math.PI, lng: lon2 * 180 / Math.PI };
+  }
+
+  function switchMode(selectedMode) {
+    if (!navigator.geolocation) {
+      setStatus('Geolocatie wordt niet ondersteund door deze browser.');
+      return;
+    }
+
+    // Oude marker/cirkel altijd verwijderen: type verschilt per modus
+    // (rond stipje bij noord-boven, pijl bij rijrichting), dus die kunnen
+    // niet hergebruikt worden bij het wisselen.
+    if (marker) { map.removeLayer(marker); marker = null; }
+    if (accuracyCircle) { map.removeLayer(accuracyCircle); accuracyCircle = null; }
+    mapEl.style.transform = 'rotate(0deg)';
+    smoothedHeading = null;
+
+    mode = selectedMode;
+    optionsPanel.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+
+    if (watchId === null) {
+      setStatus('Bezig met ophalen van locatie...');
+      watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 15000
+      });
+    }
+  }
+
+  function stopWatch() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    mode = null;
+    stopBtn.classList.add('hidden');
+    mapEl.style.transform = 'rotate(0deg)';
+    if (marker) { map.removeLayer(marker); marker = null; }
+    if (accuracyCircle) { map.removeLayer(accuracyCircle); accuracyCircle = null; }
+    setStatus('');
+  }
+
+  function onError(err) {
+    setStatus('Kon locatie niet ophalen: ' + err.message);
+  }
+
+  function onPosition(pos) {
+    const { latitude, longitude, heading, accuracy } = pos.coords;
+    const latlng = [latitude, longitude];
+
+    if (mode === 'north') {
+      mapEl.style.transform = 'rotate(0deg)';
+
+      if (!marker) {
+        marker = L.circleMarker(latlng, {
+          radius: 8, color: '#1976d2', fillColor: '#1976d2', fillOpacity: 0.9, weight: 2
+        }).addTo(map);
+        accuracyCircle = L.circle(latlng, {
+          radius: accuracy, color: '#1976d2', weight: 1, fillOpacity: 0.1
+        }).addTo(map);
+      } else {
+        marker.setLatLng(latlng);
+        accuracyCircle.setLatLng(latlng);
+        accuracyCircle.setRadius(accuracy);
+      }
+
+      const zoom = map.getZoom() < 15 ? 17 : map.getZoom();
+      map.setView(latlng, zoom);
+      setStatus('Nauwkeurigheid: ±' + Math.round(accuracy) + ' m');
+
+    } else if (mode === 'drive') {
+      const hasHeading = (heading !== null && !isNaN(heading));
+      const rawHdg = hasHeading ? heading : 0;
+
+      // Afvlakken: kaart draait rustiger mee, minder gevoelig voor GPS-ruis
+      if (smoothedHeading === null) {
+        smoothedHeading = rawHdg;
+      } else if (hasHeading) {
+        smoothedHeading = (smoothedHeading + angleDelta(smoothedHeading, rawHdg) * 0.3 + 360) % 360;
+      }
+      const hdg = smoothedHeading;
+
+      if (!marker) {
+        marker = L.marker(latlng, { icon: arrowIcon }).addTo(map);
+      } else {
+        marker.setLatLng(latlng);
+      }
+
+      // Pijl tegengesteld draaien t.o.v. de kaart, zodat hij altijd "vooruit" wijst
+      const el = marker.getElement();
+      if (el) {
+        const arrowDiv = el.querySelector('.arrow');
+        if (arrowDiv) arrowDiv.style.transform = 'rotate(' + hdg + 'deg)';
+      }
+
+      const zoom = map.getZoom() < 16 ? 18 : map.getZoom();
+      const H = mapContainer.clientHeight;
+      const mpp = metersPerPixel(latitude, zoom);
+      // iets minder dan de helft van het scherm, zodat het puntje niet exact op de rand staat
+      const distance = (H / 2) * mpp * 0.8;
+      const dest = destinationPoint(latitude, longitude, distance, hdg);
+
+      map.setView([dest.lat, dest.lng], zoom, { animate: false });
+      mapEl.style.transform = 'rotate(' + (-hdg) + 'deg)';
+
+      if (!hasHeading) {
+        setStatus('Nog geen rijrichting bekend (ga rijden/fietsen) — kaart staat voorlopig noord boven.');
+      } else {
+        setStatus('Rijrichting: ' + Math.round(hdg) + '°, nauwkeurigheid ±' + Math.round(accuracy) + ' m');
+      }
+    }
+  }
+
+  locBtn.addEventListener('click', () => {
+    optionsPanel.classList.toggle('hidden');
+  });
+  optCancel.addEventListener('click', () => optionsPanel.classList.add('hidden'));
+  optNorth.addEventListener('click', () => switchMode('north'));
+  optDrive.addEventListener('click', () => switchMode('drive'));
+  stopBtn.addEventListener('click', stopWatch);
+</script>
+</body>
+</html>
