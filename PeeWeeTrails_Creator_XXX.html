@@ -13,59 +13,81 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#fff;color:#000;min-height:100vh;padding:1.5rem}
+body{font-family:system-ui,sans-serif;background:#f0f0f0;color:#1a1a1a;min-height:100vh;padding:1.5rem}
+@media(prefers-color-scheme:dark){
+  body{background:#1c1c1e;color:#eee}
+  .card{background:#2c2c2e;border-color:#3a3a3c}
+  input[type=text]{background:#3a3a3c;color:#eee;border-color:#555}
+  .file-row{background:#3a3a3c}
+  .dropzone{border-color:#555;color:#aaa}
+  .btn{background:#2c2c2e;color:#eee;border-color:#555}
+  .btn:hover{background:#3a3a3c}
+  label{color:#aaa}
+  .range-val{color:#aaa}
+  .section-label{color:#777}
+  .empty-map{border-color:#444;color:#666}
+}
 h1{font-size:20px;font-weight:600;margin-bottom:4px}
-.sub{font-size:14px;color:#000;margin-bottom:1.5rem}
+.sub{font-size:14px;color:#666;margin-bottom:1.5rem}
+@media(prefers-color-scheme:dark){.sub{color:#aaa}}
 .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
-.dropzone{border:2px dashed #bbb;border-radius:8px;padding:2.5rem 1rem;text-align:center;cursor:pointer;transition:background 0.15s;color:#000;font-size:14px}
+.dropzone{border:2px dashed #bbb;border-radius:8px;padding:2.5rem 1rem;text-align:center;cursor:pointer;transition:background 0.15s;color:#888;font-size:14px}
 .dropzone:hover,.dropzone.over{background:#e8f4ff;border-color:#4363d8}
 .dropzone i{font-size:32px;display:block;margin-bottom:10px;color:#bbb}
 #file-list{margin-top:1rem;display:flex;flex-direction:column;gap:8px}
 .file-row{display:flex;flex-direction:column;gap:8px;font-size:13px;background:#f5f5f5;border-radius:8px;padding:8px 12px}
 .file-row-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .file-row-wpticon{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #e0e0e0}
-.wpticon-upload-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#000;cursor:pointer;display:flex;align-items:center;gap:5px}
+@media(prefers-color-scheme:dark){.file-row-wpticon{border-top-color:#4a4a4c}}
+.wpticon-upload-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:5px}
+@media(prefers-color-scheme:dark){.wpticon-upload-btn{background:#2c2c2e;color:#eee;border-color:#555}}
 .wpticon-preview{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd;border-radius:4px;background:#fff;flex-shrink:0}
+@media(prefers-color-scheme:dark){.wpticon-preview{background:#2c2c2e;border-color:#555}}
 .wpticon-preview svg,.wpticon-preview img{max-width:100%;max-height:100%}
-.wpticon-clear{font-size:12px;color:#000;background:none;border:none;cursor:pointer;text-decoration:underline}
-.maicon-upload-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#000;cursor:pointer;display:flex;align-items:center;gap:5px}
-.maicon-preview{border:1px solid #ddd;border-radius:4px;background:#eef1f4;flex-shrink:0}
-.maicon-preview svg{max-width:100%;max-height:100%}
-.maicon-clear{font-size:12px;color:#000;background:none;border:none;cursor:pointer;text-decoration:underline}
+.wpticon-clear{font-size:12px;color:#888;background:none;border:none;cursor:pointer;text-decoration:underline}
 .file-name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.nameinput{flex:1;font-size:13px;font-weight:500;padding:4px 7px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;min-width:0;outline:none}
+.nameinput{flex:1;font-size:13px;font-weight:500;padding:4px 7px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0;outline:none}
 .nameinput:focus{border-color:#4363d8}
-.posselect{font-size:12px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;cursor:pointer;flex-shrink:0}
-.zoominput{width:52px;font-size:15px;font-weight:600;padding:4px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;text-align:center;flex-shrink:0}
+@media(prefers-color-scheme:dark){.nameinput{background:#2c2c2e;color:#eee;border-color:#555}}
+.posselect{font-size:12px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;flex-shrink:0}
+@media(prefers-color-scheme:dark){.posselect{background:#2c2c2e;color:#eee;border-color:#555}}
+.zoominput{width:52px;font-size:15px;font-weight:600;padding:4px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;text-align:center;flex-shrink:0}
+@media(prefers-color-scheme:dark){.zoominput{background:#2c2c2e;color:#eee;border-color:#555}}
 .layer-row{display:flex;flex-direction:column;gap:6px;background:#f5f5f5;border-radius:8px;padding:10px 12px}
+@media(prefers-color-scheme:dark){.layer-row{background:#3a3a3c}}
 .layer-row-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.layer-url{flex:1;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;min-width:0;font-family:monospace}
+.layer-url{flex:1;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0;font-family:monospace}
 .layer-url:focus{border-color:#4363d8;outline:none}
-.layer-name{width:90px;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;flex-shrink:0}
-.layer-displayname{flex:1;font-size:13px;font-weight:500;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;min-width:0}
-.type-select{font-size:12px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;cursor:pointer;flex-shrink:0}
-.file-pts{color:#000;font-size:12px;white-space:nowrap}
+@media(prefers-color-scheme:dark){.layer-url{background:#2c2c2e;color:#eee;border-color:#555}}
+.layer-name{width:90px;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;flex-shrink:0}
+@media(prefers-color-scheme:dark){.layer-name{background:#2c2c2e;color:#eee;border-color:#555}}
+.layer-displayname{flex:1;font-size:13px;font-weight:500;padding:4px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;min-width:0}
+@media(prefers-color-scheme:dark){.layer-displayname{background:#2c2c2e;color:#eee;border-color:#555}}
+.type-select{font-size:12px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#1a1a1a;cursor:pointer;flex-shrink:0}
+@media(prefers-color-scheme:dark){.type-select{background:#2c2c2e;color:#eee;border-color:#555}}
+.file-pts{color:#888;font-size:12px;white-space:nowrap}
 .file-row .delbtn{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:0 2px;line-height:1;flex-shrink:0}
 .file-row .delbtn:hover{color:#e74c3c}
-.layer-move-btn{background:none;border:1px solid #ccc;border-radius:5px;cursor:pointer;color:#000;font-size:14px;padding:3px 7px;line-height:1;flex-shrink:0}
-.layer-move-btn:hover:not(:disabled){background:#eee;color:#000}
+.layer-move-btn{background:none;border:1px solid #ccc;border-radius:5px;cursor:pointer;color:#666;font-size:14px;padding:3px 7px;line-height:1;flex-shrink:0}
+.layer-move-btn:hover:not(:disabled){background:#eee;color:#222}
 .layer-move-btn:disabled{opacity:0.25;cursor:default}
+@media(prefers-color-scheme:dark){.layer-move-btn{border-color:#555;color:#aaa}.layer-move-btn:hover:not(:disabled){background:#3a3a3c;color:#eee}}
 input[type=color]{width:34px;height:28px;border:1px solid #ddd;border-radius:4px;padding:2px;cursor:pointer;background:none;flex-shrink:0}
-label{font-size:13px;color:#000;display:block;margin-bottom:4px}
-input[type=text]{font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#000;width:100%;outline:none}
+label{font-size:13px;color:#222;display:block;margin-bottom:4px}
+input[type=text]{font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
 input[type=text]:focus{border-color:#4363d8}
 .row{display:flex;gap:10px;align-items:center}
 input[type=range]{flex:1}
-.range-val{font-size:13px;color:#000;min-width:24px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#000;font-size:14px;cursor:pointer;font-family:inherit}
+.range-val{font-size:13px;color:#666;min-width:24px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;font-family:inherit}
 .btn:hover{background:#f5f5f5}
 .btn.primary{background:#185FA5;color:#fff;border-color:#185FA5}
 .btn.primary:hover{background:#0C447C;border-color:#0C447C}
 .btn:disabled{opacity:0.4;cursor:not-allowed}
 #preview-wrap{border-radius:8px;overflow:hidden;border:1px solid #ddd;height:340px;display:none}
 #map{height:520px}
-.empty-map{height:200px;display:flex;align-items:center;justify-content:center;color:#000;font-size:13px;border:1px dashed #ddd;border-radius:8px}
-.section-label{font-size:12px;font-weight:600;color:#000;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.empty-map{height:200px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;border:1px dashed #ddd;border-radius:8px}
+.section-label{font-size:12px;font-weight:600;color:#222;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 /* toggle switch */
 .toggle{position:relative;display:inline-block;width:34px;height:20px;flex-shrink:0}
@@ -74,7 +96,7 @@ input[type=range]{flex:1}
 .slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
 input:checked+.slider{background:#185FA5}
 input:checked+.slider:before{transform:translateX(14px)}
-.toggle-label{font-size:13px;color:#000;white-space:nowrap}
+.toggle-label{font-size:13px;color:#222;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -102,11 +124,11 @@ input:checked+.slider:before{transform:translateX(14px)}
   <div id="preview-empty" class="empty-map">Add GPX files to see a preview</div>
   <div id="preview-wrap" style="position:relative">
     <div id="map"></div>
-    <div id="preview-zoom-indicator" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;font-weight:600;color:#000;pointer-events:none">z–</div>
+    <div id="preview-zoom-indicator" style="position:absolute;top:10px;right:10px;z-index:1000;background:white;border:1px solid #ccc;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:5px 9px;font-size:12px;font-weight:600;color:#222;pointer-events:none">z–</div>
 
     <!-- Create-geometry overlay: type picker -->
     <div id="geom-type-picker" style="display:none;position:absolute;top:10px;left:10px;z-index:1100;background:white;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:10px;font-size:13px">
-      <div style="font-weight:600;margin-bottom:6px;color:#000">Create geometry</div>
+      <div style="font-weight:600;margin-bottom:6px;color:#222">Create geometry</div>
       <button class="btn" style="width:100%;margin-bottom:5px;text-align:left" onclick="beginGeometryDraw('wpt')">
         <svg width="16" height="16" viewBox="0 0 18 18" style="vertical-align:middle;margin-right:5px"><circle cx="9" cy="9" r="5" fill="#3388ff" stroke="#fff" stroke-width="1.5"/></svg>Waypoint
       </button>
@@ -121,7 +143,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
     <!-- Create-geometry overlay: drawing in progress controls -->
     <div id="geom-draw-controls" style="display:none;position:absolute;top:10px;left:10px;z-index:1100;background:white;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:10px;font-size:13px;max-width:240px">
-      <div id="geom-draw-instructions" style="margin-bottom:8px;color:#000"></div>
+      <div id="geom-draw-instructions" style="margin-bottom:8px;color:#222"></div>
       <div style="display:flex;gap:6px">
         <button class="btn primary" id="geom-draw-ok" style="flex:1" onclick="finishGeometryDraw()">OK</button>
         <button class="btn" id="geom-draw-undo" style="flex:1" onclick="undoGeometryPoint()">Undo point</button>
@@ -154,18 +176,18 @@ input:checked+.slider:before{transform:translateX(14px)}
       <label>GPS trail (direction line from own location)</label>
       <div class="row" style="gap:10px;margin-top:4px">
         <input type="color" id="gpstrail-color" value="#9b30d9" title="GPS trail color">
-        <span class="toggle-label" style="color:#000">width</span>
+        <span class="toggle-label" style="color:#222">width</span>
         <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
-        <span class="toggle-label" style="color:#000">px</span>
+        <span class="toggle-label" style="color:#222">px</span>
       </div>
       <div class="row" style="gap:10px;margin-top:8px">
-        <span class="toggle-label" style="color:#000">trail length</span>
+        <span class="toggle-label" style="color:#222">trail length</span>
         <select id="gpstrail-mode" class="posselect" onchange="document.getElementById('gpstrail-meters').style.display=this.value==='full'?'none':'';document.getElementById('gpstrail-meters-label').style.display=this.value==='full'?'none':''">
           <option value="distance">last</option>
           <option value="full" selected>whole ride (no limit)</option>
         </select>
         <input type="number" id="gpstrail-meters" value="50" min="5" max="5000" class="zoominput" style="width:64px;display:none">
-        <span class="toggle-label" style="color:#000;display:none" id="gpstrail-meters-label">meters</span>
+        <span class="toggle-label" style="color:#222;display:none" id="gpstrail-meters-label">meters</span>
       </div>
     </div>
     <div>
@@ -190,7 +212,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <div class="card">
   <div class="section-label">Map actions</div>
-  <p style="font-size:12px;color:#888;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. One extra item — "Share this map here" (a link back to this same map with a marker at the tapped spot) — is always shown too and doesn't need to be added here.</p>
+  <p style="font-size:12px;color:#888;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. Two extra items — "Share location" (via the device's own share menu) and "Share this map here" (a link back to this same map with a marker) — are always shown too and don't need to be added here.</p>
   <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add action
@@ -228,30 +250,13 @@ const DEFAULT_LAYERS=[
 // --- Default map actions (long-press / right-click menu in the output map) ---
 // {lat}, {lon} and {zoom} are placeholders filled in with the tapped location and
 // current zoom level when the visitor picks an action on the exported map.
-// {x} and {y} give the same location in EPSG:3857 (Web Mercator) metres, for
-// services that expect projected coordinates instead of lat/lon.
-// Note: "Share this map here" is always available on the exported map as a
-// separate built-in button, so it doesn't need a row here.
-// "Choose app (Android)" uses the geo: URI scheme, which is an Android-only
-// convention (it triggers Android's native "open with..." app chooser) — there
-// is no equivalent single link that lets iOS show a similar app picker, so an
-// explicit Apple Maps link is included instead for iOS/Mac users.
-// Icons: OsmAnd uses its real (tiny, 804-byte) logo. The others use a simple
-// generic pin/trail glyph in that service's brand color — verified-complete
-// small logos for OSM/Google/Apple/QGIS weren't reliably available, and a
-// half-broken icon is worse than a clean generic one. Replace any of these
-// any time via "Choose icon" in the row below.
-const PIN_SVG=(color)=>'<svg viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="'+color+'"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>';
-const OSMAND_SVG='<svg viewBox="0 0 999.97626 999.97626" xmlns="http://www.w3.org/2000/svg"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="502.060709" x2="499.521429" y1=".000005" y2="1000.235005"><stop offset="0" stop-color="#ffa033"/><stop offset="1" stop-color="#f80"/></linearGradient><path d="m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z" fill="url(#a)" fill-rule="evenodd"/></svg>';
-const TRAIL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 20 Q7 8 12 14 T21 4" fill="none" stroke="#b5651d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// Note: "Share location" and "Share this map here" are always available on the
+// exported map as separate built-in buttons, so they don't need a row here.
 const DEFAULT_MAP_ACTIONS=[
-  {group:'Go to',iconSvg:PIN_SVG('#2c7fb8'),name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:OSMAND_SVG,name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:PIN_SVG('#ea4335'),name:'Google Maps',urlTemplate:'https://www.google.com/maps/@{lat},{lon},{zoom}z'},
-  {group:'Go to',iconSvg:PIN_SVG('#555555'),name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&z={zoom}'},
-  {group:'Go to',iconSvg:null,name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
-  {group:'Go to',iconSvg:PIN_SVG('#589632'),name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
-  {group:'Go to',iconSvg:TRAIL_SVG,name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'}
+  {group:'Go to',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}'},
+  {group:'Go to',name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
+  {group:'Go to',name:'Google Maps',urlTemplate:'https://www.google.com/maps/@{lat},{lon},{zoom}z'},
+  {group:'Go to',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'}
 ];
 let mapActions=[];
 // Saving in renderLayerList() ensures all layer changes are captured.
@@ -274,7 +279,7 @@ function saveLayersToStorage(){
         nativeZoomMax:l.nativeZoomMax||null,
         defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false
       })),
-      mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
+      mapActions:mapActions.map(a=>({group:a.group||'',name:a.name||'',urlTemplate:a.urlTemplate||''})),
       title:document.getElementById('title').value,
       osmOpacity:document.getElementById('osmopacity').value
     };
@@ -306,7 +311,7 @@ function loadLayersFromStorage(){
     const actionsToLoad=state&&state.mapActions;
     const actionsSource=actionsToLoad&&actionsToLoad.length>0?actionsToLoad:DEFAULT_MAP_ACTIONS;
     mapActions.length=0;
-    actionsSource.forEach(a=>mapActions.push({group:a.group||'',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''}));
+    actionsSource.forEach(a=>mapActions.push({group:a.group||'',name:a.name||'',urlTemplate:a.urlTemplate||''}));
     renderMapActionsList();
 
     _restoring=false;
@@ -392,7 +397,7 @@ function moveLayer(i, dir){
 
 // --- Map actions: long-press / right-click menu on the exported map ---
 function addMapAction(preset){
-  mapActions.push(preset||{group:'Go to',iconSvg:null,iconImgSrc:null,name:'',urlTemplate:''});
+  mapActions.push(preset||{group:'Ga naar',name:'',urlTemplate:''});
   renderMapActionsList();
   saveLayersToStorage();
 }
@@ -441,14 +446,14 @@ function renderLayerList(){
         ${l.type==='wms'?`<input class="layer-name" type="text" placeholder="WMS layer name (LAYERS=...)" value="${l.wmsLayer.replace(/"/g,'&quot;')}" data-idx="${i}" title="Technical WMS layer name">`:``}
       </div>
       <div class="row" style="gap:8px">
-        <span class="toggle-label" style="color:#000">Opacity</span>
+        <span class="toggle-label" style="color:#222">Opacity</span>
         <input type="range" min="0" max="1" step="0.05" value="${l.opacity}" data-idx="${i}" class="opacity-slider" style="flex:1">
         <span class="range-val layer-opval">${Math.round(l.opacity*100)}%</span>
       </div>
       <div class="row" style="gap:6px">
-        <span class="toggle-label" style="color:#000">Zoom</span>
+        <span class="toggle-label" style="color:#222">Zoom</span>
         <input type="number" value="${Math.min(l.zoomMin!=null?l.zoomMin:1,22)}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommin" title="Zoom level from">
-        <span class="toggle-label" style="color:#000">to</span>
+        <span class="toggle-label" style="color:#222">to</span>
         <input type="number" value="${Math.min(l.zoomMax!=null?l.zoomMax:22,22)}" min="0" max="22" data-idx="${i}" class="zoominput layer-zoommax" title="Zoom level to (max 22)">
         <label class="toggle" title="Show this layer in the preview map" style="margin-left:8px">
           <input type="checkbox" ${l.previewOn!==false?'checked':''} data-idx="${i}" class="layer-previewon">
@@ -533,7 +538,7 @@ function renderMapActionsList(){
     row.className='layer-row';
     row.innerHTML=`
       <div class="layer-row-top">
-        <input class="ma-group" type="text" placeholder="Group (e.g. Go to)" value="${(a.group||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Menu group shown on the map (items with the same group are shown together)" style="width:110px">
+        <input class="ma-group" type="text" placeholder="Group (e.g. Ga naar)" value="${(a.group||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Menu group shown on the map (items with the same group are shown together)" style="width:120px">
         <input class="ma-name" type="text" placeholder="Name" value="${(a.name||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Name shown in the menu" style="flex:1;min-width:100px">
         <button class="ma-move-btn" data-idx="${i}" data-dir="up" title="Move up" ${i===0?'disabled':''}>&#8593;</button>
         <button class="ma-move-btn" data-idx="${i}" data-dir="down" title="Move down" ${i===mapActions.length-1?'disabled':''}>&#8595;</button>
@@ -541,15 +546,6 @@ function renderMapActionsList(){
       </div>
       <div class="layer-row-top">
         <input class="ma-url" type="text" placeholder="URL template, e.g. https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}" value="${(a.urlTemplate||'').replace(/"/g,'&quot;')}" data-idx="${i}" style="flex:1">
-      </div>
-      <div class="layer-row-top">
-        <span class="toggle-label" style="color:#000">Icon</span>
-        <div class="maicon-preview" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#555">${a.iconSvg?a.iconSvg:(a.iconImgSrc?`<img src="${a.iconImgSrc}" alt="" style="max-width:100%;max-height:100%">`:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:15px"></i>')}</div>
-        <button type="button" class="maicon-upload-btn" data-idx="${i}" onclick="document.getElementById('maicon-file-${i}').click()">
-          <i class="ti ti-upload" aria-hidden="true"></i> Choose icon
-        </button>
-        <input type="file" id="maicon-file-${i}" accept=".svg,image/svg+xml,.ico,.png,.jpg,.jpeg,.gif,.webp,image/*" style="display:none" data-idx="${i}" class="maicon-fileinput">
-        ${(a.iconSvg||a.iconImgSrc)?`<button type="button" class="maicon-clear" data-idx="${i}">remove</button>`:''}
       </div>`;
     el.appendChild(row);
   });
@@ -565,43 +561,6 @@ function renderMapActionsList(){
     inp.addEventListener('input',e=>{mapActions[parseInt(e.target.dataset.idx)].urlTemplate=e.target.value;});
     inp.addEventListener('change',()=>saveLayersToStorage());
   });
-  el.querySelectorAll('.maicon-fileinput').forEach(inp=>{
-    inp.addEventListener('change',e=>{
-      const i=parseInt(e.target.dataset.idx);
-      const file=e.target.files[0];
-      if(!file)return;
-      const isSvg=file.name.toLowerCase().endsWith('.svg')||file.type==='image/svg+xml';
-      const reader=new FileReader();
-      if(isSvg){
-        reader.onload=ev=>{
-          const svgText=ev.target.result;
-          if(!/<svg[\s>]/i.test(svgText)){
-            alert('This does not look like a valid SVG file.');
-            return;
-          }
-          mapActions[i].iconSvg=svgText;
-          mapActions[i].iconImgSrc=null;
-          renderMapActionsList();
-        };
-        reader.readAsText(file);
-      } else {
-        reader.onload=ev=>{
-          mapActions[i].iconImgSrc=ev.target.result;  // data: URL — works for ico/png/jpg/gif/webp
-          mapActions[i].iconSvg=null;
-          renderMapActionsList();
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  });
-  el.querySelectorAll('.maicon-clear').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=parseInt(e.target.dataset.idx);
-      mapActions[i].iconSvg=null;
-      mapActions[i].iconImgSrc=null;
-      renderMapActionsList();
-    });
-  });
   el.querySelectorAll('.ma-move-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{
       const idx=parseInt(e.currentTarget.dataset.idx);
@@ -612,7 +571,6 @@ function renderMapActionsList(){
   el.querySelectorAll('.ma-delbtn').forEach(btn=>{
     btn.addEventListener('click',e=>removeMapAction(parseInt(e.target.dataset.idx)));
   });
-  saveLayersToStorage();
 }
 
 // --- Drag-and-drop and file input for GPX / GeoJSON ---
@@ -814,16 +772,16 @@ function renderList(){
       ${geomIcon}
       <input type="color" value="${f.color}" title="Color" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Name on map" data-idx="${i}" class="nameinput" placeholder="Name">
-      <span class="toggle-label" style="color:#000">${f._splitType==='wpt'?'dot size':f._splitType==='pol'?'border':'line width'}</span>
+      <span class="toggle-label" style="color:#222">${f._splitType==='wpt'?'dot size':f._splitType==='pol'?'border':'line width'}</span>
       <input type="number" value="${f.lineWidth!=null?f.lineWidth:5}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="${f._splitType==='wpt'?'Dot size in pixels (when no SVG icon)':f._splitType==='pol'?'Border width in pixels':'Line width in pixels'}" style="width:56px">
-      <span class="toggle-label" style="color:#000">px</span>
+      <span class="toggle-label" style="color:#222">px</span>
       ${f._splitType==='pol'?`
-      <span class="toggle-label" style="color:#000;margin-left:4px">fill</span>
+      <span class="toggle-label" style="color:#222;margin-left:4px">fill</span>
       <input type="number" value="${Math.round((f.fillOpacity!=null?f.fillOpacity:0.2)*100)}" min="0" max="100" step="5" data-idx="${i}" class="zoominput fillopacityinput" title="Fill opacity of the polygon area in percent. 0 = fully transparent (outline only), 100 = fully solid." style="width:56px">
-      <span class="toggle-label" style="color:#000">%</span>`:''}
-      <span class="toggle-label" style="color:#000;margin-left:4px">map zoom</span>
+      <span class="toggle-label" style="color:#222">%</span>`:''}
+      <span class="toggle-label" style="color:#222;margin-left:4px">map zoom</span>
       <input type="number" value="${Math.min(f.mapZoomMin!=null?f.mapZoomMin:1,22)}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommin" title="Track/waypoints visible from zoom level">
-      <span class="toggle-label" style="color:#000">–</span>
+      <span class="toggle-label" style="color:#222">–</span>
       <input type="number" value="${Math.min(f.mapZoomMax!=null?f.mapZoomMax:22,22)}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level (max 22)">
       <span class="file-pts">${f._splitType==='wpt'?f.waypoints.length+'wpt':f._splitType==='pol'?(f.polygons||[]).length+'pol':f.tracks.length+'t'} &middot; ${f.npts}pt</span>
       <button class="delbtn" data-idx="${i}" title="Remove">&times;</button>
@@ -855,26 +813,26 @@ function renderList(){
         <span class="slider"></span>
       </label>
       <span class="toggle-label">track distance</span>`:''}
-      <span class="toggle-label" style="color:#000;margin-left:4px">label zoom</span>
+      <span class="toggle-label" style="color:#222;margin-left:4px">label zoom</span>
       <input type="number" value="${f.labelZoomMin}" min="1" max="22" data-idx="${i}" class="zoominput labelzoommin" title="Label zoom level from">
-      <span class="toggle-label" style="color:#000">–</span>
+      <span class="toggle-label" style="color:#222">–</span>
       <input type="number" value="${f.labelZoomMax}" min="1" max="22" data-idx="${i}" class="zoominput labelzoommax" title="Label zoom level to">
-      <span class="toggle-label" style="color:#000;margin-left:4px">font</span>
+      <span class="toggle-label" style="color:#222;margin-left:4px">font</span>
       <input type="number" value="${f.labelFontSize!=null?f.labelFontSize:24}" min="8" max="72" data-idx="${i}" class="zoominput labelfontsize" title="Label font size in pixels" style="width:52px">
-      <span class="toggle-label" style="color:#000">px</span>
+      <span class="toggle-label" style="color:#222">px</span>
       </div>
       ${f.waypoints.length>0?`
       <div class="file-row-wpticon">
-        <span class="toggle-label" style="color:#000">Waypoint icon</span>
+        <span class="toggle-label" style="color:#222">Waypoint icon</span>
         <div class="wpticon-preview" id="wpticon-preview-${i}" style="color:${f.color}">${f.wptIconSvg?f.wptIconSvg:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:14px"></i>'}</div>
         <button type="button" class="wpticon-upload-btn" data-idx="${i}" onclick="document.getElementById('wpticon-file-${i}').click()">
           <i class="ti ti-upload" aria-hidden="true"></i> Choose SVG
         </button>
         <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
         ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">remove</button>`:''}
-        <span class="toggle-label" style="color:#000;margin-left:6px">size</span>
+        <span class="toggle-label" style="color:#222;margin-left:6px">size</span>
         <input type="number" value="${f.wptIconSize||28}" min="8" max="100" data-idx="${i}" class="zoominput wpticon-size" title="Icon size in pixels" style="width:60px">
-        <span class="toggle-label" style="color:#000">px</span>
+        <span class="toggle-label" style="color:#222">px</span>
         ${f.wptIconSvg?`
         <label class="toggle" title="Recolor the SVG with the GPX color (only works if the SVG has no hard-coded colors of its own)" style="margin-left:6px">
           <input type="checkbox" ${f.wptIconRecolor!==false?'checked':''} data-idx="${i}" class="wpticon-recolor">
@@ -1556,7 +1514,7 @@ function exportMap(){
   const trailMode=document.getElementById('gpstrail-mode').value;
   const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,nativeZoomMax:l.nativeZoomMax||null,defaultOn:l.defaultOn===true}));
-  const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
+  const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Acties',name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const data=files.map(f=>({
     filename:f.displayName,
     color:f.color,
@@ -1678,9 +1636,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .mam-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;padding:9px 8px;border-radius:6px;cursor:pointer;font-size:13.5px;color:#222;font-weight:500}
 .mam-item:hover,.mam-item:active{background:#eaf4fd}
 .mam-icon{flex:0 0 auto;font-size:16px;width:18px;text-align:center}
-.mam-icon-chip{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:#eef1f4;color:#555;flex:0 0 auto}
-.mam-icon-chip svg{width:15px;height:15px}
-.mam-icon-chip img{width:15px;height:15px;object-fit:contain}
 /* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
 </style>
 </head>
@@ -3203,14 +3158,7 @@ map.on('zoomend',function(){
 
     function fillTemplate(tpl,latlng){
       const lat=latlng.lat.toFixed(5), lon=latlng.lng.toFixed(5), zoom=Math.round(map.getZoom());
-      // EPSG:3857 (Web Mercator) metres, for services that expect projected coordinates
-      const merc=L.CRS.EPSG3857.project(latlng);
-      const x=Math.round(merc.x), y=Math.round(merc.y);
-      const HALF_SQUARE_M=250; // 500m x 500m square centered on the tapped point
-      const xmin=x-HALF_SQUARE_M, ymin=y-HALF_SQUARE_M, xmax=x+HALF_SQUARE_M, ymax=y+HALF_SQUARE_M;
-      return tpl.replace(/{lat}/g,lat).replace(/{lon}/g,lon).replace(/{zoom}/g,zoom)
-                .replace(/{x}/g,x).replace(/{y}/g,y)
-                .replace(/{xmin}/g,xmin).replace(/{ymin}/g,ymin).replace(/{xmax}/g,xmax).replace(/{ymax}/g,ymax);
+      return tpl.replace(/{lat}/g,lat).replace(/{lon}/g,lon).replace(/{zoom}/g,zoom);
     }
 
     function closeMenu(){
@@ -3264,13 +3212,30 @@ map.on('zoomend',function(){
       closeMenu();
     }
 
+    function shareLocation(){
+      if(!currentLatLng) return;
+      const lat=currentLatLng.lat.toFixed(5), lon=currentLatLng.lng.toFixed(5);
+      const url='https://www.google.com/maps?q='+lat+','+lon;
+      if(navigator.share){
+        navigator.share({title:'Location',text:lat+', '+lon,url:url}).catch(()=>{});
+      } else if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard')).catch(()=>window.prompt('Copy this link:',url));
+      } else {
+        window.prompt('Copy this link:',url);
+      }
+      closeMenu();
+    }
+
     function renderGroupLevel(){
       let html='<div class="mam-header">Choose an action</div>';
+      html+='<button class="mam-item" data-share-loc="1"><span class="mam-icon">&#128228;</span>Share location</button>';
       html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
       groupOrder.forEach(g=>{
         html+='<button class="mam-item" data-group="'+esc(g)+'"><span class="mam-icon">&#128205;</span>'+esc(g)+'</button>';
       });
       menuEl.innerHTML=html;
+      const shareLocBtn=menuEl.querySelector('[data-share-loc]');
+      if(shareLocBtn) shareLocBtn.addEventListener('click',shareLocation);
       const shareMapBtn=menuEl.querySelector('[data-share-map]');
       if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
       menuEl.querySelectorAll('[data-group]').forEach(btn=>{
@@ -3281,10 +3246,7 @@ map.on('zoomend',function(){
     function renderActionLevel(group){
       let html='<div class="mam-header"><button class="mam-back" title="Back">&#8592;</button>'+esc(group)+'</div>';
       (groupMap[group]||[]).forEach((a,i)=>{
-        const iconHtml=a.iconSvg?('<span class="mam-icon mam-icon-chip">'+a.iconSvg+'</span>')
-          :a.iconImgSrc?('<span class="mam-icon mam-icon-chip"><img src="'+esc(a.iconImgSrc)+'" alt=""></span>')
-          :'<span class="mam-icon">&#128205;</span>';
-        html+='<button class="mam-item" data-idx="'+i+'">'+iconHtml+esc(a.name)+'</button>';
+        html+='<button class="mam-item" data-idx="'+i+'"><span class="mam-icon">&#128205;</span>'+esc(a.name)+'</button>';
       });
       menuEl.innerHTML=html;
       menuEl.querySelector('.mam-back').addEventListener('click',renderGroupLevel);
