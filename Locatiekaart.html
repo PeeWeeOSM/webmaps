@@ -28,7 +28,7 @@
     margin-left: -100vmax;
     margin-top: -100vmax;
     transform-origin: center center;
-    transition: transform 0.4s ease-out;
+    transition: transform 0.9s linear;
   }
 
   #controls {
@@ -253,7 +253,10 @@
       if (smoothedHeading === null) {
         smoothedHeading = rawHdg;
       } else if (headingIsReliable) {
-        smoothedHeading = smoothedHeading + angleDelta(smoothedHeading, rawHdg) * 0.25;
+        const delta = angleDelta(smoothedHeading, rawHdg);
+        // Bij een echte bocht (groot verschil) snel volgen, bij kleine ruis rustig dempen
+        const alpha = Math.abs(delta) > 20 ? 0.6 : 0.25;
+        smoothedHeading = smoothedHeading + delta * alpha;
       }
       const hdg = smoothedHeading;
 
