@@ -268,8 +268,11 @@
       const zoom = map.getZoom() < 16 ? 18 : map.getZoom();
       const H = mapContainer.clientHeight;
       const mpp = metersPerPixel(latitude, zoom);
-      // iets minder dan de helft van het scherm, zodat het puntje niet exact op de rand staat
-      const distance = (H / 2) * mpp * 0.8;
+      // Locatie komt op ongeveer 1/4 van de schermhoogte, gemeten vanaf de onderkant
+      // (dus niet op de rand, en niet in het midden). Pas LOCATION_FROM_BOTTOM aan
+      // om dit te verschuiven: 0.5 = midden, kleiner = dichter bij de onderrand.
+      const LOCATION_FROM_BOTTOM = 0.25;
+      const distance = H * LOCATION_FROM_BOTTOM * mpp;
       const dest = destinationPoint(latitude, longitude, distance, hdg);
 
       map.setView([dest.lat, dest.lng], zoom, { animate: false });
