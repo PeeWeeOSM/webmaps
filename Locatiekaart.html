@@ -28,7 +28,7 @@
     margin-left: -100vmax;
     margin-top: -100vmax;
     transform-origin: center center;
-    transition: transform 0.25s linear;
+    transition: transform 0.4s ease-out;
   }
 
   #controls {
@@ -244,11 +244,16 @@
       const hasHeading = (heading !== null && !isNaN(heading));
       const rawHdg = hasHeading ? heading : 0;
 
-      // Afvlakken: kaart draait rustiger mee, minder gevoelig voor GPS-ruis
+      // GPS-richting is onbetrouwbaar bij (bijna) stilstand, dus die dan negeren
+      const speed = pos.coords.speed; // m/s, kan null zijn
+      const headingIsReliable = hasHeading && (speed === null || speed > 1);
+
+      // Afvlakken zonder terug te springen naar 0-360: zo blijft de hoek continu
+      // doorlopen en voorkomen we een volle "flip" bij de overgang 359° -> 1°.
       if (smoothedHeading === null) {
         smoothedHeading = rawHdg;
-      } else if (hasHeading) {
-        smoothedHeading = (smoothedHeading + angleDelta(smoothedHeading, rawHdg) * 0.3 + 360) % 360;
+      } else if (headingIsReliable) {
+        smoothedHeading = smoothedHeading + angleDelta(smoothedHeading, rawHdg) * 0.25;
       }
       const hdg = smoothedHeading;
 
