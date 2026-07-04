@@ -62,8 +62,8 @@ input[type=range]{flex:1}
 .btn.primary{background:#185FA5;color:#fff;border-color:#185FA5}
 .btn.primary:hover{background:#0C447C;border-color:#0C447C}
 .btn:disabled{opacity:0.4;cursor:not-allowed}
-#preview-wrap{border-radius:8px;overflow:hidden;border:1px solid #ddd;height:600px;display:none}
-#map{height:100%}
+#preview-wrap{border-radius:8px;overflow:hidden;border:1px solid #ddd;height:340px;display:none}
+#map{height:520px}
 .empty-map{height:200px;display:flex;align-items:center;justify-content:center;color:#000;font-size:13px;border:1px dashed #ddd;border-radius:8px}
 .section-label{font-size:12px;font-weight:600;color:#000;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -218,12 +218,12 @@ const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c070
 
 // --- Default extra layers (shown when no saved state exists) ---
 const DEFAULT_LAYERS=[
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,nativeZoomMax:19,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,nativeZoomMax:19,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,nativeZoomMax:19,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,nativeZoomMax:19,defaultOn:false,previewOn:true},
   {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
-  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,previewOn:true}
+  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true}
 ];
 // --- Default map actions (long-press / right-click menu in the output map) ---
 // {lat}, {lon} and {zoom} are placeholders filled in with the tapped location and
@@ -234,26 +234,24 @@ const DEFAULT_LAYERS=[
 // separate built-in button, so it doesn't need a row here.
 // "Choose app (Android)" uses the geo: URI scheme, which is an Android-only
 // convention (it triggers Android's native "open with..." app chooser) — there
-// Icons: OsmAnd uses its real (tiny, 804-byte) logo; its gradient fill isn't
-// recolorable by default (recoloring would flatten the gradient) but can still
-// be turned on manually. The others use a simple generic pin/trail/robot glyph
-// in that service's typical color, built with fill="currentColor" so the color
-// picker below works on them out of the box. Verified-complete small logos for
-// OSM/Google/Apple/QGIS weren't reliably available online, and a half-broken
-// icon is worse than a clean generic one — replace any of these any time via
-// "Choose icon" in the row below.
-const PIN_SVG='<svg viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="currentColor"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>';
+// is no equivalent single link that lets iOS show a similar app picker, so an
+// explicit Apple Maps link is included instead for iOS/Mac users.
+// Icons: OsmAnd uses its real (tiny, 804-byte) logo. The others use a simple
+// generic pin/trail glyph in that service's brand color — verified-complete
+// small logos for OSM/Google/Apple/QGIS weren't reliably available, and a
+// half-broken icon is worse than a clean generic one. Replace any of these
+// any time via "Choose icon" in the row below.
+const PIN_SVG=(color)=>'<svg viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="'+color+'"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>';
 const OSMAND_SVG='<svg viewBox="0 0 999.97626 999.97626" xmlns="http://www.w3.org/2000/svg"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="502.060709" x2="499.521429" y1=".000005" y2="1000.235005"><stop offset="0" stop-color="#ffa033"/><stop offset="1" stop-color="#f80"/></linearGradient><path d="m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z" fill="url(#a)" fill-rule="evenodd"/></svg>';
-const TRAIL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 20 Q7 8 12 14 T21 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const ANDROID_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/></svg>';
+const TRAIL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 20 Q7 8 12 14 T21 4" fill="none" stroke="#b5651d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const DEFAULT_MAP_ACTIONS=[
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2c7fb8',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#555555',name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}'},
-  {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#589632',name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
-  {group:'Go to',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'}
+  {group:'Go to',iconSvg:PIN_SVG('#2c7fb8'),name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/#map={zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:OSMAND_SVG,name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:PIN_SVG('#ea4335'),name:'Google Maps',urlTemplate:'https://www.google.com/maps/@{lat},{lon},{zoom}z'},
+  {group:'Go to',iconSvg:PIN_SVG('#555555'),name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&z={zoom}'},
+  {group:'Go to',iconSvg:null,name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
+  {group:'Go to',iconSvg:PIN_SVG('#589632'),name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
+  {group:'Go to',iconSvg:TRAIL_SVG,name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'}
 ];
 let mapActions=[];
 // Saving in renderLayerList() ensures all layer changes are captured.
@@ -273,9 +271,10 @@ function saveLayersToStorage(){
         type:l.type, url:l.url, wmsLayer:l.wmsLayer||'',
         displayName:l.displayName||'', opacity:l.opacity,
         zoomMin:Math.min(l.zoomMin||1,22), zoomMax:Math.min(l.zoomMax||22,22),
+        nativeZoomMax:l.nativeZoomMax||null,
         defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false
       })),
-      mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
+      mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       title:document.getElementById('title').value,
       osmOpacity:document.getElementById('osmopacity').value
     };
@@ -298,6 +297,7 @@ function loadLayersFromStorage(){
       displayName:l.displayName||'', opacity:l.opacity!=null?l.opacity:0.8,
       zoomMin:Math.min(l.zoomMin!=null?l.zoomMin:1,22),
       zoomMax:Math.min(l.zoomMax!=null?l.zoomMax:22,22),
+      nativeZoomMax:l.nativeZoomMax||null,
       defaultOn:l.defaultOn||false,
       previewOn:l.previewOn!==false
     }));
@@ -306,7 +306,7 @@ function loadLayersFromStorage(){
     const actionsToLoad=state&&state.mapActions;
     const actionsSource=actionsToLoad&&actionsToLoad.length>0?actionsToLoad:DEFAULT_MAP_ACTIONS;
     mapActions.length=0;
-    actionsSource.forEach(a=>mapActions.push({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''}));
+    actionsSource.forEach(a=>mapActions.push({group:a.group||'',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''}));
     renderMapActionsList();
 
     _restoring=false;
@@ -392,7 +392,7 @@ function moveLayer(i, dir){
 
 // --- Map actions: long-press / right-click menu on the exported map ---
 function addMapAction(preset){
-  mapActions.push(preset||{group:'Go to',iconSvg:null,iconSvgRaw:null,iconRecolor:false,iconColor:'#555555',iconImgSrc:null,name:'',urlTemplate:''});
+  mapActions.push(preset||{group:'Go to',iconSvg:null,iconImgSrc:null,name:'',urlTemplate:''});
   renderMapActionsList();
   saveLayersToStorage();
 }
@@ -544,19 +544,12 @@ function renderMapActionsList(){
       </div>
       <div class="layer-row-top">
         <span class="toggle-label" style="color:#000">Icon</span>
-        <div class="maicon-preview" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:${a.iconColor||'#555'}">${a.iconSvg?a.iconSvg:(a.iconImgSrc?`<img src="${a.iconImgSrc}" alt="" style="max-width:100%;max-height:100%">`:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:15px"></i>')}</div>
+        <div class="maicon-preview" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#555">${a.iconSvg?a.iconSvg:(a.iconImgSrc?`<img src="${a.iconImgSrc}" alt="" style="max-width:100%;max-height:100%">`:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:15px"></i>')}</div>
         <button type="button" class="maicon-upload-btn" data-idx="${i}" onclick="document.getElementById('maicon-file-${i}').click()">
           <i class="ti ti-upload" aria-hidden="true"></i> Choose icon
         </button>
         <input type="file" id="maicon-file-${i}" accept=".svg,image/svg+xml,.ico,.png,.jpg,.jpeg,.gif,.webp,image/*" style="display:none" data-idx="${i}" class="maicon-fileinput">
         ${(a.iconSvg||a.iconImgSrc)?`<button type="button" class="maicon-clear" data-idx="${i}">remove</button>`:''}
-        ${a.iconSvg?`
-        <label class="toggle" title="Recolor the SVG (only works if the SVG has no hard-coded colors of its own)" style="margin-left:6px">
-          <input type="checkbox" ${a.iconRecolor?'checked':''} data-idx="${i}" class="maicon-recolor">
-          <span class="slider"></span>
-        </label>
-        <span class="toggle-label">recolor</span>
-        ${a.iconRecolor?`<input type="color" value="${a.iconColor||'#555555'}" data-idx="${i}" class="maicon-color" style="width:30px;height:26px;padding:1px;border:1px solid #ccc;border-radius:4px;cursor:pointer">`:''}`:''}
       </div>`;
     el.appendChild(row);
   });
@@ -586,10 +579,7 @@ function renderMapActionsList(){
             alert('This does not look like a valid SVG file.');
             return;
           }
-          mapActions[i].iconSvgRaw=svgText;
-          mapActions[i].iconRecolor=mapActions[i].iconRecolor||false;
-          mapActions[i].iconColor=mapActions[i].iconColor||'#555555';
-          mapActions[i].iconSvg=prepareSvgForRecolor(svgText, mapActions[i].iconRecolor);
+          mapActions[i].iconSvg=svgText;
           mapActions[i].iconImgSrc=null;
           renderMapActionsList();
         };
@@ -598,34 +588,16 @@ function renderMapActionsList(){
         reader.onload=ev=>{
           mapActions[i].iconImgSrc=ev.target.result;  // data: URL — works for ico/png/jpg/gif/webp
           mapActions[i].iconSvg=null;
-          mapActions[i].iconSvgRaw=null;
           renderMapActionsList();
         };
         reader.readAsDataURL(file);
       }
     });
   });
-  el.querySelectorAll('.maicon-recolor').forEach(inp=>{
-    inp.addEventListener('change',e=>{
-      const i=parseInt(e.target.dataset.idx);
-      mapActions[i].iconRecolor=e.target.checked;
-      if(mapActions[i].iconSvgRaw){
-        mapActions[i].iconSvg=prepareSvgForRecolor(mapActions[i].iconSvgRaw, mapActions[i].iconRecolor);
-      }
-      renderMapActionsList();
-    });
-  });
-  el.querySelectorAll('.maicon-color').forEach(inp=>{
-    inp.addEventListener('input',e=>{
-      mapActions[parseInt(e.target.dataset.idx)].iconColor=e.target.value;
-      renderMapActionsList();
-    });
-  });
   el.querySelectorAll('.maicon-clear').forEach(btn=>{
     btn.addEventListener('click',e=>{
       const i=parseInt(e.target.dataset.idx);
       mapActions[i].iconSvg=null;
-      mapActions[i].iconSvgRaw=null;
       mapActions[i].iconImgSrc=null;
       renderMapActionsList();
     });
@@ -1266,15 +1238,10 @@ function getLabelText(f, elementName){
 // fill="none" wordt met rust gelaten (meestal bewust transparant/outline).
 function prepareSvgForRecolor(svgText, recolor){
   if(!recolor) return svgText;
-  return svgText
-    .replace(/fill="([^"]*)"/gi, (match, value)=>{
-      if(value.trim().toLowerCase()==='none') return match;
-      return 'fill="currentColor"';
-    })
-    .replace(/stroke="([^"]*)"/gi, (match, value)=>{
-      if(value.trim().toLowerCase()==='none') return match;
-      return 'stroke="currentColor"';
-    });
+  return svgText.replace(/fill="([^"]*)"/gi, (match, value)=>{
+    if(value.trim().toLowerCase()==='none') return match;
+    return 'fill="currentColor"';
+  });
 }
 
 // build a waypoint marker: custom SVG icon if set, otherwise a standard colored circle
@@ -1305,23 +1272,6 @@ function resetPreviewExtent(){
   // Returns an array so caller can push each layer and set flags individually.
   // MultiPolygon: one L.polygon per outer ring (with its holes).
   // Plain Polygon: array with single L.polygon.
-// Automatically figures out how far a tile layer's real tiles actually go: the
-// first time a tile genuinely fails to load at a plausibly-high zoom level (not
-// just a low-zoom network blip), the layer's native ceiling is capped there and
-// redrawn, so zoom levels beyond it optically over-zoom (blur) instead of
-// showing blank/broken tiles — no manual "real tiles to" setting needed.
-function attachAutoNativeZoom(layer){
-  let capped=false;
-  layer.on('tileerror',function(err){
-    if(capped) return;
-    const z=err && err.coords && err.coords.z;
-    if(z==null || z<14) return; // ignore likely transient/network errors at low zoom
-    capped=true;
-    layer.options.maxNativeZoom=z-1;
-    layer.redraw();
-  });
-}
-
 function updatePreview(){
   const empty=document.getElementById('preview-empty');
   const wrap=document.getElementById('preview-wrap');
@@ -1350,9 +1300,8 @@ function updatePreview(){
       if(el.type==='wms'){
         tl=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
       } else {
-        tl=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
+        tl=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax,maxNativeZoom:el.nativeZoomMax||undefined});
       }
-      attachAutoNativeZoom(tl);
       tl.addTo(map);
       previewExtraLayers.push(tl);
     }catch(e){previewExtraLayers.push(null);}
@@ -1606,8 +1555,8 @@ function exportMap(){
   const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
   const trailMode=document.getElementById('gpstrail-mode').value;
   const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
-  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true}));
-  const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
+  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,nativeZoomMax:l.nativeZoomMax||null,defaultOn:l.defaultOn===true}));
+  const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const data=files.map(f=>({
     filename:f.displayName,
     color:f.color,
@@ -1640,18 +1589,6 @@ function exportMap(){
   const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
   const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
   const safeTitle=title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-  // Carry over whatever view (center + zoom) the live preview is currently
-  // showing, so the exported map opens exactly where you left it (e.g. zoomed
-  // out further than the data's own bounding box) instead of always auto-
-  // fitting to the data extent.
-  let previewView=null;
-  try{
-    if(map && typeof map.getZoom==='function'){
-      const c=map.getCenter();
-      previewView={lat:c.lat,lng:c.lng,zoom:map.getZoom()};
-    }
-  }catch(e){}
 
   const html=`<!DOCTYPE html>
 <html lang="en">
@@ -2023,23 +1960,6 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
 const EX=${JSON.stringify(exportExtra)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
-const PREVIEW_VIEW=${JSON.stringify(previewView)};
-// Automatically figures out how far a tile layer's real tiles actually go: the
-// first time a tile genuinely fails to load at a plausibly-high zoom level (not
-// just a low-zoom network blip), the layer's native ceiling is capped there and
-// redrawn, so zoom levels beyond it optically over-zoom (blur) instead of
-// showing blank/broken tiles.
-function attachAutoNativeZoom(layer){
-  let capped=false;
-  layer.on('tileerror',function(err){
-    if(capped) return;
-    const z=err && err.coords && err.coords.z;
-    if(z==null || z<14) return;
-    capped=true;
-    layer.options.maxNativeZoom=z-1;
-    layer.redraw();
-  });
-}
 const wmsLayerObjs=new Array(EX.length);
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
@@ -2048,9 +1968,8 @@ const wmsLayerObjs=new Array(EX.length);
     if(el.type==='wms'){
       lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     } else {
-      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax,maxNativeZoom:el.nativeZoomMax||undefined});
     }
-    attachAutoNativeZoom(lyr);
     // default on/off: from URL state if present, otherwise from layer setting
     const defaultOn=(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn===true);
     if(defaultOn) lyr.addTo(map);
@@ -2316,8 +2235,6 @@ const zoomLayers=[...trackLineLayers,...trackDotLayers,...polygonLayers];
 
 if(urlState&&urlState.z!=null){
   map.setView([urlState.lat,urlState.lng],urlState.z);
-} else if(PREVIEW_VIEW){
-  map.setView([PREVIEW_VIEW.lat,PREVIEW_VIEW.lng],PREVIEW_VIEW.zoom);
 } else if(B){
   map.fitBounds(B,{padding:[16,16]});
 } else {
@@ -2336,7 +2253,8 @@ if(urlState&&urlState.marker){
   });
   L.marker([mLat,mLon],{icon:sharedPinIcon,zIndexOffset:2000})
     .addTo(map)
-    .bindPopup('Shared location<br>'+mLat.toFixed(5)+', '+mLon.toFixed(5));
+    .bindPopup('Shared location<br>'+mLat.toFixed(5)+', '+mLon.toFixed(5))
+    .openPopup();
 }
 
 // Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
@@ -3295,28 +3213,10 @@ map.on('zoomend',function(){
                 .replace(/{xmin}/g,xmin).replace(/{ymin}/g,ymin).replace(/{xmax}/g,xmax).replace(/{ymax}/g,ymax);
     }
 
-    let tempMarker=null;
-
-    function showTempMarker(latlng){
-      removeTempMarker();
-      const tempIcon=L.divIcon({
-        className:'',
-        html:'<svg width="26" height="34" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#2980b9" stroke="#fff" stroke-width="2"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>',
-        iconSize:[26,34],
-        iconAnchor:[13,34]
-      });
-      tempMarker=L.marker(latlng,{icon:tempIcon,zIndexOffset:3000,interactive:false}).addTo(map);
-    }
-
-    function removeTempMarker(){
-      if(tempMarker){ map.removeLayer(tempMarker); tempMarker=null; }
-    }
-
     function closeMenu(){
       menuEl.classList.remove('open');
       menuEl.innerHTML='';
       currentLatLng=null;
-      removeTempMarker();
     }
 
     function openAction(a){
@@ -3364,115 +3264,24 @@ map.on('zoomend',function(){
       closeMenu();
     }
 
-    // --- Saved locations (e.g. "where I parked") — persisted in this browser via
-    // localStorage, scoped to this exact page, so they survive closing the tab,
-    // the browser, or the phone itself. They only disappear if this browser's
-    // site data for this page gets cleared, or on a different device/browser.
-    const SAVED_POINTS_KEY='PeeWeeTrails_savedPoints__'+location.pathname;
-    const savedPointLayers={};
-
-    function loadSavedPoints(){
-      try{
-        const raw=localStorage.getItem(SAVED_POINTS_KEY);
-        return raw?JSON.parse(raw):[];
-      }catch(e){ return []; }
-    }
-
-    function persistSavedPoints(points){
-      try{ localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(points)); }catch(e){}
-    }
-
-    const savedPinIcon=L.divIcon({
-      className:'',
-      html:'<svg width="28" height="36" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#8e44ad" stroke="#fff" stroke-width="2"/><path d="M17 9l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5-4.6-2.8-4.9 2.8 1.2-5.5-4.2-3.8 5.6-.6z" fill="#fff"/></svg>',
-      iconSize:[28,36],
-      iconAnchor:[14,36]
-    });
-
-    function renderSavedPoint(p){
-      const marker=L.marker([p.lat,p.lng],{icon:savedPinIcon,zIndexOffset:1500}).addTo(map);
-      const popupEl=document.createElement('div');
-      popupEl.innerHTML='<b>'+esc(p.label)+'</b><br><button type="button" class="saved-point-remove">Remove</button>';
-      popupEl.querySelector('.saved-point-remove').addEventListener('click',()=>{
-        removeSavedPoint(p.id);
-        marker.closePopup();
-      });
-      marker.bindPopup(popupEl);
-      savedPointLayers[p.id]=marker;
-    }
-
-    function renderAllSavedPoints(){
-      loadSavedPoints().forEach(renderSavedPoint);
-    }
-
-    function removeSavedPoint(id){
-      const points=loadSavedPoints().filter(p=>p.id!==id);
-      persistSavedPoints(points);
-      if(savedPointLayers[id]){
-        map.removeLayer(savedPointLayers[id]);
-        delete savedPointLayers[id];
-      }
-    }
-
-    function saveLocationHere(){
-      if(!currentLatLng) return;
-      const latlng=currentLatLng; // capture before closeMenu() clears currentLatLng
-      const now=new Date();
-      const dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-      const defaultLabel=dateStr+' parked car';
-      const label=window.prompt('Label for this location:',defaultLabel);
-      closeMenu();
-      if(label===null) return; // cancelled
-      const point={
-        id:'p'+Date.now()+Math.random().toString(36).slice(2,7),
-        lat:latlng.lat,
-        lng:latlng.lng,
-        label:(label.trim()||defaultLabel),
-        createdAt:Date.now()
-      };
-      const points=loadSavedPoints();
-      points.push(point);
-      persistSavedPoints(points);
-      renderSavedPoint(point);
-      showToast('Location saved — it will still be here next time you open this map on this device.');
-    }
-
-    let lastClientX=0, lastClientY=0;
-
-    function clampMenuPosition(){
-      const wrap=document.getElementById('map-wrap');
-      const wrapRect=wrap.getBoundingClientRect();
-      menuEl.style.left='0px'; menuEl.style.top='0px'; // reset before measuring actual size
-      const mw=menuEl.offsetWidth||200, mh=menuEl.offsetHeight||120;
-      let x=Math.min(Math.max(8,lastClientX-wrapRect.left), wrapRect.width-mw-8);
-      let y=Math.min(Math.max(8,lastClientY-wrapRect.top), wrapRect.height-mh-8);
-      menuEl.style.left=x+'px';
-      menuEl.style.top=y+'px';
-    }
-
     function renderGroupLevel(){
       let html='<div class="mam-header">Choose an action</div>';
       html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
-      html+='<button class="mam-item" data-save-point="1"><span class="mam-icon">&#128204;</span>Save this location</button>';
       groupOrder.forEach(g=>{
         html+='<button class="mam-item" data-group="'+esc(g)+'"><span class="mam-icon">&#128205;</span>'+esc(g)+'</button>';
       });
       menuEl.innerHTML=html;
       const shareMapBtn=menuEl.querySelector('[data-share-map]');
       if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
-      const savePointBtn=menuEl.querySelector('[data-save-point]');
-      if(savePointBtn) savePointBtn.addEventListener('click',saveLocationHere);
       menuEl.querySelectorAll('[data-group]').forEach(btn=>{
         btn.addEventListener('click',()=>renderActionLevel(btn.dataset.group));
       });
-      clampMenuPosition();
     }
 
     function renderActionLevel(group){
       let html='<div class="mam-header"><button class="mam-back" title="Back">&#8592;</button>'+esc(group)+'</div>';
       (groupMap[group]||[]).forEach((a,i)=>{
-        const chipStyle=' style="color:'+esc(a.iconColor||'#555555')+'"';
-        const iconHtml=a.iconSvg?('<span class="mam-icon mam-icon-chip"'+chipStyle+'>'+a.iconSvg+'</span>')
+        const iconHtml=a.iconSvg?('<span class="mam-icon mam-icon-chip">'+a.iconSvg+'</span>')
           :a.iconImgSrc?('<span class="mam-icon mam-icon-chip"><img src="'+esc(a.iconImgSrc)+'" alt=""></span>')
           :'<span class="mam-icon">&#128205;</span>';
         html+='<button class="mam-item" data-idx="'+i+'">'+iconHtml+esc(a.name)+'</button>';
@@ -3482,16 +3291,20 @@ map.on('zoomend',function(){
       menuEl.querySelectorAll('[data-idx]').forEach(btn=>{
         btn.addEventListener('click',()=>openAction(groupMap[group][parseInt(btn.dataset.idx)]));
       });
-      clampMenuPosition();
     }
 
     function openMenuAt(latlng, clientX, clientY){
       currentLatLng=latlng;
-      lastClientX=clientX;
-      lastClientY=clientY;
-      menuEl.classList.add('open');
-      showTempMarker(latlng);
       renderGroupLevel();
+      menuEl.classList.add('open');
+      const wrap=document.getElementById('map-wrap');
+      const wrapRect=wrap.getBoundingClientRect();
+      menuEl.style.left='0px'; menuEl.style.top='0px'; // reset before measuring actual size
+      const mw=menuEl.offsetWidth||200, mh=menuEl.offsetHeight||120;
+      let x=Math.min(Math.max(8,clientX-wrapRect.left), wrapRect.width-mw-8);
+      let y=Math.min(Math.max(8,clientY-wrapRect.top), wrapRect.height-mh-8);
+      menuEl.style.left=x+'px';
+      menuEl.style.top=y+'px';
     }
 
     // Clicks inside the menu must never bubble to the document-level "close on
@@ -3534,8 +3347,6 @@ map.on('zoomend',function(){
     mapEl.addEventListener('touchcancel',()=>{ clearTimeout(lpTimer); lpStart=null; });
     // Prevent iOS' text-selection callout from popping up during a long-press on the map
     mapEl.style.webkitTouchCallout='none';
-
-    renderAllSavedPoints();
   })();
 })();
 <\/script>
