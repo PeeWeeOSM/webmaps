@@ -366,16 +366,16 @@ tiles.on('tileerror',()=>document.getElementById('notice').style.display='block'
 tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
-const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":19,"defaultOn":false},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":null,"defaultOn":false},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":null,"defaultOn":false}];
-const MAP_ACTIONS=[{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#2c7fb8","iconImgSrc":null,"name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 999.97626 999.97626\" xmlns=\"http://www.w3.org/2000/svg\"><linearGradient id=\"a\" gradientUnits=\"userSpaceOnUse\" x1=\"502.060709\" x2=\"499.521429\" y1=\".000005\" y2=\"1000.235005\"><stop offset=\"0\" stop-color=\"#ffa033\"/><stop offset=\"1\" stop-color=\"#f80\"/></linearGradient><path d=\"m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z\" fill=\"url(#a)\" fill-rule=\"evenodd\"/></svg>","iconColor":"#ff8800","iconImgSrc":null,"name":"OsmAnd","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#ea4335","iconImgSrc":null,"name":"Google Maps","urlTemplate":"https://www.google.com/maps/search/?api=1&query={lat},{lon}"},{"group":"Go to","iconSvg":"<svg width=\"48\" height=\"48\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M36 10L48 14L36 16V10Z\" fill=\"currentColor\" />\n<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M21.3676 28.1026C22.4155 27.7533 23.5481 28.3197 23.8974 29.3675L27.4416 40H30.0001C31.1046 40 32.0001 40.8954 32.0001 42C32.0001 43.1046 31.1046 44 30.0001 44H24.5585L20.1027 30.6324C19.7534 29.5846 20.3197 28.4519 21.3676 28.1026Z\" fill=\"currentColor\" />\n<path d=\"M24.0001 22C35.9008 14.5347 34 17.1879 35.961 17.1879C35.961 30 34.7333 32.3769 32 34C29.2667 35.6231 27.5924 35.8162 26.0001 35.9999C24.4078 36.1837 22.3194 35.9999 19.961 35.9999C16.0001 34.812 22.0392 24.812 24.0001 22Z\" fill=\"currentColor\" />\n<path d=\"M4.00218 36.0011C5.71579 34.7996 4.00229 36.0011 24.0023 22.0011C24.0023 22.0011 30.0022 36.0011 20.0022 36.0011C10.0022 36.0011 9.72136 38.7764 6.00228 40.0011C2.28319 41.2259 2.28857 37.2026 4.00218 36.0011Z\" fill=\"currentColor\" />\n<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M34 20C37.3137 20 40 17.3137 40 14C40 10.6863 37.3137 8 34 8C30.6863 8 28 10.6863 28 14C28 17.3137 30.6863 20 34 20ZM34 16C35.1046 16 36 15.1046 36 14C36 12.8954 35.1046 12 34 12C32.8954 12 32 12.8954 32 14C32 15.1046 32.8954 16 34 16Z\" fill=\"currentColor\" />\n</svg>","iconColor":"#ee1717","iconImgSrc":null,"name":"Apple Maps","urlTemplate":"https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z\" fill=\"currentColor\"/></svg>","iconColor":"#3ddc84","iconImgSrc":null,"name":"Choose app (Android)","urlTemplate":"geo:{lat},{lon}?z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#589632","iconImgSrc":null,"name":"QGIS Cloud","urlTemplate":"https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 20 Q7 8 12 14 T21 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","iconColor":"#b5651d","iconImgSrc":null,"name":"Find/download trails (WMT)","urlTemplate":"https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}"}];
-const PREVIEW_VIEW={"lat":52.0727536539532,"lng":5.4965972900390625,"zoom":10};
+const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":18,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":18,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":18,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":18,"defaultOn":false},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":20,"defaultOn":false},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"nativeZoomMax":18,"defaultOn":false}];
+const MAP_ACTIONS=[{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#2c7fb8","iconImgSrc":null,"name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 999.97626 999.97626\" xmlns=\"http://www.w3.org/2000/svg\"><linearGradient id=\"a\" gradientUnits=\"userSpaceOnUse\" x1=\"502.060709\" x2=\"499.521429\" y1=\".000005\" y2=\"1000.235005\"><stop offset=\"0\" stop-color=\"#ffa033\"/><stop offset=\"1\" stop-color=\"#f80\"/></linearGradient><path d=\"m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z\" fill=\"url(#a)\" fill-rule=\"evenodd\"/></svg>","iconColor":"#ff8800","iconImgSrc":null,"name":"OsmAnd","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#ea4335","iconImgSrc":null,"name":"Google Maps","urlTemplate":"https://www.google.com/maps/search/?api=1&query={lat},{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#555555","iconImgSrc":null,"name":"Apple Maps","urlTemplate":"https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z\" fill=\"currentColor\"/></svg>","iconColor":"#3ddc84","iconImgSrc":null,"name":"Choose app (Android)","urlTemplate":"geo:{lat},{lon}?z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#589632","iconImgSrc":null,"name":"QGIS Cloud","urlTemplate":"https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 20 Q7 8 12 14 T21 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","iconColor":"#b5651d","iconImgSrc":null,"name":"Find/download trails (WMT)","urlTemplate":"https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}"}];
+const PREVIEW_VIEW={"lat":52.10079521822755,"lng":5.35935314999998,"zoom":14};
 const wmsLayerObjs=new Array(EX.length);
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
   let lyr=null;
   try{
     if(el.type==='wms'){
-      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax,maxNativeZoom:el.nativeZoomMax||undefined});
     } else {
       lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax,maxNativeZoom:el.nativeZoomMax||undefined});
     }
@@ -1623,10 +1623,28 @@ map.on('zoomend',function(){
                 .replace(/{xmin}/g,xmin).replace(/{ymin}/g,ymin).replace(/{xmax}/g,xmax).replace(/{ymax}/g,ymax);
     }
 
+    let tempMarker=null;
+
+    function showTempMarker(latlng){
+      removeTempMarker();
+      const tempIcon=L.divIcon({
+        className:'',
+        html:'<svg width="26" height="34" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#2980b9" stroke="#fff" stroke-width="2"/><circle cx="17" cy="17" r="6" fill="#fff"/></svg>',
+        iconSize:[26,34],
+        iconAnchor:[13,34]
+      });
+      tempMarker=L.marker(latlng,{icon:tempIcon,zIndexOffset:3000,interactive:false}).addTo(map);
+    }
+
+    function removeTempMarker(){
+      if(tempMarker){ map.removeLayer(tempMarker); tempMarker=null; }
+    }
+
     function closeMenu(){
       menuEl.classList.remove('open');
       menuEl.innerHTML='';
       currentLatLng=null;
+      removeTempMarker();
     }
 
     function openAction(a){
@@ -1674,6 +1692,75 @@ map.on('zoomend',function(){
       closeMenu();
     }
 
+    // --- Saved locations (e.g. "where I parked") — persisted in this browser via
+    // localStorage, scoped to this exact page, so they survive closing the tab,
+    // the browser, or the phone itself. They only disappear if this browser's
+    // site data for this page gets cleared, or on a different device/browser.
+    const SAVED_POINTS_KEY='PeeWeeTrails_savedPoints__'+location.pathname;
+    const savedPointLayers={};
+
+    function loadSavedPoints(){
+      try{
+        const raw=localStorage.getItem(SAVED_POINTS_KEY);
+        return raw?JSON.parse(raw):[];
+      }catch(e){ return []; }
+    }
+
+    function persistSavedPoints(points){
+      try{ localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(points)); }catch(e){}
+    }
+
+    const savedPinIcon=L.divIcon({
+      className:'',
+      html:'<svg width="28" height="36" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#8e44ad" stroke="#fff" stroke-width="2"/><path d="M17 9l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5-4.6-2.8-4.9 2.8 1.2-5.5-4.2-3.8 5.6-.6z" fill="#fff"/></svg>',
+      iconSize:[28,36],
+      iconAnchor:[14,36]
+    });
+
+    function renderSavedPoint(p){
+      const marker=L.marker([p.lat,p.lng],{icon:savedPinIcon,zIndexOffset:1500}).addTo(map);
+      const popupEl=document.createElement('div');
+      popupEl.innerHTML='<b>'+esc(p.label)+'</b><br><button type="button" class="saved-point-remove">Remove</button>';
+      popupEl.querySelector('.saved-point-remove').addEventListener('click',()=>{
+        removeSavedPoint(p.id);
+        marker.closePopup();
+      });
+      marker.bindPopup(popupEl);
+      savedPointLayers[p.id]=marker;
+    }
+
+    function renderAllSavedPoints(){
+      loadSavedPoints().forEach(renderSavedPoint);
+    }
+
+    function removeSavedPoint(id){
+      const points=loadSavedPoints().filter(p=>p.id!==id);
+      persistSavedPoints(points);
+      if(savedPointLayers[id]){
+        map.removeLayer(savedPointLayers[id]);
+        delete savedPointLayers[id];
+      }
+    }
+
+    function saveLocationHere(){
+      if(!currentLatLng) return;
+      const label=window.prompt('Label for this location (e.g. "Parked car"):','Parked car');
+      closeMenu();
+      if(label===null) return; // cancelled
+      const point={
+        id:'p'+Date.now()+Math.random().toString(36).slice(2,7),
+        lat:currentLatLng.lat,
+        lng:currentLatLng.lng,
+        label:(label.trim()||'Saved location'),
+        createdAt:Date.now()
+      };
+      const points=loadSavedPoints();
+      points.push(point);
+      persistSavedPoints(points);
+      renderSavedPoint(point);
+      showToast('Location saved — it will still be here next time you open this map on this device.');
+    }
+
     let lastClientX=0, lastClientY=0;
 
     function clampMenuPosition(){
@@ -1690,12 +1777,15 @@ map.on('zoomend',function(){
     function renderGroupLevel(){
       let html='<div class="mam-header">Choose an action</div>';
       html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
+      html+='<button class="mam-item" data-save-point="1"><span class="mam-icon">&#128204;</span>Save this location</button>';
       groupOrder.forEach(g=>{
         html+='<button class="mam-item" data-group="'+esc(g)+'"><span class="mam-icon">&#128205;</span>'+esc(g)+'</button>';
       });
       menuEl.innerHTML=html;
       const shareMapBtn=menuEl.querySelector('[data-share-map]');
       if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
+      const savePointBtn=menuEl.querySelector('[data-save-point]');
+      if(savePointBtn) savePointBtn.addEventListener('click',saveLocationHere);
       menuEl.querySelectorAll('[data-group]').forEach(btn=>{
         btn.addEventListener('click',()=>renderActionLevel(btn.dataset.group));
       });
@@ -1724,6 +1814,7 @@ map.on('zoomend',function(){
       lastClientX=clientX;
       lastClientY=clientY;
       menuEl.classList.add('open');
+      showTempMarker(latlng);
       renderGroupLevel();
     }
 
@@ -1767,6 +1858,8 @@ map.on('zoomend',function(){
     mapEl.addEventListener('touchcancel',()=>{ clearTimeout(lpTimer); lpStart=null; });
     // Prevent iOS' text-selection callout from popping up during a long-press on the map
     mapEl.style.webkitTouchCallout='none';
+
+    renderAllSavedPoints();
   })();
 })();
 </script>
