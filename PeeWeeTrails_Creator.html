@@ -116,7 +116,7 @@ input:checked+.slider:before{transform:translateX(14px)}
       <button class="btn" style="width:100%;margin-bottom:5px;text-align:left" onclick="beginGeometryDraw('pol')">
         <svg width="16" height="16" viewBox="0 0 18 18" style="vertical-align:middle;margin-right:5px"><polygon points="3,13 5,4 13,3 15,11 9,15" fill="#3388ff" fill-opacity="0.35" stroke="#3388ff" stroke-width="1.5"/></svg>Polygon
       </button>
-      <button class="btn" style="width:100%;color:#888" onclick="cancelGeometryDraw()">Cancel</button>
+      <button class="btn" style="width:100%;color:#000" onclick="cancelGeometryDraw()">Cancel</button>
     </div>
 
     <!-- Create-geometry overlay: drawing in progress controls -->
@@ -175,10 +175,17 @@ input:checked+.slider:before{transform:translateX(14px)}
         <span class="range-val" id="osmopacityval">100%</span>
       </div>
     </div>
+    <div>
+      <label for="output-info-url">URL output information</label>
+      <input type="text" id="output-info-url" placeholder="https://example.com/about-this-map" value="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html">
+      <p style="font-size:12px;color:#000;margin:4px 0 0">If filled in, an info ("i") button appears top-right on the exported map. Clicking it opens this URL in a new tab. Leave empty to not show the button at all.</p>
+    </div>
+  </div>
+</div>
 
 <div class="card">
   <div class="section-label">Extra map layers</div>
-  <p style="font-size:12px;color:#888;margin:-4px 0 8px">Top layer in list renders on top of the map. To change order use the arrows.</p>
+  <p style="font-size:12px;color:#000;margin:-4px 0 8px">Top layer in list renders on top of the map. To change order use the arrows.</p>
   <div id="layer-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addLayer()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add layer
@@ -190,7 +197,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <div class="card">
   <div class="section-label">Map actions</div>
-  <p style="font-size:12px;color:#888;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. One extra item — "Share this map here" (a link back to this same map with a marker at the tapped spot) — is always shown too and doesn't need to be added here.</p>
+  <p style="font-size:12px;color:#000;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. For turn-by-turn navigation links, <code>{fromlat}</code>/<code>{fromlon}</code> give the visitor's own current location (the browser will ask permission first) — e.g. for an OpenStreetMap walking route: <code>https://www.openstreetmap.org/directions?engine=graphhopper_foot&amp;route={fromlat}%2C{fromlon}%3B{lat}%2C{lon}</code>, or a BRouter-web trekking route: <code>https://brouter.de/brouter-web/#zoom={zoom}&amp;lat={lat}&amp;lon={lon}&amp;layer=OpenStreetMap&amp;lonlats={fromlon},{fromlat}|{lon},{lat}&amp;nogos=&amp;alternativeidx=0&amp;format=geojson&amp;profile=trekking</code>. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. One extra item — "Share this map here" (a link back to this same map with a marker at the tapped spot) — is always shown too and doesn't need to be added here.</p>
   <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add action
@@ -248,12 +255,14 @@ const TRAIL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><pa
 const ANDROID_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/></svg>';
 const DEFAULT_MAP_ACTIONS=[
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2c7fb8',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd Online',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#555555',name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}'},
   {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#589632',name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
-  {group:'Go to',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'}
+  {group:'Go to',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Route by foot (Brouter)',urlTemplate:'https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=hiking-mountain'},
+  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#1565c0',name:'Route by bicycle (Brouter)',urlTemplate:'https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=trekking'}
 ];
 let mapActions=[];
 // Saving in renderLayerList() ensures all layer changes are captured.
@@ -277,7 +286,8 @@ function saveLayersToStorage(){
       })),
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       title:document.getElementById('title').value,
-      osmOpacity:document.getElementById('osmopacity').value
+      osmOpacity:document.getElementById('osmopacity').value,
+      outputInfoUrl:document.getElementById('output-info-url').value
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }catch(e){}
@@ -311,6 +321,7 @@ function loadLayersFromStorage(){
 
     _restoring=false;
     if(state&&state.title) document.getElementById('title').value=state.title;
+    if(state&&state.outputInfoUrl) document.getElementById('output-info-url').value=state.outputInfoUrl;
     if(state&&state.osmOpacity!=null){
       const sl=document.getElementById('osmopacity');
       sl.value=state.osmOpacity;
@@ -332,11 +343,12 @@ if(document.readyState==='loading'){
 
 // Save title changes
 document.getElementById('title').addEventListener('input',saveLayersToStorage);
+document.getElementById('output-info-url').addEventListener('input',saveLayersToStorage);
 
 // Small notice under the export button
 (function(){
   const notice=document.createElement('p');
-  notice.style.cssText='font-size:11px;color:#888;margin-top:6px;text-align:center';
+  notice.style.cssText='font-size:11px;color:#000;margin-top:6px;text-align:center';
   notice.textContent='Extra layers & title are saved in this browser automatically.';
   const btn=document.getElementById('exportbtn');
   if(btn&&btn.parentNode) btn.parentNode.appendChild(notice);
@@ -1598,6 +1610,7 @@ function exportMap(){
   const d=new Date();
   const ymd=d.getFullYear().toString()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   const title=document.getElementById('title').value.trim()||('PeeWeeTrails_'+ymd);
+  const outputInfoUrl=(document.getElementById('output-info-url').value||'').trim();
   const optFollow=document.getElementById('opt-follow').checked;
   const wptZoom=1;
   const wptMarkerZoom=1;
@@ -1640,6 +1653,7 @@ function exportMap(){
   const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
   const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
   const safeTitle=title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const safeInfoUrl=JSON.stringify(outputInfoUrl);
 
   // Carry over whatever view (center + zoom) the live preview is currently
   // showing, so the exported map opens exactly where you left it (e.g. zoomed
@@ -1681,12 +1695,12 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .zoom-group{background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .zoom-group .ctrl-btn{border:none;border-radius:0;box-shadow:none;width:34px;height:32px}
 .zoom-group .ctrl-btn:first-child{border-bottom:1px solid #ddd}
-#layers-overlay{display:none;position:absolute;top:54px;right:10px;z-index:1000}
+#layers-overlay{display:none;position:absolute;top:96px;right:10px;z-index:1000}
 #layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px}
 #layers-panel.open{display:block}
 #layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
-#zoom-indicator{position:absolute;top:10px;right:10px;z-index:1000;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:6px 10px;font-size:13px;font-weight:600;color:#222;pointer-events:none}
+#zoom-indicator{position:absolute;top:52px;right:10px;z-index:1000;background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:6px 10px;font-size:13px;font-weight:600;color:#222;pointer-events:none}
 .layer-toggle-row input{flex-shrink:0}
 .layer-toggle-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .layer-opacity-row{display:flex;align-items:center;gap:6px;padding:2px 0 6px 22px;border-bottom:1px solid #eee}
@@ -1695,6 +1709,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .layer-opacity-row span{font-size:11px;color:#999;min-width:30px;text-align:right}
 .layer-section-label{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;padding:4px 0 2px}
 /* User route loader panel */
+#info-btn{position:absolute;top:10px;right:10px;z-index:1000;width:30px;height:30px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.25);box-shadow:0 2px 8px rgba(0,0,0,.3);font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:16px;color:#2980b9;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+#info-btn:hover{background:#f4f4f4}
 #route-overlay{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:0}
 #route-btn{background:white;border:2px solid rgba(0,0,0,.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;gap:6px;white-space:nowrap}
 #route-btn:hover{background:#f4f4f4}
@@ -1798,6 +1814,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
   <div id="map-actions-menu" class="map-actions-menu"></div>
+  <button id="info-btn" title="About this map" style="display:none">i</button>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""><\/script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"><\/script>
@@ -2024,6 +2041,7 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 const EX=${JSON.stringify(exportExtra)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const PREVIEW_VIEW=${JSON.stringify(previewView)};
+const INFO_URL=${safeInfoUrl};
 // Automatically figures out how far a tile layer's real tiles actually go: the
 // first time a tile genuinely fails to load at a plausibly-high zoom level (not
 // just a low-zoom network blip), the layer's native ceiling is capped there and
@@ -2086,6 +2104,11 @@ const wmsLayerObjs=new Array(EX.length);
     secExtra.className='layer-section-label';
     secExtra.textContent='Extra layers';
     panelContent.appendChild(secExtra);
+
+    const secExtraNote=document.createElement('div');
+    secExtraNote.style.cssText='font-size:11px;color:#666;margin:-4px 0 6px';
+    secExtraNote.textContent='(last ticked on top)';
+    panelContent.appendChild(secExtraNote);
 
     wmsLayerObjs.forEach((lo,i)=>{
       const row=document.createElement('label');
@@ -3266,6 +3289,15 @@ map.on('zoomend',function(){
     Array.from(e.dataTransfer.files).forEach(f=>loadFile(f,'any'));
   });
 
+  // --- Info button (top-right "i"), only shown when a URL was configured ---
+  if(INFO_URL){
+    const infoBtn=document.getElementById('info-btn');
+    if(infoBtn){
+      infoBtn.style.display='flex';
+      infoBtn.addEventListener('click',()=>window.open(INFO_URL,'_blank','noopener'));
+    }
+  }
+
   // --- Map actions: long-press (touch) / right-click (desktop) menu ---
   (function(){
     const menuEl=document.getElementById('map-actions-menu');
@@ -3283,16 +3315,20 @@ map.on('zoomend',function(){
 
     function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
-    function fillTemplate(tpl,latlng){
+    function fillTemplate(tpl,latlng,fromCoords){
       const lat=latlng.lat.toFixed(5), lon=latlng.lng.toFixed(5), zoom=Math.round(map.getZoom());
       // EPSG:3857 (Web Mercator) metres, for services that expect projected coordinates
       const merc=L.CRS.EPSG3857.project(latlng);
       const x=Math.round(merc.x), y=Math.round(merc.y);
       const HALF_SQUARE_M=250; // 500m x 500m square centered on the tapped point
       const xmin=x-HALF_SQUARE_M, ymin=y-HALF_SQUARE_M, xmax=x+HALF_SQUARE_M, ymax=y+HALF_SQUARE_M;
-      return tpl.replace(/{lat}/g,lat).replace(/{lon}/g,lon).replace(/{zoom}/g,zoom)
+      let result=tpl.replace(/{lat}/g,lat).replace(/{lon}/g,lon).replace(/{zoom}/g,zoom)
                 .replace(/{x}/g,x).replace(/{y}/g,y)
                 .replace(/{xmin}/g,xmin).replace(/{ymin}/g,ymin).replace(/{xmax}/g,xmax).replace(/{ymax}/g,ymax);
+      if(fromCoords){
+        result=result.replace(/{fromlat}/g,fromCoords.lat.toFixed(5)).replace(/{fromlon}/g,fromCoords.lon.toFixed(5));
+      }
+      return result;
     }
 
     let tempMarker=null;
@@ -3319,9 +3355,7 @@ map.on('zoomend',function(){
       removeTempMarker();
     }
 
-    function openAction(a){
-      if(!currentLatLng) return;
-      const url=fillTemplate(a.urlTemplate,currentLatLng);
+    function openUrl(url){
       if(/^https?:/i.test(url)){
         window.open(url,'_blank','noopener');
       } else {
@@ -3329,7 +3363,37 @@ map.on('zoomend',function(){
         // to an installed app; window.open() is unreliable for custom schemes.
         window.location.href=url;
       }
-      closeMenu();
+    }
+
+    function openAction(a){
+      if(!currentLatLng) return;
+      const latlng=currentLatLng; // capture before closeMenu() clears currentLatLng
+      const needsCurrentLocation=/{fromlat}|{fromlon}/.test(a.urlTemplate);
+      if(!needsCurrentLocation){
+        openUrl(fillTemplate(a.urlTemplate,latlng));
+        closeMenu();
+        return;
+      }
+      // This action's URL also needs where the visitor currently is (e.g. for
+      // "navigate from here to there" links) — ask the browser for that first.
+      if(!navigator.geolocation){
+        alert('Your browser does not support location services, so this link cannot be completed.');
+        closeMenu();
+        return;
+      }
+      showToast('Getting your current location…');
+      navigator.geolocation.getCurrentPosition(
+        pos=>{
+          const fromCoords={lat:pos.coords.latitude,lon:pos.coords.longitude};
+          openUrl(fillTemplate(a.urlTemplate,latlng,fromCoords));
+          closeMenu();
+        },
+        err=>{
+          alert('Could not get your current location ('+(err&&err.message?err.message:'permission denied or unavailable')+'), so this link could not be completed.');
+          closeMenu();
+        },
+        {enableHighAccuracy:false,timeout:20000,maximumAge:60000}
+      );
     }
 
     function buildShareMapUrl(latlng){
@@ -3382,15 +3446,24 @@ map.on('zoomend',function(){
       try{ localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(points)); }catch(e){}
     }
 
-    const savedPinIcon=L.divIcon({
-      className:'',
-      html:'<svg width="28" height="36" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#8e44ad" stroke="#fff" stroke-width="2"/><path d="M17 9l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5-4.6-2.8-4.9 2.8 1.2-5.5-4.2-3.8 5.6-.6z" fill="#fff"/></svg>',
-      iconSize:[28,36],
-      iconAnchor:[14,36]
-    });
+    function buildSavedPointIcon(label){
+      const haloColor='#fff';
+      const hw='2px';
+      const labelHtml='<div style="position:absolute;left:32px;top:6px;white-space:nowrap;color:#8e44ad;font-size:13px;font-weight:700;pointer-events:none;'+
+        'text-shadow:-'+hw+' -'+hw+' 0 '+haloColor+','+hw+' -'+hw+' 0 '+haloColor+',-'+hw+' '+hw+' 0 '+haloColor+','+hw+' '+hw+' 0 '+haloColor+',0 '+hw+' 0 '+haloColor+',0 -'+hw+' 0 '+haloColor+','+hw+' 0 0 '+haloColor+',-'+hw+' 0 0 '+haloColor+'">'+esc(label)+'</div>';
+      return L.divIcon({
+        className:'',
+        html:'<div style="position:relative;width:28px;height:36px">'+
+          '<svg width="28" height="36" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#8e44ad" stroke="#fff" stroke-width="2"/><path d="M17 9l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5-4.6-2.8-4.9 2.8 1.2-5.5-4.2-3.8 5.6-.6z" fill="#fff"/></svg>'+
+          labelHtml+
+        '</div>',
+        iconSize:[28,36],
+        iconAnchor:[14,36]
+      });
+    }
 
     function renderSavedPoint(p){
-      const marker=L.marker([p.lat,p.lng],{icon:savedPinIcon,zIndexOffset:1500}).addTo(map);
+      const marker=L.marker([p.lat,p.lng],{icon:buildSavedPointIcon(p.label),zIndexOffset:1500}).addTo(map);
       const popupEl=document.createElement('div');
       popupEl.innerHTML='<b>'+esc(p.label)+'</b><br><button type="button" class="saved-point-remove">Remove</button>';
       popupEl.querySelector('.saved-point-remove').addEventListener('click',()=>{
