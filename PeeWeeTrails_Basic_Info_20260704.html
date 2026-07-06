@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeeWeeTrails_Basic - Jouw Privacyvriendelijke Kaarthub</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #27ae60;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #ffffff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .intro-lead {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #eaeded;
+            padding-bottom: 8px;
+            margin-top: 35px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            background: var(--card-bg);
+            margin-bottom: 12px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .feature-list strong {
+            color: var(--primary-color);
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f4f4;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 14px 30px;
+            text-shadow: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            border-top: 1px solid #eaeded;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>PeeWeeTrails_Basic</h1>
+        <p>Jouw data. Jouw route. Jouw absolute privacy.</p>
+    </header>
+
+    <div class="intro-lead">
+        Ontdek PeeWeeTrails_Basic: dé minimalistische webkaart-applicatie waarmee je volledige controle houdt over je eigen geografische data. Geen tracking, geen cloud-verplichtingen, maar pure vrijheid.
+    </div>
+
+    <p>In een digitale wereld waarin fitnessapps en techgiganten routinedata continu commercialiseren, breekt <strong>PeeWeeTrails_Basic</strong> met deze trend. De applicatie fungeert als een lokaal, veilig controlecentrum rechtstreeks in de browser van de gebruiker. Data blijft persoonlijk bezit, exact zoals het hoort.</p>
+
+    <h2>Opendata & OpenStreetMap: Het Eerlijke Fundament</h2>
+    <p>Waarom betalen met je privacy op commerciële platformen als het anders kan? PeeWeeTrails_Basic bouwt volledig op <strong>Opendata en OpenStreetMap (OSM)</strong> als standaard basiskaart.</p>
+    <ul class="feature-list">
+        <li><strong>Geen Google als standaard:</strong> Geen ongewenste trackers, advertenties of constante datastromen naar commerciële partijen bij het openen van de kaart.</li>
+        <li><strong>De gebruiker kiest:</strong> Wil je tóch even snel overschakelen naar de Google Maps-weergave? Dat kan met één klik. Jij behoudt de regie; de sprong naar Google is een bewuste keuze van de gebruiker en nooit de default.</li>
+    </ul>
+
+    <h2>Krachtige Functies voor Onderweg & Lokale Navigatie</h2>
+    <p>Of je nu vooraf een route analyseert of live in het veld staat, de tool past zich moeiteloos aan je behoeften aan:</p>
+    <ul class="feature-list">
+        <li><strong>Zelf locatiemarkers plaatsen:</strong> Maak eenvoudig een marker aan voor een specifieke locatie. Ideaal om direct je parkeerplek, een startpunt of een rustlocatie vast te leggen en altijd feilloos terug te vinden.</li>
+        <li><strong>Mobiele live-tracking:</strong> Open de webkaart op je telefoon om direct je actuele GPS-locatie live te bekijken.</li>
+        <li><strong>Volg je eigen spoor:</strong> De tool stelt je in staat om je daadwerkelijk afgelegde spoor in realtime op te bouwen en visueel te volgen tijdens het wandelen of fietsen.</li>
+        <li><strong>Fiets- en wandelnetwerken op maat:</strong> Schakel officiële knooppuntroutes en netwerken naar eigen inzicht aan of uit. Richt de kaart exact zo in als jouw activiteit op dat moment vereist.</li>
+    </ul>
+
+    <h2>Flexibel Data- & Zichtbaarheidsbeheer</h2>
+    <p>Importeer moeiteloos eigen <strong>GPX- en GeoJSON-bestanden</strong> via de lokale importfunctie. De applicatie splitst de data automatisch op in overzichtelijke lagen (Tracks, Waypoints en Polygons). Met de ingebouwde schuifbalken reguleer je de transparantie en zichtbaarheid van elke laag afzonderlijk tussen de 0% en 100%.</p>
+
+    <h2>Compromisloze Privacy op een Rij</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Privacy-aspect</th>
+                <th>Hoe PeeWeeTrails_Basic dit oplost</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Dataopslag</strong></td>
+                <td><strong>100% lokaal.</strong> Bestanden worden in de eigen browsercache verwerkt en verlaten de computer of smartphone nooit.</td>
+            </tr>
+            <tr>
+                <td><strong>Gebruikersprofielen</strong></td>
+                <td><strong>Geen accounts.</strong> Geen registratie, e-mailadres of profielen vereist. Iedere gebruiker blijft anoniem.</td>
+            </tr>
+            <tr>
+                <td><strong>Offline Werking</strong></td>
+                <td>Zodra de pagina is geladen, kan de applicatie volledig stand-alone en offline functioneren zonder actieve cloudverbinding.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="btn-container">
+        <a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic.html" class="btn" target="_blank">Start de Kaart Applicatie</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 PeeWeeOSM Webmaps. Gebouwd op basis van OpenStreetMap-initiatieven.</p>
+    </footer>
+</div>
+
+</body>
+</html>
