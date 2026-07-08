@@ -26,8 +26,13 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .zoom-group{background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .zoom-group .ctrl-btn{border:none;border-radius:0;box-shadow:none;width:34px;height:32px}
 .zoom-group .ctrl-btn:first-child{border-bottom:1px solid #ddd}
-#layers-overlay{display:none;position:absolute;top:96px;right:10px;z-index:1000}
-#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:70vh;overflow-y:auto}
+#layers-overlay{display:none;position:absolute;top:96px;right:10px;z-index:1200}
+/* Panel is anchored to the layers button (top:42px below it). Cap its height to
+   the space actually left above the bottom of the map (viewport height minus the
+   panel's ~138px top offset minus a 16px margin) so the last row ("Base map" /
+   OpenStreetMap) and its opacity slider stay on-screen and scrollable on short
+   mobile screens, instead of running off the bottom edge. */
+#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 154px);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #layers-panel.open{display:block}
 #layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
@@ -190,7 +195,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
   <div id="route-overlay">
-    <div id="route-panel"><h3>Imported files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-gpx">+ GPX</button><button id="route-add-geojson">+ GeoJSON</button></div></div>
+    <div id="route-panel"><h3>Imported files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON</button></div></div>
     <button id="route-btn">&#8613; Import files</button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
@@ -419,9 +424,9 @@ tiles.on('tileerror',()=>document.getElementById('notice').style.display='block'
 tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
-const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false}];
+const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Gravel","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Dijkfietser","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false}];
 const MAP_ACTIONS=[{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#2c7fb8","iconImgSrc":null,"name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 999.97626 999.97626\" xmlns=\"http://www.w3.org/2000/svg\"><linearGradient id=\"a\" gradientUnits=\"userSpaceOnUse\" x1=\"502.060709\" x2=\"499.521429\" y1=\".000005\" y2=\"1000.235005\"><stop offset=\"0\" stop-color=\"#ffa033\"/><stop offset=\"1\" stop-color=\"#f80\"/></linearGradient><path d=\"m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z\" fill=\"url(#a)\" fill-rule=\"evenodd\"/></svg>","iconColor":"#ff8800","iconImgSrc":null,"name":"OsmAnd Online","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#ea4335","iconImgSrc":null,"name":"Google Maps","urlTemplate":"https://www.google.com/maps/search/?api=1&query={lat},{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#555555","iconImgSrc":null,"name":"Apple Maps","urlTemplate":"https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z\" fill=\"currentColor\"/></svg>","iconColor":"#3ddc84","iconImgSrc":null,"name":"Choose app (Android)","urlTemplate":"geo:{lat},{lon}?z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#589632","iconImgSrc":null,"name":"QGIS Cloud","urlTemplate":"https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 20 Q7 8 12 14 T21 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","iconColor":"#b5651d","iconImgSrc":null,"name":"Find/download trails (WMT)","urlTemplate":"https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#2e7d32","iconImgSrc":null,"name":"Route by foot (Brouter)","urlTemplate":"https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=hiking-mountain"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#1565c0","iconImgSrc":null,"name":"Route by bicycle (Brouter)","urlTemplate":"https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=trekking"}];
-const PREVIEW_VIEW={"lat":47.87582858242869,"lng":20.769653320312504,"zoom":5};
+const PREVIEW_VIEW={"lat":53.080827372074815,"lng":4.953117370605469,"zoom":11};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Automatically figures out how far a tile layer's real tiles actually go: the
 // first time a tile genuinely fails to load at a plausibly-high zoom level (not
@@ -840,10 +845,14 @@ function haversineMeters(p1,p2){
 // Keep the GPS trail (and its accompanying circle/marker) rendered above
 // everything else, including tracks imported later via "Import files".
 function bringTrailToFront(){
-  if(locTrailBg) locTrailBg.bringToFront();
-  if(locTrail) locTrail.bringToFront();
-  if(lc) lc.bringToFront();
-  if(dirMarker) dirMarker.bringToFront();
+  // Only path-based layers (polylines/polygons) implement bringToFront().
+  // L.Marker (e.g. dirMarker, lc) does not, so guard each call to avoid a
+  // crash that would otherwise abort whatever triggered this (e.g. adding a
+  // BRouter/imported route to the list).
+  if(locTrailBg && locTrailBg.bringToFront) locTrailBg.bringToFront();
+  if(locTrail && locTrail.bringToFront) locTrail.bringToFront();
+  if(lc && lc.bringToFront) lc.bringToFront();
+  if(dirMarker && dirMarker.bringToFront) dirMarker.bringToFront();
 }
 
 function trimTrail(history){
@@ -1179,8 +1188,22 @@ map.on('zoomend',function(){
         const la=parseFloat(w.getAttribute('lat')),lo=parseFloat(w.getAttribute('lon'));
         if(!isNaN(la)&&!isNaN(lo))wpts.push({lat:la,lon:lo,name:w.querySelector('name')?.textContent||'',desc:w.querySelector('desc')?.textContent||''});
       });
-      return{tracks,waypoints:wpts};
+      return{tracks:mergeUserTracksIntoOne(tracks),waypoints:wpts};
     }catch(e){return null;}
+  }
+
+  // A GPX/GeoJSON route made of many segments (multiple <trk>/<trkseg> or a
+  // MultiLineString) should appear as ONE track: one row in the list, one line
+  // on the map, one name, one total length. Concatenate all point lists in
+  // order and keep the first available name.
+  function mergeUserTracksIntoOne(tracks){
+    if(!tracks||tracks.length<=1)return tracks||[];
+    const coords=[];let name='';
+    tracks.forEach(t=>{
+      if(!name && t.name && t.name.trim())name=t.name.trim();
+      for(const c of t.coords)coords.push(c);
+    });
+    return coords.length?[{name,coords}]:[];
   }
 
   function parseUserGeoJSON(text){
@@ -1218,7 +1241,7 @@ map.on('zoomend',function(){
       }
       const features=(gj.type==='FeatureCollection')?gj.features:(gj.type==='Feature')?[gj]:[{type:'Feature',geometry:gj,properties:{}}];
       features.forEach(ft=>{if(ft&&ft.geometry)handleGeom(ft.geometry,ft.properties||{});});
-      return{tracks,waypoints,polygons};
+      return{tracks:mergeUserTracksIntoOne(tracks),waypoints,polygons};
     }catch(e){return null;}
   }
 
@@ -1780,8 +1803,7 @@ map.on('zoomend',function(){
     setTimeout(()=>fileInput.click(),50);
   }
 
-  document.getElementById('route-add-gpx').onclick=function(e){e.stopPropagation();triggerFilePick('gpx');};
-  document.getElementById('route-add-geojson').onclick=function(e){e.stopPropagation();triggerFilePick('geojson');};
+  document.getElementById('route-add-file').onclick=function(e){e.stopPropagation();triggerFilePick('any');};
 
   fileInput.addEventListener('change',function(){
     Array.from(fileInput.files).forEach(f=>loadFile(f,pendingAccept));
@@ -1989,7 +2011,7 @@ map.on('zoomend',function(){
       return location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
     }
 
-    function showToast(msg){
+    function showToast(msg,duration){
       let t=document.getElementById('mam-toast');
       if(!t){
         t=document.createElement('div');
@@ -2000,7 +2022,7 @@ map.on('zoomend',function(){
       t.textContent=msg;
       t.style.opacity='1';
       clearTimeout(t._hideTimer);
-      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },2000);
+      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },duration||2000);
     }
 
     function shareThisMap(){
@@ -2095,7 +2117,7 @@ map.on('zoomend',function(){
       points.push(point);
       persistSavedPoints(points);
       renderSavedPoint(point);
-      showToast('Location saved — it will still be here next time you open this map on this device.');
+      showToast('Location saved — it will still be here next time you open this map on this device.',5000);
     }
 
     let lastClientX=0, lastClientY=0;
