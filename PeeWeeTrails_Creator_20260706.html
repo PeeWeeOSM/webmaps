@@ -190,7 +190,7 @@ input:checked+.slider:before{transform:translateX(14px)}
   <button class="btn" onclick="addLayer()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add layer
   </button>
-  <button class="btn" onclick="resetLayersToDefault()" title="Discard your current layer list and restore the built-in default layers" style="font-size:13px;padding:6px 12px;margin-left:6px">
+  <button class="btn" onclick="resetLayersToDefault()" title="Discard your current layer list and restore the 6 built-in default layers" style="font-size:13px;padding:6px 12px;margin-left:6px">
     <i class="ti ti-refresh" aria-hidden="true"></i> Reset layers to default
   </button>
 </div>
@@ -225,18 +225,12 @@ const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c070
 
 // --- Default extra layers (shown when no saved state exists) ---
 const DEFAULT_LAYERS=[
-  // One overlay per line — add or remove lines freely in VS Code (copy a line,
-  // change url + displayName). type:'xyz' = XYZ/WMTS tile URL using {z}/{x}/{y};
-  // type:'wms' additionally needs a wmsLayer. defaultOn = on from the start in the
-  // exported map; previewOn = shown in this editor's own preview.
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'gravelbiker',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'dijkfietser',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false}
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:true},
+  {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,previewOn:true}
 ];
 // --- Default map actions (long-press / right-click menu in the output map) ---
 // {lat}, {lon} and {zoom} are placeholders filled in with the tapped location and
@@ -259,28 +253,16 @@ const PIN_SVG='<svg viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path
 const OSMAND_SVG='<svg viewBox="0 0 999.97626 999.97626" xmlns="http://www.w3.org/2000/svg"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="502.060709" x2="499.521429" y1=".000005" y2="1000.235005"><stop offset="0" stop-color="#ffa033"/><stop offset="1" stop-color="#f80"/></linearGradient><path d="m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z" fill="url(#a)" fill-rule="evenodd"/></svg>';
 const TRAIL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 20 Q7 8 12 14 T21 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ANDROID_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/></svg>';
-// "Route to" glyphs: Material Design Icons (Pictogrammers, Apache-2.0) — a matching
-// set (same 24x24 grid, same solid weight) so Foot / Bicycle (Trekking) / Bicycle
-// (Fast) read as one consistent group. fill="currentColor" lets the color picker
-// recolor them.
-const WALK_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.12,10H19V8.2H15.38L13.38,4.87C13.08,4.37 12.54,4.03 11.92,4.03C11.74,4.03 11.58,4.06 11.42,4.11L6,5.8V11H7.8V7.33L9.91,6.67L6,22H7.8L10.67,13.89L13,17V22H14.8V15.59L12.31,11.05L13.04,8.18M14,3.8C15,3.8 15.8,3 15.8,2C15.8,1 15,0.2 14,0.2C13,0.2 12.2,1 12.2,2C12.2,3 13,3.8 14,3.8Z" fill="currentColor"/></svg>';
-const BIKE_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5,20.5A3.5,3.5 0 0,1 1.5,17A3.5,3.5 0 0,1 5,13.5A3.5,3.5 0 0,1 8.5,17A3.5,3.5 0 0,1 5,20.5M5,12A5,5 0 0,0 0,17A5,5 0 0,0 5,22A5,5 0 0,0 10,17A5,5 0 0,0 5,12M14.8,10H19V8.2H15.8L13.86,4.93C13.57,4.43 13,4.1 12.4,4.1C11.93,4.1 11.5,4.29 11.2,4.6L7.5,8.29C7.19,8.6 7,9 7,9.5C7,10.13 7.33,10.66 7.85,10.97L11.2,13V18H13V11.5L10.75,9.85L13.07,7.5M19,20.5A3.5,3.5 0 0,1 15.5,17A3.5,3.5 0 0,1 19,13.5A3.5,3.5 0 0,1 22.5,17A3.5,3.5 0 0,1 19,20.5M19,12A5,5 0 0,0 14,17A5,5 0 0,0 19,22A5,5 0 0,0 24,17A5,5 0 0,0 19,12M16,4.8C17,4.8 17.8,4 17.8,3C17.8,2 17,1.2 16,1.2C15,1.2 14.2,2 14.2,3C14.2,4 15,4.8 16,4.8Z" fill="currentColor"/></svg>';
-const BIKEFAST_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1.2C15 1.2 14.2 2 14.2 3S15 4.8 16 4.8 17.8 4 17.8 3 17 1.2 16 1.2M12.4 4.1C11.93 4.1 11.5 4.29 11.2 4.6L7.5 8.29C7.19 8.6 7 9 7 9.5C7 10.13 7.33 10.66 7.85 10.97L11.2 13V18H13V11.5L10.75 9.85L13.07 7.5L14.8 10H19V8.2H15.8L13.86 4.93C13.57 4.43 13 4.1 12.4 4.1M10 3H3C2.45 3 2 2.55 2 2S2.45 1 3 1H12.79C12.58 1.34 12.41 1.71 12.32 2.11C11.46 2.13 10.65 2.45 10 3M5 12C2.24 12 0 14.24 0 17S2.24 22 5 22 10 19.76 10 17 7.76 12 5 12M5 20.5C3.07 20.5 1.5 18.93 1.5 17S3.07 13.5 5 13.5 8.5 15.07 8.5 17 6.93 20.5 5 20.5M19 12C16.24 12 14 14.24 14 17S16.24 22 19 22 24 19.76 24 17 21.76 12 19 12M19 20.5C17.07 20.5 15.5 18.93 15.5 17S17.07 13.5 19 13.5 22.5 15.07 22.5 17 20.93 20.5 19 20.5M5.32 11H1C.448 11 0 10.55 0 10S.448 9 1 9H5.05C5.03 9.16 5 9.33 5 9.5C5 10.03 5.12 10.54 5.32 11M6 7H2C1.45 7 1 6.55 1 6S1.45 5 2 5H7.97L6.09 6.87C6.05 6.91 6 6.96 6 7Z" fill="currentColor"/></svg>';
 const DEFAULT_MAP_ACTIONS=[
-  // ---- "Route to" : BRouter routing from the visitor's own location to the ----
-  // tapped point. The result is drawn on the map and added to the Imported files
-  // list, named after the "name" field here (e.g. "Bicycle (Trekking) (15,6 km)").
-  {group:'Route to',iconSvg:WALK_SVG,iconSvgRaw:WALK_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Foot',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=hiking-mountain&format=geojson'},
-  {group:'Route to',iconSvg:BIKE_SVG,iconSvgRaw:BIKE_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Trekking)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=trekking&format=geojson'},
-  {group:'Route to',iconSvg:BIKEFAST_SVG,iconSvgRaw:BIKEFAST_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Fast)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=fastbike&format=geojson'},
-  // ---- "Go to" : open the tapped point in an external map / app / website. ----
-  {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2c7fb8',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}'},
   {group:'Go to',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd Online',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#555555',name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}'},
+  {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#589632',name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
-  {group:'Go to',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'}
+  {group:'Go to',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'},
+  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Route by foot (Brouter)',urlTemplate:'https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=hiking-mountain'},
+  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#1565c0',name:'Route by bicycle (Brouter)',urlTemplate:'https://brouter.de/brouter-web/#zoom={zoom}&lat={lat}&lon={lon}&layer=OpenStreetMap&lonlats={fromlon},{fromlat}|{lon},{lat}&nogos=&alternativeidx=0&format=geojson&profile=trekking'}
 ];
 let mapActions=[];
 // Saving in renderLayerList() ensures all layer changes are captured.
@@ -395,7 +377,7 @@ function addLayer(preset){
 }
 
 function resetLayersToDefault(){
-  if(!confirm('This discards your current layer list (including any WMS/WMTS layers you added) and restores the built-in default layers. This cannot be undone. Continue?')) return;
+  if(!confirm('This discards your current layer list (including any WMS/WMTS layers you added) and restores the 6 built-in default layers. This cannot be undone. Continue?')) return;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   _restoring=true;
   extraLayers.length=0;
@@ -801,25 +783,9 @@ function parseGPX(text){
         desc:wpt.querySelector('desc')?.textContent||''
       });
     });
-    const merged=mergeTracksIntoOne(tracks);
-    const npts=merged.reduce((s,t)=>s+t.coords.length,0)+waypoints.length;
-    return{tracks:merged,waypoints,npts};
+    const npts=tracks.reduce((s,t)=>s+t.coords.length,0)+waypoints.length;
+    return{tracks,waypoints,npts};
   }catch(e){return null;}
-}
-
-// A GPX file can contain many <trk> elements, each with many <trkseg>
-// segments, that together form one continuous route (e.g. a relation exported
-// by waymarkedtrails). Show that as ONE track with one name and one total
-// length, rather than one row/line per segment. Concatenate all point lists in
-// file order; the name is taken from the first track that has one.
-function mergeTracksIntoOne(tracks){
-  if(!tracks||tracks.length<=1)return tracks||[];
-  const coords=[];let name='';
-  tracks.forEach(t=>{
-    if(!name && t.name && t.name.trim())name=t.name.trim();
-    for(const c of t.coords)coords.push(c);
-  });
-  return coords.length?[{name,coords}]:[];
 }
 
 // --- GeoJSON parser: handles LineString, MultiLineString, Polygon, MultiPolygon,
@@ -870,9 +836,8 @@ function parseGeoJSON(text){
     features.forEach(ft=>{
       if(ft&&ft.geometry) handleGeom(ft.geometry, ft.properties||{});
     });
-    const mergedTracks=mergeTracksIntoOne(tracks);
-    const npts=mergedTracks.reduce((s,t)=>s+t.coords.length,0)+waypoints.length+polygons.reduce((s,p)=>s+p.rings[0].length,0);
-    return{tracks:mergedTracks,waypoints,polygons,npts};
+    const npts=tracks.reduce((s,t)=>s+t.coords.length,0)+waypoints.length+polygons.reduce((s,p)=>s+p.rings[0].length,0);
+    return{tracks,waypoints,polygons,npts};
   }catch(e){return null;}
 }
 
@@ -1730,17 +1695,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .zoom-group{background:white;border:2px solid rgba(0,0,0,0.25);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .zoom-group .ctrl-btn{border:none;border-radius:0;box-shadow:none;width:34px;height:32px}
 .zoom-group .ctrl-btn:first-child{border-bottom:1px solid #ddd}
-#layers-overlay{display:none;position:absolute;top:96px;right:10px;z-index:1200}
-/* The panel sits ~138px below the top of #map-wrap (overlay top:96px + panel
-   top:42px), and #map-wrap itself starts below the ~40px header. So relative to
-   the viewport the panel top is ~178px. Cap its height to the space left down to
-   ~16px above the bottom edge: 178 + 16 = ~194, rounded to 200px of slack. This
-   keeps the last row ("Base map"/OpenStreetMap) and its opacity slider on-screen
-   and internally scrollable even with many extra layers. dvh (with a vh fallback)
-   uses the *visible* height so it stays correct when the mobile address bar shows;
-   the earlier 154px value ignored the header, pushing the bottom slider off-screen
-   and out of scroll reach on the phone. */
-#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#layers-overlay{display:none;position:absolute;top:96px;right:10px;z-index:1000}
+#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px}
 #layers-panel.open{display:block}
 #layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
@@ -1759,38 +1715,18 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-btn{background:white;border:2px solid rgba(0,0,0,.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;gap:6px;white-space:nowrap}
 #route-btn:hover{background:#f4f4f4}
 #route-btn.has-routes{border-color:#2980b9;background:#d4efff}
-/* Width is fluid: caps at 380px on wide screens (laptop, unchanged) but shrinks
-   to the viewport width minus a 20px margin on narrow phones, so the panel never
-   runs off either edge. Without this the fixed 320px min-width pushed the leftmost
-   geometry icon and the rightmost close (x) button off-screen on small phones.
-   box-sizing:border-box (set globally) means the 16px padding is included, so the
-   panel footprint always leaves ~10px clear on each side. dvh height keeps it
-   within the visible area even when the mobile address bar is shown. */
-#route-panel{display:none;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;width:min(380px,calc(100vw - 20px));margin-bottom:6px;max-height:65vh;max-height:65dvh;overflow-y:auto}
+#route-panel{display:none;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;min-width:320px;max-width:380px;margin-bottom:6px;max-height:65vh;overflow-y:auto}
 #route-panel.open{display:block}
 #route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
-#route-clear-all{margin-left:auto;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
-#route-clear-all:hover{background:#fdeeee}
-#route-panel-close{background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
+#route-panel-close{margin-left:auto;background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
 #route-panel-close:hover{color:#333}
 .user-route-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;color:#222}
 .user-route-row:last-child{border-bottom:none}
 .user-route-row input[type=color]{width:24px;height:24px;border:none;padding:0;border-radius:3px;cursor:pointer;flex-shrink:0}
-.user-route-row .route-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;color:#222}
-.user-route-row .route-name-edit{flex:1;min-width:0;font-family:inherit;font-size:13px;font-weight:600;color:#222;border:1px solid transparent;background:transparent;border-radius:4px;padding:2px 4px;text-overflow:ellipsis}
-.user-route-row .route-name-edit:hover{border-color:#ddd}
-.user-route-row .route-name-edit:focus{border-color:#2980b9;background:#fff;outline:none;text-overflow:clip}
+.user-route-row .route-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;color:#222}
 .user-route-row .route-del{background:none;border:none;color:#c0392b;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1}
 .user-route-row .route-fly{background:none;border:none;font-size:16px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1;color:#2980b9}
 .user-route-row .route-vis{background:none;border:none;font-size:16px;cursor:pointer;flex-shrink:0;padding:0 3px;line-height:1;color:#333}
-.user-route-row .route-more{background:none;border:none;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px;line-height:1;color:#555}
-.route-detail-panel{display:none;padding:2px 0 8px 24px;border-bottom:1px solid #f0f0f0}
-.route-detail-panel.open{display:block}
-.route-detail-header{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
-.route-detail-header span{flex:1}
-.route-detail-close{background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:0 3px;line-height:1}
-.route-detail-panel .route-options-row{padding-left:0}
-.ro-fly-btn{background:none;border:1px solid #ccc;border-radius:5px;font-size:12px;cursor:pointer;padding:4px 9px;color:#2980b9;display:flex;align-items:center;gap:5px}
 .route-options-row{display:flex;align-items:center;gap:5px;padding:3px 0 8px 30px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
 .ro-group{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .route-options-row:last-child{border-bottom:none}
@@ -1813,11 +1749,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .vis-row .vis-eye{background:none;border:none;font-size:15px;cursor:pointer;color:#333;padding:0 2px;line-height:1}
 .vis-row .vis-op{width:65px;accent-color:#185FA5;cursor:pointer}
 .vis-row .vis-pct{font-size:11px;color:#888;min-width:30px;text-align:right}
-#trail-panel{display:none;position:absolute;top:42px;left:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:190px;z-index:1001}
-#trail-panel.open{display:block}
-#trail-panel h3{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
-.trail-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;color:#222}
-.trail-row label{flex:1;font-weight:500;min-width:40px}
 /* Map actions: long-press / right-click menu */
 .map-actions-menu{display:none;position:absolute;z-index:1300;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.3);padding:6px;min-width:190px;max-width:250px;font-size:13px;max-height:70vh;overflow-y:auto}
 .map-actions-menu.open{display:block}
@@ -1842,41 +1773,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
       <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
     <button class="ctrl-btn" id="loc-btn" title="My location">&#9737;</button>
-    <div id="trail-overlay">
-      <button class="ctrl-btn" id="trail-settings-btn" title="Trail settings">&#9881;</button>
-      <div id="trail-panel">
-        <h3>Trail settings</h3>
-        <div class="trail-row">
-          <label for="trail-color-input">Color</label>
-          <input type="color" id="trail-color-input">
-        </div>
-        <div class="trail-row">
-          <label for="trail-width-input">Width</label>
-          <input type="number" id="trail-width-input" min="1" max="15" style="width:56px">
-          <span>px</span>
-        </div>
-        <div class="trail-row">
-          <label for="trail-mode-input">Length</label>
-          <select id="trail-mode-input">
-            <option value="full">Full route</option>
-            <option value="distance">Last ... meters</option>
-          </select>
-        </div>
-        <div class="trail-row" id="trail-meters-row">
-          <label for="trail-meters-input">&nbsp;</label>
-          <input type="number" id="trail-meters-input" min="5" max="5000" style="width:72px">
-          <span>meters</span>
-        </div>
-        <div class="trail-row" style="border-top:1px solid #f0f0f0;margin-top:4px;padding-top:8px">
-          <label for="trail-center-input">Center map</label>
-          <select id="trail-center-input">
-            <option value="0">Never</option>
-            <option value="10000">After 10 seconds</option>
-            <option value="20000">After 20 seconds</option>
-          </select>
-        </div>
-      </div>
-    </div>
     <div id="vis-overlay">
       <button class="ctrl-btn" id="vis-btn" title="Show/hide layers">&#128065;</button>
       <div id="vis-panel">
@@ -1913,7 +1809,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
   <div id="route-overlay">
-    <div id="route-panel"><h3>Imported files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON</button></div></div>
+    <div id="route-panel"><h3>Imported files<button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-gpx">+ GPX</button><button id="route-add-geojson">+ GeoJSON</button></div></div>
     <button id="route-btn">&#8613; Import files</button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
@@ -1934,12 +1830,12 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 const D=${JSON.stringify(data)};   // Array of track/waypoint objects (GPX/GeoJSON files)
 const B=${JSON.stringify(bounds)}; // Combined bounding box of all tracks, or null
 const MAX_ZOOM=22;                 // tiles are optically over-zoomed (blurred) beyond their native resolution up to this level
-// (auto-center-on-idle setting now lives in FOLLOW_DELAY, defined further down)
+const OPT_FOLLOW=${optFollow};     // Whether the map auto-centers on the user's GPS position
 const WPTZOOM=${wptZoom};          // Minimum zoom level for waypoint labels to appear
 const WPTMARKERZOOM=${wptMarkerZoom}; // Minimum zoom level for waypoint icons/dots
 const OSM_OPACITY=${osmOpacity};   // Opacity of the OpenStreetMap base layer (0–1)
-let TRAIL_COLOR=${JSON.stringify(trailColor)}; // Color of the GPS navigation trail (user-adjustable at runtime)
-let TRAIL_WIDTH=${trailWidth};   // Width in px of the GPS navigation trail (user-adjustable at runtime)
+const TRAIL_COLOR=${JSON.stringify(trailColor)}; // Color of the GPS navigation trail
+const TRAIL_WIDTH=${trailWidth};   // Width in px of the GPS navigation trail
 
 // --- Geometry helpers used for label placement and km-marker calculation ---
 
@@ -2534,20 +2430,16 @@ map.whenReady(updateZoomIndicator);
 
 // --- GPS location tracking and map-follow logic ---
 // The location button starts watchPosition(); a direction marker and accuracy
-// circle are shown. When FOLLOW_DELAY>0 the map re-centers automatically after
-// the user has been idle (no pan/zoom) for that many ms — checked on its own
-// timer (see followCheckInterval below), not only when a new GPS fix arrives,
-// since a stationary device may not get a new fix for a long time.
+// circle are shown. When OPT_FOLLOW is true the map re-centers automatically
+// after the user has been idle (no pan/zoom) for FOLLOW_RESUME_DELAY ms.
 const locBtn=document.getElementById('loc-btn');
-let wid=null,locTrail=null,locTrailBg=null,lc=null,dirMarker=null;
+let wid=null,locTrail=null,lc=null,dirMarker=null;
 let followZoom=null;
 let locHistory=[]; // GPS points preserved until page/tab is closed
-let TRAIL_MODE=${JSON.stringify(trailMode)};
-let TRAIL_METERS=${trailMeters};
-let FOLLOW_DELAY=${optFollow}?10000:0; // 0=never, else ms of idle time before re-centering
-let lastUserInteraction=Date.now();
-let lastKnownLatLng=null;
-let followCheckInterval=null;
+const TRAIL_MODE=${JSON.stringify(trailMode)};
+const TRAIL_METERS=${trailMeters};
+const FOLLOW_RESUME_DELAY=10000;
+let lastUserInteraction=0;
 let programmaticMove=false;
 
 function haversineMeters(p1,p2){
@@ -2560,19 +2452,6 @@ function haversineMeters(p1,p2){
 
 // Trim the trail: with 'full' everything is kept (whole ride, even after 50km), with 'distance'
 // only the points within the last TRAIL_METERS meters (measured along the path) are kept.
-// Keep the GPS trail (and its accompanying circle/marker) rendered above
-// everything else, including tracks imported later via "Import files".
-function bringTrailToFront(){
-  // Only path-based layers (polylines/polygons) implement bringToFront().
-  // L.Marker (e.g. dirMarker, lc) does not, so guard each call to avoid a
-  // crash that would otherwise abort whatever triggered this (e.g. adding a
-  // BRouter/imported route to the list).
-  if(locTrailBg && locTrailBg.bringToFront) locTrailBg.bringToFront();
-  if(locTrail && locTrail.bringToFront) locTrail.bringToFront();
-  if(lc && lc.bringToFront) lc.bringToFront();
-  if(dirMarker && dirMarker.bringToFront) dirMarker.bringToFront();
-}
-
 function trimTrail(history){
   if(TRAIL_MODE==='full' || history.length<2) return history;
   let acc=0;
@@ -2583,66 +2462,6 @@ function trimTrail(history){
     cutIdx=0;
   }
   return history.slice(cutIdx);
-}
-
-// --- Trail settings panel: lets the visitor adjust the recorded trail's
-// color, width, and length (full route vs. only the last N meters) live ---
-{
-  const trailBtn=document.getElementById('trail-settings-btn');
-  const trailPanel=document.getElementById('trail-panel');
-  const colorInput=document.getElementById('trail-color-input');
-  const widthInput=document.getElementById('trail-width-input');
-  const modeInput=document.getElementById('trail-mode-input');
-  const metersInput=document.getElementById('trail-meters-input');
-  const metersRow=document.getElementById('trail-meters-row');
-  const centerInput=document.getElementById('trail-center-input');
-
-  colorInput.value=TRAIL_COLOR;
-  widthInput.value=TRAIL_WIDTH;
-  modeInput.value=TRAIL_MODE;
-  metersInput.value=TRAIL_METERS;
-  metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
-  centerInput.value=String(FOLLOW_DELAY);
-
-  trailBtn.onclick=function(e){e.stopPropagation();trailPanel.classList.toggle('open');};
-  document.addEventListener('click',function(e){
-    const overlay=document.getElementById('trail-overlay');
-    if(!overlay.contains(e.target))trailPanel.classList.remove('open');
-  });
-
-  function applyTrailAppearance(){
-    if(locTrail){
-      locTrail.setStyle({color:TRAIL_COLOR,weight:TRAIL_WIDTH,dashArray:(TRAIL_WIDTH*1.6)+','+(TRAIL_WIDTH*1.3)});
-      locTrailBg.setStyle({weight:TRAIL_WIDTH});
-    }
-    if(lc) lc.setStyle({color:TRAIL_COLOR,fillColor:TRAIL_COLOR});
-  }
-
-  colorInput.addEventListener('input',function(){
-    TRAIL_COLOR=colorInput.value;
-    applyTrailAppearance();
-  });
-  widthInput.addEventListener('change',function(){
-    TRAIL_WIDTH=Math.max(1,Math.min(15,parseInt(widthInput.value)||5));
-    widthInput.value=TRAIL_WIDTH;
-    applyTrailAppearance();
-  });
-  modeInput.addEventListener('change',function(){
-    TRAIL_MODE=modeInput.value;
-    metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
-    locHistory=trimTrail(locHistory);
-    if(locTrail){ locTrail.setLatLngs(locHistory); locTrailBg.setLatLngs(locHistory); }
-  });
-  metersInput.addEventListener('change',function(){
-    TRAIL_METERS=Math.max(5,Math.min(5000,parseInt(metersInput.value)||50));
-    metersInput.value=TRAIL_METERS;
-    locHistory=trimTrail(locHistory);
-    if(locTrail){ locTrail.setLatLngs(locHistory); locTrailBg.setLatLngs(locHistory); }
-  });
-  centerInput.addEventListener('change',function(){
-    FOLLOW_DELAY=parseInt(centerInput.value)||0;
-    lastUserInteraction=Date.now(); // restart the idle countdown with the new delay
-  });
 }
 
 function bearing(p1,p2){
@@ -2671,7 +2490,6 @@ function stopLoc(){
   // so the trail survives toggling the location button off and on again.
   // History is only cleared when the page/tab is closed.
   if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
-  if(followCheckInterval!==null){clearInterval(followCheckInterval);followCheckInterval=null;}
   locBtn.classList.remove('on');locBtn.innerHTML='&#9737;';
   // Remove only the accuracy circle and direction arrow, not the trail line
   if(lc){map.removeLayer(lc);lc=null;}
@@ -2684,13 +2502,6 @@ map.on('dragstart zoomstart',function(){
   if(!programmaticMove) lastUserInteraction=Date.now();
 });
 
-function recenterOnLocation(ll){
-  if(followZoom===null) followZoom=Math.max(map.getZoom(),16);
-  programmaticMove=true;
-  map.setView(ll, followZoom, {animate:false});
-  programmaticMove=false;
-}
-
 locBtn.onclick=function(){
   if(wid!==null){stopLoc();return;}
   if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
@@ -2698,7 +2509,6 @@ locBtn.onclick=function(){
 
   wid=navigator.geolocation.watchPosition(function(p){
     const ll=[p.coords.latitude,p.coords.longitude];
-    lastKnownLatLng=ll;
     locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
 
     locHistory.push(ll);
@@ -2714,50 +2524,39 @@ locBtn.onclick=function(){
 
     if(locTrail){
       locTrail.setLatLngs(locHistory);
-      locTrailBg.setLatLngs(locHistory);
       if(lc) lc.setLatLng(ll).setRadius(p.coords.accuracy);
       else lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
       if(dirMarker) dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg));
       else dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     } else {
       lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
-      // White base line first, then a dashed colored line on top — gives a true
-      // two-tone (e.g. purple/white) dashed look regardless of the map underneath,
-      // and reads more clearly against imported tracks of a similar solid color.
-      locTrailBg=L.polyline(locHistory,{color:'#fff',weight:TRAIL_WIDTH,opacity:.9,lineCap:'round'}).addTo(map);
-      locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:1,lineCap:'butt',dashArray:(TRAIL_WIDTH*1.6)+','+(TRAIL_WIDTH*1.3)}).addTo(map);
+      locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:.85,lineCap:'round'}).addTo(map);
       dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     }
-    bringTrailToFront();
 
-    if(!dirMarker._shown){
-      // Always center once on the very first fix, regardless of the delay setting
+    const idleLongEnough=(Date.now()-lastUserInteraction)>=FOLLOW_RESUME_DELAY;
+
+    if(OPT_FOLLOW && idleLongEnough){
+      // lock zoom level once at start of following, don't re-query during animation
+      if(followZoom===null) followZoom=Math.max(map.getZoom(),16);
+      programmaticMove=true;
+      map.setView(ll, followZoom, {animate:false});
+      programmaticMove=false;
+    } else if(!dirMarker._shown){
       programmaticMove=true;
       map.setView(ll, Math.max(map.getZoom(),16));
       programmaticMove=false;
       dirMarker._shown=true;
-      lastUserInteraction=Date.now();
     }
   },function(e){
     stopLoc();
     alert('Location unavailable: '+e.message);
   },{enableHighAccuracy:true,maximumAge:1000});
-
-  // Independent timer: checks idle time on its own schedule instead of only
-  // when a new GPS fix arrives — a stationary device may not get a new fix
-  // for a long time, which previously meant the idle check never ran.
-  if(followCheckInterval!==null) clearInterval(followCheckInterval);
-  followCheckInterval=setInterval(function(){
-    if(FOLLOW_DELAY<=0 || !lastKnownLatLng) return;
-    if((Date.now()-lastUserInteraction)>=FOLLOW_DELAY){
-      recenterOnLocation(lastKnownLatLng);
-    }
-  },1000);
 };
 
 // If user manually zooms while following is active, remember new zoom level instead of snapping back
 map.on('zoomend',function(){
-  if(FOLLOW_DELAY>0 && wid!==null) followZoom=map.getZoom();
+  if(OPT_FOLLOW && wid!==null) followZoom=map.getZoom();
 });
 
 // --- Visibility panel: toggle and opacity control per geometry type ---
@@ -2906,22 +2705,8 @@ map.on('zoomend',function(){
         const la=parseFloat(w.getAttribute('lat')),lo=parseFloat(w.getAttribute('lon'));
         if(!isNaN(la)&&!isNaN(lo))wpts.push({lat:la,lon:lo,name:w.querySelector('name')?.textContent||'',desc:w.querySelector('desc')?.textContent||''});
       });
-      return{tracks:mergeUserTracksIntoOne(tracks),waypoints:wpts};
+      return{tracks,waypoints:wpts};
     }catch(e){return null;}
-  }
-
-  // A GPX/GeoJSON route made of many segments (multiple <trk>/<trkseg> or a
-  // MultiLineString) should appear as ONE track: one row in the list, one line
-  // on the map, one name, one total length. Concatenate all point lists in
-  // order and keep the first available name.
-  function mergeUserTracksIntoOne(tracks){
-    if(!tracks||tracks.length<=1)return tracks||[];
-    const coords=[];let name='';
-    tracks.forEach(t=>{
-      if(!name && t.name && t.name.trim())name=t.name.trim();
-      for(const c of t.coords)coords.push(c);
-    });
-    return coords.length?[{name,coords}]:[];
   }
 
   function parseUserGeoJSON(text){
@@ -2959,7 +2744,7 @@ map.on('zoomend',function(){
       }
       const features=(gj.type==='FeatureCollection')?gj.features:(gj.type==='Feature')?[gj]:[{type:'Feature',geometry:gj,properties:{}}];
       features.forEach(ft=>{if(ft&&ft.geometry)handleGeom(ft.geometry,ft.properties||{});});
-      return{tracks:mergeUserTracksIntoOne(tracks),waypoints,polygons};
+      return{tracks,waypoints,polygons};
     }catch(e){return null;}
   }
 
@@ -3061,14 +2846,10 @@ map.on('zoomend',function(){
     userRoutes.push({name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
     // Fit map to route bounds
     if(bounds)map.fitBounds(bounds,{padding:[24,24]});
-    // Apply label immediately and ensure layers render. Guarded so that an
-    // unexpected error here (e.g. an odd property in an imported/BRouter
-    // file) can never silently skip adding the row to the list below.
-    try{ applyRouteStyle(idx); }catch(e){ console.error('applyRouteStyle failed for "'+displayName+'":',e); }
-    // Keep the recorded GPS trail above newly imported tracks, if it exists
-    if(typeof bringTrailToFront==='function') bringTrailToFront();
+    // Apply label immediately and ensure layers render
+    applyRouteStyle(idx);
     // Rebuild the route list panel
-    try{ renderRouteList(); }catch(e){ console.error('renderRouteList failed:',e); }
+    renderRouteList();
     // Open the panel so user sees the new entry
     document.getElementById('route-panel').classList.add('open');
   }
@@ -3158,11 +2939,9 @@ map.on('zoomend',function(){
     if(hasTracks){
       // Label at start point of first track
       const sp=r.parsed.tracks[0].coords[0];
-      const labelText=r.customName
-        ? r.name  // user renamed it in the Imported files list — honour that on the map too
-        : (r.parsed.tracks[0].name
-          ? r.parsed.tracks[0].name+(r.kmSuffix||'')
-          : r.name);  // r.name already includes the km suffix when set
+      const labelText=r.parsed.tracks[0].name
+        ? r.parsed.tracks[0].name+(r.kmSuffix||'')
+        : r.name;  // r.name already includes the km suffix when set
 
       // Start icon (circle with play arrow)
       r.startLayer=L.marker(sp,{
@@ -3296,19 +3075,6 @@ map.on('zoomend',function(){
     renderRouteList();
   }
 
-  function clearAllUserRoutes(){
-    if(userRoutes.length===0) return;
-    if(!confirm('Remove all '+userRoutes.length+' imported file(s) from the map?')) return;
-    userRoutes.forEach(r=>{
-      r.layers.forEach(l=>map.removeLayer(l));
-      r.arrowLayers.forEach(l=>map.removeLayer(l));
-      if(r.labelLayer)map.removeLayer(r.labelLayer);
-      if(r.startLayer)map.removeLayer(r.startLayer);
-    });
-    userRoutes.length=0;
-    renderRouteList();
-  }
-
   // Small geometry-type icon (track / waypoint / polygon), matches input HTML styling
   function labelGeomIconHtml(type,color,sizePx){
     // Always black + 3 distinct shapes, regardless of element color (see input HTML for rationale).
@@ -3332,86 +3098,61 @@ map.on('zoomend',function(){
       row.innerHTML=
         geomIconSvg(r,r.color)+
         '<input type="color" class="ur-color" value="'+r.color+'" title="Color">'+
-        '<input class="route-name-edit" type="text" title="Click to rename" data-i="'+i+'" autocomplete="off" spellcheck="false">'+
-        '<button class="route-more" title="More options" data-i="'+i+'">&#8942;</button>'+
+        '<span class="route-name" title="'+r.name+'">'+r.name+'</span>'+
+        '<button class="route-fly" title="Fit to route" data-i="'+i+'">&#x2316;</button>'+
         '<button class="route-vis" title="Show/hide" data-i="'+i+'" style="opacity:'+(r.visible?1:.4)+'">&#128065;</button>'+
         '<button class="route-del" title="Remove" data-i="'+i+'">&times;</button>';
       el.appendChild(row);
 
-      // Collapsible detail panel — hidden by default, opened via the ⋯ button.
-      // Holds everything that doesn't need to be visible/reachable at a glance,
-      // which is what made the row too wide to use comfortably on a phone.
-      const detail=document.createElement('div');
-      detail.className='route-detail-panel';
+      // options row: opacity + linewidth + arrows + label
+      const opRow=document.createElement('div');
+      opRow.className='route-options-row';
       const opVal=Math.round(r.opacity*100);
       const elZoomMin=r.mapZoomMin!=null?r.mapZoomMin:1;
       const lblZoomMin=r.labelZoomMin!=null?r.labelZoomMin:1;
       const hasPol=(r.parsed.polygons||[]).length>0;
       const fillVal=Math.round((r.fillOpacity!=null?r.fillOpacity:0.2)*100);
-      detail.innerHTML=
-        '<div class="route-detail-header"><span>Options</span><button class="route-detail-close" title="Close">&times;</button></div>'+
-        '<div class="route-options-row">'+
-          '<span class="ro-group"><span class="ro-label">Opacity</span>'+
-          '<input type="range" min="0" max="100" value="'+opVal+'" class="ur-op">'+
-          '<span class="ro-val">'+opVal+'%</span></span>'+
-          '<span class="ro-group" style="margin-left:6px"><span class="ro-label">Width</span>'+
-          '<input type="number" min="1" max="20" value="'+r.lineWidth+'" class="ur-lw">'+
-          '<span class="ro-label">px</span></span>'+
-          (hasPol?(
-          '<span class="ro-group" style="margin-left:6px"><span class="ro-label" title="Fill opacity of the polygon area. 0% = fully transparent (outline only), 100% = fully solid.">Fill</span>'+
-          '<input type="number" min="0" max="100" step="5" value="'+fillVal+'" class="ur-fill" style="width:48px">'+
-          '<span class="ro-label">%</span></span>'
-          ):'')+
-          '<label style="margin-left:6px"><input type="checkbox" class="ur-label" '+(r.showLabel?'checked':'')+'>label</label>'+
-        '</div>'+
-        '<div class="route-options-row">'+
-          '<span class="ro-label" title="Element visible from this zoom level (up to 22)">Min zoom</span>'+
-          '<input type="number" min="1" max="22" value="'+elZoomMin+'" class="ur-zoommin" style="width:48px">'+
-          '<span class="ro-label" style="margin-left:10px" title="Label visible from this zoom level (up to 22)">Label zoom</span>'+
-          '<input type="number" min="1" max="22" value="'+lblZoomMin+'" class="ur-lblzoommin" style="width:48px">'+
-        '</div>'+
-        '<div class="route-options-row">'+
-          '<button class="route-fly ro-fly-btn" title="Fit map to this route" data-i="'+i+'">&#x2316; Fit to route</button>'+
-        '</div>';
-      el.appendChild(detail);
+      opRow.innerHTML=
+        '<span class="ro-group"><span class="ro-label">Opacity</span>'+
+        '<input type="range" min="0" max="100" value="'+opVal+'" class="ur-op">'+
+        '<span class="ro-val">'+opVal+'%</span></span>'+
+        '<span class="ro-group" style="margin-left:6px"><span class="ro-label">Width</span>'+
+        '<input type="number" min="1" max="20" value="'+r.lineWidth+'" class="ur-lw">'+
+        '<span class="ro-label">px</span></span>'+
+        (hasPol?(
+        '<span class="ro-group" style="margin-left:6px"><span class="ro-label" title="Fill opacity of the polygon area. 0% = fully transparent (outline only), 100% = fully solid.">Fill</span>'+
+        '<input type="number" min="0" max="100" step="5" value="'+fillVal+'" class="ur-fill" style="width:48px">'+
+        '<span class="ro-label">%</span></span>'
+        ):'')+
+        '<label style="margin-left:6px"><input type="checkbox" class="ur-label" '+(r.showLabel?'checked':'')+'>label</label>';
+      el.appendChild(opRow);
+
+      // second options row: min zoom for the element itself + min zoom for its label
+      const zoomRow=document.createElement('div');
+      zoomRow.className='route-options-row';
+      zoomRow.innerHTML=
+        '<span class="ro-label" title="Element visible from this zoom level (up to 19)">Min zoom</span>'+
+        '<input type="number" min="1" max="22" value="'+elZoomMin+'" class="ur-zoommin" style="width:48px">'+
+        '<span class="ro-label" style="margin-left:10px" title="Label visible from this zoom level (up to 19)">Label zoom</span>'+
+        '<input type="number" min="1" max="22" value="'+lblZoomMin+'" class="ur-lblzoommin" style="width:48px">';
+      el.appendChild(zoomRow);
 
       row.querySelector('.ur-color').addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);});
-      const _nameInp=row.querySelector('.route-name-edit');
-      if(_nameInp){
-        _nameInp.value=userRoutes[i].name;
-        _nameInp.title=userRoutes[i].name;
-        _nameInp.addEventListener('click',e=>e.stopPropagation());
-        _nameInp.addEventListener('focus',e=>{ e.target.select(); });
-        _nameInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
-        _nameInp.addEventListener('change',e=>{
-          const v=e.target.value.trim();
-          if(v){ userRoutes[i].name=v; userRoutes[i].customName=true; e.target.title=v; applyRouteStyle(i); }
-          else { e.target.value=userRoutes[i].name; }  // never allow an empty name
-        });
-      }
-      row.querySelector('.route-more').addEventListener('click',e=>{
-        e.stopPropagation();
-        const isOpen=detail.classList.contains('open');
-        // Only one detail panel open at a time, to keep the list manageable
-        el.querySelectorAll('.route-detail-panel.open').forEach(p=>p.classList.remove('open'));
-        if(!isOpen) detail.classList.add('open');
-      });
-      detail.querySelector('.route-detail-close').addEventListener('click',()=>detail.classList.remove('open'));
-      detail.querySelector('.ro-fly-btn').addEventListener('click',()=>{if(userRoutes[i].bounds)map.fitBounds(userRoutes[i].bounds,{padding:[24,24]});});
+      row.querySelector('.route-fly').addEventListener('click',()=>{if(userRoutes[i].bounds)map.fitBounds(userRoutes[i].bounds,{padding:[24,24]});});
       row.querySelector('.route-vis').addEventListener('click',e=>{
         const nv=!userRoutes[i].visible;setRouteVisible(i,nv);e.currentTarget.style.opacity=nv?'1':'0.4';
       });
       row.querySelector('.route-del').addEventListener('click',()=>removeUserRoute(i));
-      detail.querySelector('.ur-op').addEventListener('input',e=>{
+      opRow.querySelector('.ur-op').addEventListener('input',e=>{
         const op=parseInt(e.target.value)/100;
         setRouteOpacity(i,op);
-        detail.querySelector('.ro-val').textContent=e.target.value+'%';
+        opRow.querySelector('.ro-val').textContent=e.target.value+'%';
       });
-      detail.querySelector('.ur-lw').addEventListener('change',e=>{
+      opRow.querySelector('.ur-lw').addEventListener('change',e=>{
         userRoutes[i].lineWidth=Math.max(1,parseInt(e.target.value)||4);
         applyRouteStyle(i);
       });
-      const urFillInp=detail.querySelector('.ur-fill');
+      const urFillInp=opRow.querySelector('.ur-fill');
       if(urFillInp){
         urFillInp.addEventListener('change',e=>{
           let pct=parseInt(e.target.value);
@@ -3422,24 +3163,22 @@ map.on('zoomend',function(){
           applyRouteStyle(i);
         });
       }
-      detail.querySelector('.ur-label').addEventListener('change',e=>{
+      opRow.querySelector('.ur-label').addEventListener('change',e=>{
         userRoutes[i].showLabel=e.target.checked;
         applyRouteStyle(i);
       });
-      detail.querySelector('.ur-zoommin').addEventListener('change',e=>{
+      zoomRow.querySelector('.ur-zoommin').addEventListener('change',e=>{
         userRoutes[i].mapZoomMin=Math.max(1,Math.min(19,parseInt(e.target.value)||1));
         applyRouteStyle(i);
         updateUserRouteElemVisibility();
       });
-      detail.querySelector('.ur-lblzoommin').addEventListener('change',e=>{
+      zoomRow.querySelector('.ur-lblzoommin').addEventListener('change',e=>{
         userRoutes[i].labelZoomMin=Math.max(1,Math.min(19,parseInt(e.target.value)||1));
         applyRouteStyle(i);
         updateUserRouteLabelVisibility();
       });
     });
     document.getElementById('route-btn').classList.toggle('has-routes',userRoutes.length>0);
-    const clearAllBtn=document.getElementById('route-clear-all');
-    if(clearAllBtn) clearAllBtn.style.display=userRoutes.length>0?'':'none';
   }
 
   function loadFile(file, accept){
@@ -3518,10 +3257,6 @@ map.on('zoomend',function(){
     e.stopPropagation();
     routePanel.classList.remove('open');
   });
-  document.getElementById('route-clear-all').addEventListener('click',function(e){
-    e.stopPropagation();
-    clearAllUserRoutes();
-  });
 
   // GPX / GeoJSON buttons — reset input value each time so same file can be reloaded
   const fileInput=document.getElementById('route-file-input');
@@ -3536,7 +3271,8 @@ map.on('zoomend',function(){
     setTimeout(()=>fileInput.click(),50);
   }
 
-  document.getElementById('route-add-file').onclick=function(e){e.stopPropagation();triggerFilePick('any');};
+  document.getElementById('route-add-gpx').onclick=function(e){e.stopPropagation();triggerFilePick('gpx');};
+  document.getElementById('route-add-geojson').onclick=function(e){e.stopPropagation();triggerFilePick('geojson');};
 
   fileInput.addEventListener('change',function(){
     Array.from(fileInput.files).forEach(f=>loadFile(f,pendingAccept));
@@ -3595,109 +3331,7 @@ map.on('zoomend',function(){
       return result;
     }
 
-    // --- BRouter: calculate the route ourselves and add it to the map exactly ---
-    // --- like an imported GPX/GeoJSON file, instead of sending the visitor    ---
-    // --- to a website.                                                        ---
-    // Recognises both the clean API form the actions now use:
-    //   https://brouter.de/brouter?lonlats=...&profile=...&format=geojson
-    // and the older brouter-web form (kept working for older exports):
-    //   https://brouter.de/brouter-web/#...&lonlats=...&profile=...
-    function isBrouterWebUrl(tpl){
-      const s=String(tpl).toLowerCase();
-      return s.indexOf('brouter.de/brouter')!==-1 || s.indexOf('/brouter?')!==-1;
-    }
-
-    // Pull lonlats / profile / nogos out of a filled BRouter URL, whether the
-    // parameters live in the query string (?a=b&c=d) or after the # (brouter-web
-    // hash form). We just scan both parts.
-    function extractBrouterParams(filledUrl){
-      let query='';
-      const qIdx=filledUrl.indexOf('?');
-      const hIdx=filledUrl.indexOf('#');
-      if(qIdx>=0) query+=filledUrl.slice(qIdx+1, hIdx>qIdx?hIdx:undefined);
-      if(hIdx>=0) query+=(query?'&':'')+filledUrl.slice(hIdx+1);
-      if(!query) query=filledUrl;
-      const params=new URLSearchParams(query);
-      return {
-        lonlats:params.get('lonlats')||'',
-        profile:params.get('profile')||'trekking',
-        nogos:params.get('nogos')||'',
-        // Allow the action to point at a different BRouter server by writing the
-        // full endpoint in its urlTemplate; default to the public one. (Parsed
-        // without a regex on purpose: this code lives inside a template string,
-        // so backslash escapes like \/ would be stripped and break a regex.)
-        server:(function(){
-          const s=String(filledUrl);
-          const cut=s.search(/[?#]/);
-          const base=cut>=0?s.slice(0,cut):s;
-          const low=base.toLowerCase();
-          if((low.startsWith('http://')||low.startsWith('https://')) && low.endsWith('/brouter')){
-            return base;
-          }
-          return 'https://brouter.de/brouter';
-        })()
-      };
-    }
-
-    // Default name when BRouter doesn't supply one itself, e.g. turns
-    // "Route by foot (Brouter)" into "Route by foot".
-    function defaultBrouterName(actionName){
-      let s=String(actionName||'').trim();
-      const low=s.toLowerCase();
-      if(low.endsWith('(brouter)')){
-        s=s.slice(0,s.length-'(brouter)'.length).trim();
-      }
-      return s||'BRouter route';
-    }
-
-    async function showBrouterRoute(lonlats,profile,nogos,defaultName,server){
-      if(!lonlats){ alert('No route coordinates found for this action.'); return; }
-      const endpoint=server||'https://brouter.de/brouter';
-      showToast('Calculating route…');
-      try{
-        let apiUrl=endpoint+'?lonlats='+encodeURIComponent(lonlats)
-          +'&profile='+encodeURIComponent(profile)+'&alternativeidx=0&format=geojson';
-        if(nogos) apiUrl+='&nogos='+encodeURIComponent(nogos);
-        const resp=await fetch(apiUrl);
-        if(!resp.ok){
-          const txt=await resp.text();
-          throw new Error('HTTP '+resp.status+' '+txt.slice(0,200));
-        }
-        const geojson=await resp.json();
-        console.log('BRouter response for "'+defaultName+'":',geojson);
-        // Reuse the same GeoJSON parser and route-adding logic as the
-        // "+ GeoJSON" import button, so the result behaves identically:
-        // its own row (with km arrows) in the Imported files panel, and a
-        // "remove" option there.
-        const parsed=parseUserGeoJSON(JSON.stringify(geojson));
-        const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
-        if(!hasContent){ console.warn('parseUserGeoJSON found no usable geometry in the BRouter response above.'); alert('BRouter did not return any route geometry for this location.'); return; }
-
-        parsed.tracks.forEach((trk,tIdx)=>{
-          // Name the route after the action itself (from the input file), e.g.
-          // "Bicycle (Trekking)", not BRouter's internal name ("brouter_trekking_0").
-          // Overwrite trk.name too so the on-map label matches the list entry.
-          const name=(parsed.tracks.length===1?defaultName:defaultName+' ('+(tIdx+1)+')');
-          trk.name=name;
-          const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
-          addUserRoute(name,{tracks:[trk],waypoints:[],polygons:[]},color,5);
-        });
-        if(parsed.waypoints.length){
-          const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
-          addUserRoute(defaultName,{tracks:[],waypoints:parsed.waypoints,polygons:[]},color,8);
-        }
-        (parsed.polygons||[]).forEach(pol=>{
-          const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
-          addUserRoute(pol.name&&pol.name.trim()?pol.name.trim():defaultName,{tracks:[],waypoints:[],polygons:[pol]},color,2);
-        });
-      }catch(err){
-        console.error('BRouter route calculation failed:',err);
-        alert('Could not calculate the BRouter route: '+(err&&err.message?err.message:err));
-      }
-    }
-
     let tempMarker=null;
-
 
     function showTempMarker(latlng){
       removeTempMarker();
@@ -3735,20 +3369,9 @@ map.on('zoomend',function(){
       if(!currentLatLng) return;
       const latlng=currentLatLng; // capture before closeMenu() clears currentLatLng
       const needsCurrentLocation=/{fromlat}|{fromlon}/.test(a.urlTemplate);
-      const isBrouter=isBrouterWebUrl(a.urlTemplate);
-
-      function finish(filledUrl){
-        if(isBrouter){
-          const {lonlats,profile,nogos,server}=extractBrouterParams(filledUrl);
-          showBrouterRoute(lonlats,profile,nogos,defaultBrouterName(a.name),server);
-        } else {
-          openUrl(filledUrl);
-        }
-        closeMenu();
-      }
-
       if(!needsCurrentLocation){
-        finish(fillTemplate(a.urlTemplate,latlng));
+        openUrl(fillTemplate(a.urlTemplate,latlng));
+        closeMenu();
         return;
       }
       // This action's URL also needs where the visitor currently is (e.g. for
@@ -3762,7 +3385,8 @@ map.on('zoomend',function(){
       navigator.geolocation.getCurrentPosition(
         pos=>{
           const fromCoords={lat:pos.coords.latitude,lon:pos.coords.longitude};
-          finish(fillTemplate(a.urlTemplate,latlng,fromCoords));
+          openUrl(fillTemplate(a.urlTemplate,latlng,fromCoords));
+          closeMenu();
         },
         err=>{
           alert('Could not get your current location ('+(err&&err.message?err.message:'permission denied or unavailable')+'), so this link could not be completed.');
@@ -3777,7 +3401,7 @@ map.on('zoomend',function(){
       return location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
     }
 
-    function showToast(msg,duration){
+    function showToast(msg){
       let t=document.getElementById('mam-toast');
       if(!t){
         t=document.createElement('div');
@@ -3788,7 +3412,7 @@ map.on('zoomend',function(){
       t.textContent=msg;
       t.style.opacity='1';
       clearTimeout(t._hideTimer);
-      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },duration||2000);
+      t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; },2000);
     }
 
     function shareThisMap(){
@@ -3883,7 +3507,7 @@ map.on('zoomend',function(){
       points.push(point);
       persistSavedPoints(points);
       renderSavedPoint(point);
-      showToast('Location saved — it will still be here next time you open this map on this device.',5000);
+      showToast('Location saved — it will still be here next time you open this map on this device.');
     }
 
     let lastClientX=0, lastClientY=0;
