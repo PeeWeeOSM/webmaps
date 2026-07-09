@@ -235,8 +235,6 @@ const DEFAULT_LAYERS=[
   {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',wmsLayer:'',displayName:'Satelite World (EOX Sentinel-2)',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Sentinel-2 cloudless <a href="https://s2maps.eu" target="_blank" rel="noopener">s2maps.eu</a> by <a href="https://eox.at" target="_blank" rel="noopener">EOX</a> (Contains modified Copernicus Sentinel data 2024)'},
-  {type:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',wmsLayer:'',displayName:'Satelite World (Esri)',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Imagery &copy; <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community'},
   {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'gravelbiker',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'dijkfietser',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false}
 ];
@@ -302,8 +300,7 @@ function saveLayersToStorage(){
         type:l.type, url:l.url, wmsLayer:l.wmsLayer||'',
         displayName:l.displayName||'', opacity:l.opacity,
         zoomMin:Math.min(l.zoomMin||1,22), zoomMax:Math.min(l.zoomMax||22,22),
-        defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false,
-        attribution:l.attribution||''
+        defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false
       })),
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       title:document.getElementById('title').value,
@@ -330,8 +327,7 @@ function loadLayersFromStorage(){
       zoomMin:Math.min(l.zoomMin!=null?l.zoomMin:1,22),
       zoomMax:Math.min(l.zoomMax!=null?l.zoomMax:22,22),
       defaultOn:l.defaultOn||false,
-      previewOn:l.previewOn!==false,
-      attribution:l.attribution||''
+      previewOn:l.previewOn!==false
     }));
     renderLayerList();
 
@@ -1399,9 +1395,9 @@ function updatePreview(){
       const zMin=el.zoomMin!=null?el.zoomMin:0;
       const zMax=Math.min(el.zoomMax!=null?el.zoomMax:MAX_ZOOM,MAX_ZOOM);
       if(el.type==='wms'){
-        tl=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:el.attribution||'',minZoom:zMin,maxZoom:zMax});
+        tl=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
       } else {
-        tl=L.tileLayer(el.url,{opacity:el.opacity,attribution:el.attribution||'',minZoom:zMin,maxZoom:zMax});
+        tl=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:zMin,maxZoom:zMax});
       }
       attachAutoNativeZoom(tl);
       tl.addTo(map);
@@ -1658,7 +1654,7 @@ function exportMap(){
   const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
   const trailMode=document.getElementById('gpstrail-mode').value;
   const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
-  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
+  const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true}));
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const data=files.map(f=>({
     filename:f.displayName,
@@ -1707,15 +1703,6 @@ function exportMap(){
   }catch(e){}
 
   const html=`<!DOCTYPE html>
-<!--
-  PeeWeeTrails map — © 2026 PeeWeeOSM.
-  App code and the maker's own recorded tracks are licensed under
-  Creative Commons Attribution-NonCommercial 4.0 (CC BY-NC 4.0):
-  https://creativecommons.org/licenses/by-nc/4.0/
-  You may share and adapt it for non-commercial use, with attribution to PeeWeeOSM.
-  Map data © OpenStreetMap contributors (ODbL); satellite imagery © Esri / EOX
-  where those layers are used — their own terms and attribution apply.
--->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1768,8 +1755,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 /* User route loader panel */
 #info-btn{position:absolute;top:10px;right:10px;z-index:1000;width:30px;height:30px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.25);box-shadow:0 2px 8px rgba(0,0,0,.3);font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:16px;color:#2980b9;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 #info-btn:hover{background:#f4f4f4}
-#route-overlay{position:absolute;top:138px;right:10px;z-index:1200}
-#route-btn svg{width:20px;height:20px;display:block}
+#route-overlay{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:0}
+#route-btn{background:white;border:2px solid rgba(0,0,0,.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;gap:6px;white-space:nowrap}
 #route-btn:hover{background:#f4f4f4}
 #route-btn.has-routes{border-color:#2980b9;background:#d4efff}
 /* Width is fluid: caps at 380px on wide screens (laptop, unchanged) but shrinks
@@ -1779,7 +1766,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
    box-sizing:border-box (set globally) means the 16px padding is included, so the
    panel footprint always leaves ~10px clear on each side. dvh height keeps it
    within the visible area even when the mobile address bar is shown. */
-#route-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;width:min(380px,calc(100vw - 20px));max-height:65vh;max-height:65dvh;overflow-y:auto}
+#route-panel{display:none;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.25);padding:14px 16px;width:min(380px,calc(100vw - 20px));margin-bottom:6px;max-height:65vh;max-height:65dvh;overflow-y:auto}
 #route-panel.open{display:block}
 #route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
 #route-clear-all{margin-left:auto;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
@@ -1927,7 +1914,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <!-- User route loader -->
   <div id="route-overlay">
     <div id="route-panel"><h3>Imported files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON</button></div></div>
-    <button class="ctrl-btn" id="route-btn" title="Import files"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" fill="#333"/></svg></button>
+    <button id="route-btn">&#8613; Import files</button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
   <div id="map-actions-menu" class="map-actions-menu"></div>
@@ -2151,11 +2138,6 @@ function updateUrlHash(){
 const urlState=parseStateFromHash();
 const map=L.map('map');
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
-// Maker credit + license, always shown bottom-right (edit or remove this one line to change it).
-const AUTHOR_CREDIT='Kaart &copy; <a href="https://github.com/PeeWeeOSM" target="_blank" rel="noopener">PeeWeeOSM</a> &middot; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>';
-if(AUTHOR_CREDIT) map.attributionControl.addAttribution(AUTHOR_CREDIT);
-// Scale bar (ruler): current map scale in m/km, sits just above the attribution.
-L.control.scale({position:'bottomright',metric:true,imperial:false,maxWidth:120}).addTo(map);
 tiles.on('tileerror',()=>document.getElementById('notice').style.display='block');
 tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
@@ -2186,9 +2168,9 @@ const wmsLayerObjs=new Array(EX.length);
   let lyr=null;
   try{
     if(el.type==='wms'){
-      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:el.attribution||'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+      lyr=L.tileLayer.wms(el.url,{layers:el.wmsLayer,format:'image/png',transparent:true,opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     } else {
-      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:el.attribution||'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
+      lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     }
     attachAutoNativeZoom(lyr);
     // default on/off: from URL state if present, otherwise from layer setting
