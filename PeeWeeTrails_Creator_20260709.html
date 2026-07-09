@@ -3774,14 +3774,7 @@ map.on('zoomend',function(){
 
     function buildShareMapUrl(latlng){
       const lat=latlng.lat.toFixed(6), lon=latlng.lng.toFixed(6), zoom=Math.round(map.getZoom());
-      let url=location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
-      // Carry the currently-ticked extra layers along, so opening the shared link
-      // reopens the map with exactly the same overlays switched on. Same encoding
-      // that parseStateFromHash() reads back (one 1/0 per layer, in list order).
-      if(wmsLayerObjs.length){
-        url+='&layers='+wmsLayerObjs.map(lo=>lo&&lo.layer&&map.hasLayer(lo.layer)?'1':'0').join(',');
-      }
-      return url;
+      return location.origin+location.pathname+'#lat='+lat+'&lng='+lon+'&z='+zoom+'&marker='+lat+','+lon;
     }
 
     function showToast(msg,duration){
