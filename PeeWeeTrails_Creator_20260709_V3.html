@@ -268,7 +268,6 @@ const ANDROID_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><
 const WALK_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.12,10H19V8.2H15.38L13.38,4.87C13.08,4.37 12.54,4.03 11.92,4.03C11.74,4.03 11.58,4.06 11.42,4.11L6,5.8V11H7.8V7.33L9.91,6.67L6,22H7.8L10.67,13.89L13,17V22H14.8V15.59L12.31,11.05L13.04,8.18M14,3.8C15,3.8 15.8,3 15.8,2C15.8,1 15,0.2 14,0.2C13,0.2 12.2,1 12.2,2C12.2,3 13,3.8 14,3.8Z" fill="currentColor"/></svg>';
 const BIKE_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5,20.5A3.5,3.5 0 0,1 1.5,17A3.5,3.5 0 0,1 5,13.5A3.5,3.5 0 0,1 8.5,17A3.5,3.5 0 0,1 5,20.5M5,12A5,5 0 0,0 0,17A5,5 0 0,0 5,22A5,5 0 0,0 10,17A5,5 0 0,0 5,12M14.8,10H19V8.2H15.8L13.86,4.93C13.57,4.43 13,4.1 12.4,4.1C11.93,4.1 11.5,4.29 11.2,4.6L7.5,8.29C7.19,8.6 7,9 7,9.5C7,10.13 7.33,10.66 7.85,10.97L11.2,13V18H13V11.5L10.75,9.85L13.07,7.5M19,20.5A3.5,3.5 0 0,1 15.5,17A3.5,3.5 0 0,1 19,13.5A3.5,3.5 0 0,1 22.5,17A3.5,3.5 0 0,1 19,20.5M19,12A5,5 0 0,0 14,17A5,5 0 0,0 19,22A5,5 0 0,0 24,17A5,5 0 0,0 19,12M16,4.8C17,4.8 17.8,4 17.8,3C17.8,2 17,1.2 16,1.2C15,1.2 14.2,2 14.2,3C14.2,4 15,4.8 16,4.8Z" fill="currentColor"/></svg>';
 const BIKEFAST_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1.2C15 1.2 14.2 2 14.2 3S15 4.8 16 4.8 17.8 4 17.8 3 17 1.2 16 1.2M12.4 4.1C11.93 4.1 11.5 4.29 11.2 4.6L7.5 8.29C7.19 8.6 7 9 7 9.5C7 10.13 7.33 10.66 7.85 10.97L11.2 13V18H13V11.5L10.75 9.85L13.07 7.5L14.8 10H19V8.2H15.8L13.86 4.93C13.57 4.43 13 4.1 12.4 4.1M10 3H3C2.45 3 2 2.55 2 2S2.45 1 3 1H12.79C12.58 1.34 12.41 1.71 12.32 2.11C11.46 2.13 10.65 2.45 10 3M5 12C2.24 12 0 14.24 0 17S2.24 22 5 22 10 19.76 10 17 7.76 12 5 12M5 20.5C3.07 20.5 1.5 18.93 1.5 17S3.07 13.5 5 13.5 8.5 15.07 8.5 17 6.93 20.5 5 20.5M19 12C16.24 12 14 14.24 14 17S16.24 22 19 22 24 19.76 24 17 21.76 12 19 12M19 20.5C17.07 20.5 15.5 18.93 15.5 17S17.07 13.5 19 13.5 22.5 15.07 22.5 17 20.93 20.5 19 20.5M5.32 11H1C.448 11 0 10.55 0 10S.448 9 1 9H5.05C5.03 9.16 5 9.33 5 9.5C5 10.03 5.12 10.54 5.32 11M6 7H2C1.45 7 1 6.55 1 6S1.45 5 2 5H7.97L6.09 6.87C6.05 6.91 6 6.96 6 7Z" fill="currentColor"/></svg>';
-const GRAVEL_SVG='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.82 5C5.87 5 5.05 5.67 4.86 6.61L4.04 10.71C4 10.84 4 10.97 4 11.1V12.9C4 13.03 4 13.16 4.04 13.29L4.86 17.39C5.05 18.33 5.87 19 6.82 19H13.38C14.14 19 14.83 18.57 15.17 17.89L16.79 14.66C16.89 14.45 16.96 14.23 17 14H18V13H20V11H18V10H17C16.96 9.77 16.89 9.55 16.79 9.34L15.17 6.11C14.83 5.43 14.14 5 13.38 5H6.82M6.82 7H7.38L9.88 12L7.38 17H6.82L6 12.9V11.1L6.82 7M11.62 11L9.62 7H13.38L15 10.24V11H11.62M11.62 13H15V13.76L13.38 17H9.62L11.62 13Z" fill="currentColor"/></svg>';
 const DEFAULT_MAP_ACTIONS=[
   // ---- "Route to" : BRouter routing from the visitor's own location to the ----
   // tapped point. The result is drawn on the map and added to the Imported files
@@ -276,7 +275,6 @@ const DEFAULT_MAP_ACTIONS=[
   {group:'Route to',iconSvg:WALK_SVG,iconSvgRaw:WALK_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Foot',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=hiking-mountain&format=geojson'},
   {group:'Route to',iconSvg:BIKE_SVG,iconSvgRaw:BIKE_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Trekking)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=trekking&format=geojson'},
   {group:'Route to',iconSvg:BIKEFAST_SVG,iconSvgRaw:BIKEFAST_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Fast)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=fastbike&format=geojson'},
-  {group:'Route to',iconSvg:GRAVEL_SVG,iconSvgRaw:GRAVEL_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Gravel)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=gravel&format=geojson'},
   // ---- "Go to" : open the tapped point in an external map / app / website. ----
   {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
   {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
@@ -2166,13 +2164,6 @@ const EX=${JSON.stringify(exportExtra)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const PREVIEW_VIEW=${JSON.stringify(previewView)};
 const INFO_URL=${safeInfoUrl};
-// Remember which extra layers are ticked, across a browser reload / tab discard.
-const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
-let SAVED_LAYER_STATE=null;
-try{ const _ls=localStorage.getItem(LAYERSTATE_KEY); if(_ls) SAVED_LAYER_STATE=JSON.parse(_ls); }catch(e){}
-function saveLayerState(){
-  try{ localStorage.setItem(LAYERSTATE_KEY, JSON.stringify(wmsLayerObjs.map(lo=>lo&&lo.layer&&map.hasLayer(lo.layer)?1:0))); }catch(e){}
-}
 // Automatically figures out how far a tile layer's real tiles actually go: the
 // first time a tile genuinely fails to load at a plausibly-high zoom level (not
 // just a low-zoom network blip), the layer's native ceiling is capped there and
@@ -2201,7 +2192,7 @@ const wmsLayerObjs=new Array(EX.length);
     }
     attachAutoNativeZoom(lyr);
     // default on/off: from URL state if present, otherwise from layer setting
-    const defaultOn=(SAVED_LAYER_STATE&&SAVED_LAYER_STATE[i]!=null)?!!SAVED_LAYER_STATE[i]:(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn===true);
+    const defaultOn=(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn===true);
     if(defaultOn) lyr.addTo(map);
   }catch(e){}
   wmsLayerObjs[i]={layer:lyr,name:el.displayName||('Layer '+(i+1)),visible:true};
@@ -2259,7 +2250,6 @@ const wmsLayerObjs=new Array(EX.length);
         if(!lo.layer)return;
         if(e.target.checked){map.addLayer(lo.layer);}else{map.removeLayer(lo.layer);}
         updateUrlHash();
-        saveLayerState();
       });
     });
 
@@ -3030,7 +3020,7 @@ map.on('zoomend',function(){
 
 
   // Helper: render polygon as Leaflet layer — MultiPolygon via L.geoJSON, plain via L.polygon
-  function addUserRoute(name, parsed, color, lineWidth, preset){
+  function addUserRoute(name, parsed, color, lineWidth){
     const lyrGroup=[];
     const allCoords=[];
 
@@ -3053,10 +3043,8 @@ map.on('zoomend',function(){
       const km=trackKm(parsed.tracks[0].coords);
       kmSuffix=' ('+km.toFixed(1).replace('.',',')+' km)';
     }
-    // When restoring from storage, keep the exact saved name/suffix instead of recomputing.
-    if(preset){ kmSuffix=preset.kmSuffix||''; }
     // Display name in list gets the suffix; label on map uses track name + suffix
-    const displayName=preset?preset.name:(name+kmSuffix);
+    const displayName=name+kmSuffix;
     parsed.tracks.forEach(t=>{
       allCoords.push(...t.coords);
       const poly=L.polyline(t.coords,{color,weight:4,opacity:0.85}).addTo(map);
@@ -3088,9 +3076,9 @@ map.on('zoomend',function(){
       : hasWpt
       ? {lineWidth:8,showArrows:false,showLabel:true,labelMode:'nametag',useElementName:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,mapZoomMin:1,mapZoomMax:22}
       : {lineWidth:2,showArrows:false,showLabel:true,labelMode:'nametag',useElementName:true,labelPos:'centroid',showStart:false,showKmMarkers:false,showTrackDist:false,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,mapZoomMin:1,mapZoomMax:22};
-    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix,customName:preset?!!preset.customName:false});
+    userRoutes.push({name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix});
     // Fit map to route bounds
-    if(bounds&&!preset)map.fitBounds(bounds,{padding:[24,24]});
+    if(bounds)map.fitBounds(bounds,{padding:[24,24]});
     // Apply label immediately and ensure layers render. Guarded so that an
     // unexpected error here (e.g. an odd property in an imported/BRouter
     // file) can never silently skip adding the row to the list below.
@@ -3099,13 +3087,8 @@ map.on('zoomend',function(){
     if(typeof bringTrailToFront==='function') bringTrailToFront();
     // Rebuild the route list panel
     try{ renderRouteList(); }catch(e){ console.error('renderRouteList failed:',e); }
-    if(preset){
-      if(preset.visible===false) setRouteVisible(idx,false);
-    } else {
-      // Open the panel so user sees the new entry
-      document.getElementById('route-panel').classList.add('open');
-      saveRoutesToStorage();
-    }
+    // Open the panel so user sees the new entry
+    document.getElementById('route-panel').classList.add('open');
   }
 
   function zoomInRange(r){
@@ -3322,25 +3305,6 @@ map.on('zoomend',function(){
     if(userRoutes[idx].startLayer){if(vis)map.addLayer(userRoutes[idx].startLayer);else map.removeLayer(userRoutes[idx].startLayer);}
   }
 
-  // --- Persistence: remember imported routes across a browser reload / tab discard ---
-  const ROUTES_KEY='PeeWeeTrails_routes__'+location.pathname;
-  function serializeRoute(r){
-    return {name:r.name,color:r.color,lineWidth:r.lineWidth,visible:r.visible!==false,customName:!!r.customName,kmSuffix:r.kmSuffix||'',parsed:r.parsed};
-  }
-  function saveRoutesToStorage(){
-    try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(userRoutes.map(serializeRoute))); }catch(e){}
-  }
-  function loadRoutesFromStorage(){
-    let data=null;
-    try{ const raw=localStorage.getItem(ROUTES_KEY); if(raw) data=JSON.parse(raw); }catch(e){}
-    if(!Array.isArray(data)) return;
-    data.forEach(rd=>{
-      if(!rd||!rd.parsed) return;
-      try{ addUserRoute(rd.name, rd.parsed, rd.color||'#e91e63', rd.lineWidth, {name:rd.name,kmSuffix:rd.kmSuffix||'',visible:rd.visible!==false,customName:!!rd.customName}); }catch(e){ console.error('restore route failed:',e); }
-    });
-    const rp=document.getElementById('route-panel'); if(rp) rp.classList.remove('open');
-  }
-
   function removeUserRoute(idx){
     userRoutes[idx].layers.forEach(l=>map.removeLayer(l));
     userRoutes[idx].arrowLayers.forEach(l=>map.removeLayer(l));
@@ -3348,7 +3312,6 @@ map.on('zoomend',function(){
     if(userRoutes[idx].startLayer)map.removeLayer(userRoutes[idx].startLayer);
     userRoutes.splice(idx,1);
     renderRouteList();
-    saveRoutesToStorage();
   }
 
   function clearAllUserRoutes(){
@@ -3362,7 +3325,6 @@ map.on('zoomend',function(){
     });
     userRoutes.length=0;
     renderRouteList();
-    saveRoutesToStorage();
   }
 
   // Small geometry-type icon (track / waypoint / polygon), matches input HTML styling
@@ -3431,7 +3393,7 @@ map.on('zoomend',function(){
         '</div>';
       el.appendChild(detail);
 
-      row.querySelector('.ur-color').addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);saveRoutesToStorage();});
+      row.querySelector('.ur-color').addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);});
       const _nameInp=row.querySelector('.route-name-edit');
       if(_nameInp){
         _nameInp.value=userRoutes[i].name;
@@ -3441,7 +3403,7 @@ map.on('zoomend',function(){
         _nameInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
         _nameInp.addEventListener('change',e=>{
           const v=e.target.value.trim();
-          if(v){ userRoutes[i].name=v; userRoutes[i].customName=true; e.target.title=v; applyRouteStyle(i); saveRoutesToStorage(); }
+          if(v){ userRoutes[i].name=v; userRoutes[i].customName=true; e.target.title=v; applyRouteStyle(i); }
           else { e.target.value=userRoutes[i].name; }  // never allow an empty name
         });
       }
@@ -3455,7 +3417,7 @@ map.on('zoomend',function(){
       detail.querySelector('.route-detail-close').addEventListener('click',()=>detail.classList.remove('open'));
       detail.querySelector('.ro-fly-btn').addEventListener('click',()=>{if(userRoutes[i].bounds)map.fitBounds(userRoutes[i].bounds,{padding:[24,24]});});
       row.querySelector('.route-vis').addEventListener('click',e=>{
-        const nv=!userRoutes[i].visible;setRouteVisible(i,nv);e.currentTarget.style.opacity=nv?'1':'0.4';saveRoutesToStorage();
+        const nv=!userRoutes[i].visible;setRouteVisible(i,nv);e.currentTarget.style.opacity=nv?'1':'0.4';
       });
       row.querySelector('.route-del').addEventListener('click',()=>removeUserRoute(i));
       detail.querySelector('.ur-op').addEventListener('input',e=>{
@@ -4048,7 +4010,6 @@ map.on('zoomend',function(){
     mapEl.style.webkitTouchCallout='none';
 
     renderAllSavedPoints();
-    loadRoutesFromStorage();
   })();
 })();
 <\/script>
