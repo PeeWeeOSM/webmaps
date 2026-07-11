@@ -135,6 +135,19 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .mam-icon-chip svg{width:15px;height:15px}
 .mam-icon-chip img{width:15px;height:15px;object-fit:contain}
 /* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
+  /* --- Rotation compass (replaces the my-location button) --- */
+  #loc-overlay{position:relative;pointer-events:auto;}
+  #loc-btn.compass{background:#d32f2f;border-color:#fff;padding:0;overflow:visible;display:flex;align-items:center;justify-content:center;}
+  #loc-btn.compass.tracking{background:#2e7d32;}
+  #loc-btn .compass-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:transform .12s linear;}
+  #loc-btn .compass-inner svg{width:24px;height:24px;display:block;}
+  #compass-menu{position:absolute;left:44px;top:0;width:206px;background:#fff;border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.28);padding:6px;z-index:1300;pointer-events:auto;}
+  #compass-menu.hidden{display:none;}
+  #compass-menu .cm-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:14px;color:#263238;}
+  #compass-menu .cm-item:hover{background:#f0f3f7;}
+  #compass-menu .cm-item.active{background:#eaf6ef;font-weight:600;}
+  #compass-menu .cm-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);}
+  #compass-menu .cm-dot.green{background:#2e7d32;} #compass-menu .cm-dot.red{background:#d32f2f;}
 </style>
 </head>
 <body>
@@ -146,7 +159,14 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
       <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Zoom in">+</button>
       <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
-    <button class="ctrl-btn" id="loc-btn" title="My location">&#9737;</button>
+    <div id="loc-overlay">
+      <button class="ctrl-btn compass" id="loc-btn" title="Map orientation"><span class="compass-inner"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 L14 15 L26 15 Z" fill="#fff"/><text x="20" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#fff">N</text></svg></span></button>
+      <div id="compass-menu" class="hidden">
+        <div class="cm-item" data-mode="movement"><span class="cm-dot green"></span>Movement direction</div>
+        <div class="cm-item" data-mode="north"><span class="cm-dot green"></span>North up</div>
+        <div class="cm-item" data-mode="off"><span class="cm-dot red"></span>Location off</div>
+      </div>
+    </div>
     <div id="trail-overlay">
       <button class="ctrl-btn" id="trail-settings-btn" title="Trail settings">&#9881;</button>
       <div id="trail-panel">
@@ -175,10 +195,14 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
         <div class="trail-row" style="border-top:1px solid #f0f0f0;margin-top:4px;padding-top:8px">
           <label for="trail-center-input">Center map</label>
           <select id="trail-center-input">
+            <option value="seconds">After N seconds</option>
             <option value="0">Never</option>
-            <option value="10000">After 10 seconds</option>
-            <option value="20000">After 20 seconds</option>
           </select>
+        </div>
+        <div class="trail-row" id="trail-center-sec-row">
+          <label for="trail-center-sec">Seconds</label>
+          <input type="number" id="trail-center-sec" min="1" max="600" value="10" style="width:72px">
+          <span>s</span>
         </div>
       </div>
     </div>
@@ -225,7 +249,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="map-actions-menu" class="map-actions-menu"></div>
   <button id="info-btn" title="About this map" style="display:none">i</button>
 </div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script> <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"></script>
 <script>
 // =============================================================================
@@ -441,7 +465,7 @@ function updateUrlHash(){
 
 // --- Initialise Leaflet map and OSM base layer ---
 const urlState=parseStateFromHash();
-const map=L.map('map');
+const map=L.map('map',{rotate:true,bearing:0,touchRotate:true,rotateControl:false});
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 // Maker credit + license, always shown bottom-right (edit or remove this one line to change it).
 const AUTHOR_CREDIT='Kaart &copy; <a href="https://github.com/PeeWeeOSM" target="_blank" rel="noopener">PeeWeeOSM</a> &middot; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>';
@@ -454,7 +478,7 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
 const EX=[{"type":"xyz","url":"http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Cycling","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Hiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Mountainbiking","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png","wmsLayer":"","displayName":"WMT Horseriding","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL PDOK","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"Satelite NL April 2026","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg","wmsLayer":"","displayName":"Satelite World (EOX Sentinel-2)","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":"Sentinel-2 cloudless <a href=\"https://s2maps.eu\" target=\"_blank\" rel=\"noopener\">s2maps.eu</a> by <a href=\"https://eox.at\" target=\"_blank\" rel=\"noopener\">EOX</a> (Contains modified Copernicus Sentinel data 2024)"},{"type":"xyz","url":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}","wmsLayer":"","displayName":"Satelite World (Esri)","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":"Imagery &copy; <a href=\"https://www.esri.com\" target=\"_blank\" rel=\"noopener\">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community"},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"gravelbiker","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""},{"type":"xyz","url":"https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}","wmsLayer":"","displayName":"dijkfietser","opacity":0.8,"zoomMin":1,"zoomMax":22,"defaultOn":false,"attribution":""}];
 const MAP_ACTIONS=[{"group":"Route to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14.12,10H19V8.2H15.38L13.38,4.87C13.08,4.37 12.54,4.03 11.92,4.03C11.74,4.03 11.58,4.06 11.42,4.11L6,5.8V11H7.8V7.33L9.91,6.67L6,22H7.8L10.67,13.89L13,17V22H14.8V15.59L12.31,11.05L13.04,8.18M14,3.8C15,3.8 15.8,3 15.8,2C15.8,1 15,0.2 14,0.2C13,0.2 12.2,1 12.2,2C12.2,3 13,3.8 14,3.8Z\" fill=\"currentColor\"/></svg>","iconColor":"#2e7d32","iconImgSrc":null,"name":"Foot","urlTemplate":"https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=hiking-mountain&format=geojson"},{"group":"Route to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5,20.5A3.5,3.5 0 0,1 1.5,17A3.5,3.5 0 0,1 5,13.5A3.5,3.5 0 0,1 8.5,17A3.5,3.5 0 0,1 5,20.5M5,12A5,5 0 0,0 0,17A5,5 0 0,0 5,22A5,5 0 0,0 10,17A5,5 0 0,0 5,12M14.8,10H19V8.2H15.8L13.86,4.93C13.57,4.43 13,4.1 12.4,4.1C11.93,4.1 11.5,4.29 11.2,4.6L7.5,8.29C7.19,8.6 7,9 7,9.5C7,10.13 7.33,10.66 7.85,10.97L11.2,13V18H13V11.5L10.75,9.85L13.07,7.5M19,20.5A3.5,3.5 0 0,1 15.5,17A3.5,3.5 0 0,1 19,13.5A3.5,3.5 0 0,1 22.5,17A3.5,3.5 0 0,1 19,20.5M19,12A5,5 0 0,0 14,17A5,5 0 0,0 19,22A5,5 0 0,0 24,17A5,5 0 0,0 19,12M16,4.8C17,4.8 17.8,4 17.8,3C17.8,2 17,1.2 16,1.2C15,1.2 14.2,2 14.2,3C14.2,4 15,4.8 16,4.8Z\" fill=\"currentColor\"/></svg>","iconColor":"#2e7d32","iconImgSrc":null,"name":"Bicycle (Trekking)","urlTemplate":"https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=trekking&format=geojson"},{"group":"Route to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M16 1.2C15 1.2 14.2 2 14.2 3S15 4.8 16 4.8 17.8 4 17.8 3 17 1.2 16 1.2M12.4 4.1C11.93 4.1 11.5 4.29 11.2 4.6L7.5 8.29C7.19 8.6 7 9 7 9.5C7 10.13 7.33 10.66 7.85 10.97L11.2 13V18H13V11.5L10.75 9.85L13.07 7.5L14.8 10H19V8.2H15.8L13.86 4.93C13.57 4.43 13 4.1 12.4 4.1M10 3H3C2.45 3 2 2.55 2 2S2.45 1 3 1H12.79C12.58 1.34 12.41 1.71 12.32 2.11C11.46 2.13 10.65 2.45 10 3M5 12C2.24 12 0 14.24 0 17S2.24 22 5 22 10 19.76 10 17 7.76 12 5 12M5 20.5C3.07 20.5 1.5 18.93 1.5 17S3.07 13.5 5 13.5 8.5 15.07 8.5 17 6.93 20.5 5 20.5M19 12C16.24 12 14 14.24 14 17S16.24 22 19 22 24 19.76 24 17 21.76 12 19 12M19 20.5C17.07 20.5 15.5 18.93 15.5 17S17.07 13.5 19 13.5 22.5 15.07 22.5 17 20.93 20.5 19 20.5M5.32 11H1C.448 11 0 10.55 0 10S.448 9 1 9H5.05C5.03 9.16 5 9.33 5 9.5C5 10.03 5.12 10.54 5.32 11M6 7H2C1.45 7 1 6.55 1 6S1.45 5 2 5H7.97L6.09 6.87C6.05 6.91 6 6.96 6 7Z\" fill=\"currentColor\"/></svg>","iconColor":"#2e7d32","iconImgSrc":null,"name":"Bicycle (Fast)","urlTemplate":"https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=fastbike&format=geojson"},{"group":"Route to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6.82 5C5.87 5 5.05 5.67 4.86 6.61L4.04 10.71C4 10.84 4 10.97 4 11.1V12.9C4 13.03 4 13.16 4.04 13.29L4.86 17.39C5.05 18.33 5.87 19 6.82 19H13.38C14.14 19 14.83 18.57 15.17 17.89L16.79 14.66C16.89 14.45 16.96 14.23 17 14H18V13H20V11H18V10H17C16.96 9.77 16.89 9.55 16.79 9.34L15.17 6.11C14.83 5.43 14.14 5 13.38 5H6.82M6.82 7H7.38L9.88 12L7.38 17H6.82L6 12.9V11.1L6.82 7M11.62 11L9.62 7H13.38L15 10.24V11H11.62M11.62 13H15V13.76L13.38 17H9.62L11.62 13Z\" fill=\"currentColor\"/></svg>","iconColor":"#2e7d32","iconImgSrc":null,"name":"Bicycle (Gravel)","urlTemplate":"https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=gravel&format=geojson"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6.382 3.968A8.962 8.962 0 0 1 12 2c2.125 0 4.078.736 5.618 1.968l1.453-1.453 1.414 1.414-1.453 1.453A8.962 8.962 0 0 1 21 11v1H3v-1c0-2.125.736-4.078 1.968-5.618L3.515 3.93l1.414-1.414 1.453 1.453zM3 14h18v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7zm6-5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z\" fill=\"currentColor\"/></svg>","iconColor":"#3ddc84","iconImgSrc":null,"name":"Choose app (Android)","urlTemplate":"geo:{lat},{lon}?z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#ea4335","iconImgSrc":null,"name":"Google Maps","urlTemplate":"https://www.google.com/maps/search/?api=1&query={lat},{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#2c7fb8","iconImgSrc":null,"name":"OpenStreetMap","urlTemplate":"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 999.97626 999.97626\" xmlns=\"http://www.w3.org/2000/svg\"><linearGradient id=\"a\" gradientUnits=\"userSpaceOnUse\" x1=\"502.060709\" x2=\"499.521429\" y1=\".000005\" y2=\"1000.235005\"><stop offset=\"0\" stop-color=\"#ffa033\"/><stop offset=\"1\" stop-color=\"#f80\"/></linearGradient><path d=\"m598.32963 913.706-84.95 80.979a19.593 19.593 0 0 1 -26.784 0l-84.947-80.978c-207.9-45.1-363.672001-230.086-363.672001-451.553 0-255.237 206.849001-462.15399485 462.011001-462.15399485s462.012 206.91699485 462.012 462.15399485c0 221.466-155.771 406.451-363.67 451.552zm-98.318-715.649c-145.786 0-263.971 118.208-263.971 264.036s118.185 264.039 263.971 264.039 263.976-118.217 263.976-264.039-118.19-264.036-263.976-264.036z\" fill=\"url(#a)\" fill-rule=\"evenodd\"/></svg>","iconColor":"#ff8800","iconImgSrc":null,"name":"OsmAnd Online","urlTemplate":"https://osmand.net/map/configure/#{zoom}/{lat}/{lon}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#555555","iconImgSrc":null,"name":"Apple Maps","urlTemplate":"https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 34 44\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z\" fill=\"currentColor\"/><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#fff\"/></svg>","iconColor":"#589632","iconImgSrc":null,"name":"QGIS Cloud","urlTemplate":"https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}"},{"group":"Go to","iconSvg":"<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 20 Q7 8 12 14 T21 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","iconColor":"#b5651d","iconImgSrc":null,"name":"Find/download trails (WMT)","urlTemplate":"https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}"}];
-const PREVIEW_VIEW={"lat":52.122356959563874,"lng":5.4065072536468515,"zoom":16};
+const PREVIEW_VIEW={"lat":52.1,"lng":5.1,"zoom":8};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Remember which extra layers are ticked, across a browser reload / tab discard.
 const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
@@ -867,6 +891,22 @@ let lastUserInteraction=Date.now();
 let lastKnownLatLng=null;
 let followCheckInterval=null;
 let programmaticMove=false;
+// --- Rotation / orientation state (compass modes) ---
+let locMode='off';
+let following=true;
+let smoothedHeading=null;
+function angleDeltaDeg(a,b){ return ((b-a+540)%360)-180; }
+function metersPerPixel(lat,zoom){ return 156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom); }
+function destPoint(lat,lng,distanceM,brngDeg){
+  const R=6371000, brng=brngDeg*Math.PI/180, la1=lat*Math.PI/180, lo1=lng*Math.PI/180;
+  const la2=Math.asin(Math.sin(la1)*Math.cos(distanceM/R)+Math.cos(la1)*Math.sin(distanceM/R)*Math.cos(brng));
+  const lo2=lo1+Math.atan2(Math.sin(brng)*Math.sin(distanceM/R)*Math.cos(la1),Math.cos(distanceM/R)-Math.sin(la1)*Math.sin(la2));
+  return [la2*180/Math.PI, lo2*180/Math.PI];
+}
+let compassAngle=0;
+function updateCompass(){ const inner=locBtn.querySelector('.compass-inner'); if(!inner) return; compassAngle+=angleDeltaDeg(compassAngle, map.getBearing()); inner.style.transform='rotate('+compassAngle+'deg)'; }
+map.on('rotate move zoom', updateCompass);
+function setBearingProg(b){ programmaticMove=true; map.setBearing(b); programmaticMove=false; updateCompass(); }
 
 function haversineMeters(p1,p2){
   const R=6371000;
@@ -920,7 +960,8 @@ function trimTrail(history){
   modeInput.value=TRAIL_MODE;
   metersInput.value=TRAIL_METERS;
   metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
-  centerInput.value=String(FOLLOW_DELAY);
+  const secInput=document.getElementById('trail-center-sec');
+  const secRow=document.getElementById('trail-center-sec-row');
 
   trailBtn.onclick=function(e){e.stopPropagation();trailPanel.classList.toggle('open');};
   document.addEventListener('click',function(e){
@@ -957,10 +998,15 @@ function trimTrail(history){
     locHistory=trimTrail(locHistory);
     if(locTrail){ locTrail.setLatLngs(locHistory); locTrailBg.setLatLngs(locHistory); }
   });
-  centerInput.addEventListener('change',function(){
-    FOLLOW_DELAY=parseInt(centerInput.value)||0;
-    lastUserInteraction=Date.now(); // restart the idle countdown with the new delay
-  });
+  function applyCenterSetting(){
+    if(centerInput.value==='0'){ FOLLOW_DELAY=0; secRow.style.display='none'; }
+    else { const sc=Math.max(1,Math.min(600,parseInt(secInput.value)||10)); secInput.value=sc; FOLLOW_DELAY=sc*1000; secRow.style.display=''; }
+    lastUserInteraction=Date.now();
+  }
+  if(FOLLOW_DELAY<=0){ centerInput.value='0'; } else { centerInput.value='seconds'; secInput.value=Math.round(FOLLOW_DELAY/1000); }
+  applyCenterSetting();
+  centerInput.addEventListener('change',applyCenterSetting);
+  secInput.addEventListener('change',applyCenterSetting);
 }
 
 function bearing(p1,p2){
@@ -990,7 +1036,7 @@ function stopLoc(){
   // History is only cleared when the page/tab is closed.
   if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
   if(followCheckInterval!==null){clearInterval(followCheckInterval);followCheckInterval=null;}
-  locBtn.classList.remove('on');locBtn.innerHTML='&#9737;';
+  smoothedHeading=null;
   // Remove only the accuracy circle and direction arrow, not the trail line
   if(lc){map.removeLayer(lc);lc=null;}
   if(dirMarker){map.removeLayer(dirMarker);dirMarker=null;}
@@ -998,8 +1044,8 @@ function stopLoc(){
 }
 
 // Detect manual map interaction (drag/zoom by user) to temporarily pause auto-centering
-map.on('dragstart zoomstart',function(){
-  if(!programmaticMove) lastUserInteraction=Date.now();
+map.on('dragstart zoomstart rotate',function(){
+  if(!programmaticMove){ lastUserInteraction=Date.now(); following=false; }
 });
 
 function recenterOnLocation(ll){
@@ -1008,17 +1054,29 @@ function recenterOnLocation(ll){
   map.setView(ll, followZoom, {animate:false});
   programmaticMove=false;
 }
+function orient(){
+  if(locMode==='off'){ if(following) setBearingProg(0); return; }
+  if(!following || !lastKnownLatLng) return;
+  const zoom=(followZoom!==null?followZoom:Math.max(map.getZoom(),16));
+  if(locMode==='north'){
+    setBearingProg(0);
+    programmaticMove=true; map.setView(lastKnownLatLng, zoom, {animate:false}); programmaticMove=false;
+  } else if(locMode==='movement'){
+    const hdg=(smoothedHeading==null?0:smoothedHeading);
+    const H=map.getContainer().clientHeight;
+    const dest=destPoint(lastKnownLatLng[0], lastKnownLatLng[1], H*0.25*metersPerPixel(lastKnownLatLng[0], zoom), hdg);
+    setBearingProg(-hdg);
+    programmaticMove=true; map.setView(dest, zoom, {animate:false}); programmaticMove=false;
+  }
+}
 
-locBtn.onclick=function(){
-  if(wid!==null){stopLoc();return;}
+function startGPS(){
+  if(wid!==null) return;
   if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
-  locBtn.innerHTML='&#8987;';
 
   wid=navigator.geolocation.watchPosition(function(p){
     const ll=[p.coords.latitude,p.coords.longitude];
     lastKnownLatLng=ll;
-    locBtn.classList.add('on');locBtn.innerHTML='&#9737;';
-
     locHistory.push(ll);
     locHistory=trimTrail(locHistory);
 
@@ -1029,14 +1087,19 @@ locBtn.onclick=function(){
     } else if(locHistory.length>=2){
       deg=bearing(locHistory[0],locHistory[locHistory.length-1]);
     }
+    if(locMode==='movement'){
+      const rel=(p.coords.heading!=null && !isNaN(p.coords.heading)) && (p.coords.speed==null||p.coords.speed>1);
+      if(smoothedHeading==null) smoothedHeading=deg;
+      else if(rel){ const dd=angleDeltaDeg(smoothedHeading,deg); smoothedHeading+=dd*(Math.abs(dd)>20?0.6:0.25); }
+    }
 
     if(locTrail){
       locTrail.setLatLngs(locHistory);
       locTrailBg.setLatLngs(locHistory);
       if(lc) lc.setLatLng(ll).setRadius(p.coords.accuracy);
       else lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
-      if(dirMarker) dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg));
-      else dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
+      if(dirMarker) dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg + map.getBearing()));
+      else dirMarker=L.marker(ll,{icon:makeDirIcon(deg + map.getBearing()),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     } else {
       lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
       // White base line first, then a dashed colored line on top — gives a true
@@ -1044,34 +1107,39 @@ locBtn.onclick=function(){
       // and reads more clearly against imported tracks of a similar solid color.
       locTrailBg=L.polyline(locHistory,{color:'#fff',weight:TRAIL_WIDTH,opacity:.9,lineCap:'round'}).addTo(map);
       locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:1,lineCap:'butt',dashArray:(TRAIL_WIDTH*1.6)+','+(TRAIL_WIDTH*1.3)}).addTo(map);
-      dirMarker=L.marker(ll,{icon:makeDirIcon(deg),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
+      dirMarker=L.marker(ll,{icon:makeDirIcon(deg + map.getBearing()),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     }
     bringTrailToFront();
 
-    if(!dirMarker._shown){
-      // Always center once on the very first fix, regardless of the delay setting
-      programmaticMove=true;
-      map.setView(ll, Math.max(map.getZoom(),16));
-      programmaticMove=false;
-      dirMarker._shown=true;
-      lastUserInteraction=Date.now();
-    }
+    if(!dirMarker._shown){ dirMarker._shown=true; if(followZoom===null) followZoom=Math.max(map.getZoom(),16); lastUserInteraction=Date.now(); }
+    if(following) orient();
+    if(dirMarker) dirMarker.setIcon(makeDirIcon(deg + map.getBearing()));
   },function(e){
     stopLoc();
     alert('Location unavailable: '+e.message);
   },{enableHighAccuracy:true,maximumAge:1000});
+}
 
-  // Independent timer: checks idle time on its own schedule instead of only
-  // when a new GPS fix arrives — a stationary device may not get a new fix
-  // for a long time, which previously meant the idle check never ran.
-  if(followCheckInterval!==null) clearInterval(followCheckInterval);
-  followCheckInterval=setInterval(function(){
-    if(FOLLOW_DELAY<=0 || !lastKnownLatLng) return;
-    if((Date.now()-lastUserInteraction)>=FOLLOW_DELAY){
-      recenterOnLocation(lastKnownLatLng);
-    }
-  },1000);
-};
+// --- Compass modes menu + auto-return timer ---
+const compassMenu=document.getElementById('compass-menu');
+function setLocMode(m){
+  locMode=m; following=true; lastUserInteraction=Date.now();
+  compassMenu.classList.add('hidden');
+  document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode===m); });
+  if(m==='off'){ stopLoc(); locBtn.classList.remove('tracking'); setBearingProg(0); }
+  else { locBtn.classList.add('tracking'); startGPS(); orient(); }
+}
+locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('hidden'); };
+document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
+document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
+setInterval(function(){
+  if(FOLLOW_DELAY<=0) return;
+  if(!following && (Date.now()-lastUserInteraction)>=FOLLOW_DELAY){
+    following=true;
+    if(locMode==='off') setBearingProg(0); else orient();
+  }
+},1000);
+setLocMode('off');
 
 // If user manually zooms while following is active, remember new zoom level instead of snapping back
 map.on('zoomend',function(){
