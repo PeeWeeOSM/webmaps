@@ -1773,7 +1773,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-overlay{position:absolute;top:138px;right:10px;z-index:1200}
 #route-btn svg{width:20px;height:20px;display:block}
 #route-btn:hover{background:#f4f4f4}
-#route-btn.has-routes{border-color:rgba(0,0,0,0.25);background:#fff}
+#route-btn.has-routes{border-color:#2980b9;background:#d4efff}
 /* Width is fluid: caps at 380px on wide screens (laptop, unchanged) but shrinks
    to the viewport width minus a 20px margin on narrow phones, so the panel never
    runs off either edge. Without this the fixed 320px min-width pushed the leftmost
@@ -1847,8 +1847,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 /* Keep Leaflet attribution including the Ukraine flag — shown as thanks to the maker */
   /* --- Rotation compass (replaces the my-location button) --- */
   #loc-overlay{position:relative;pointer-events:auto;}
-  #loc-btn.compass{background:#fff;color:#111;border-color:#bbb;padding:0;overflow:visible;display:flex;align-items:center;justify-content:center;}
-  #loc-btn.compass.tracking{background:#2e7d32;color:#fff;border-color:#fff;}
+  #loc-btn.compass{background:#d32f2f;border-color:#fff;padding:0;overflow:visible;display:flex;align-items:center;justify-content:center;}
+  #loc-btn.compass.tracking{background:#2e7d32;}
   #loc-btn .compass-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:transform .12s linear;}
   #loc-btn .compass-inner svg{width:24px;height:24px;display:block;}
   #compass-menu{position:absolute;left:44px;top:0;width:206px;background:#fff;border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.28);padding:6px;z-index:1300;pointer-events:auto;}
@@ -1870,7 +1870,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
       <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
     <div id="loc-overlay">
-      <button class="ctrl-btn compass" id="loc-btn" title="Map orientation"><span class="compass-inner"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 L14 15 L26 15 Z" fill="currentColor"/><text x="20" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="currentColor">N</text></svg></span></button>
+      <button class="ctrl-btn compass" id="loc-btn" title="Map orientation"><span class="compass-inner"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 L14 15 L26 15 Z" fill="#fff"/><text x="20" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#fff">N</text></svg></span></button>
       <div id="compass-menu" class="hidden">
         <div class="cm-item" data-mode="movement"><span class="cm-dot green"></span>Movement direction</div>
         <div class="cm-item" data-mode="north"><span class="cm-dot green"></span>North up</div>
@@ -2306,19 +2306,6 @@ const wmsLayerObjs=new Array(EX.length);
   osmRow.querySelector('input').addEventListener('change',function(e){
     if(e.target.checked){tiles.setOpacity(osmOpSlider.querySelector('input').value/100);}
     else{tiles.setOpacity(0);}
-  });
-
-  // OSM France (Latin labels worldwide, e.g. readable in China) — extra base map, default OFF
-  const tilesFR=L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:20,opacity:OSM_OPACITY,attribution:'&copy; OpenStreetMap France'});
-  const osmfrRow=document.createElement('label');
-  osmfrRow.className='layer-toggle-row';
-  osmfrRow.innerHTML='<input type="checkbox" data-osmfr="1"><span>OSM France (Latin labels)</span>';
-  panelContent.appendChild(osmfrRow);
-  const osmfrOpSlider=makeOpacitySlider(tilesFR, OSM_OPACITY, ' OSM France');
-  panelContent.appendChild(osmfrOpSlider);
-  osmfrRow.querySelector('input').addEventListener('change',function(e){
-    if(e.target.checked){ tilesFR.setOpacity(osmfrOpSlider.querySelector('input').value/100); tilesFR.addTo(map); }
-    else{ map.removeLayer(tilesFR); }
   });
 
   layersBtn.onclick=function(){layersPanel.classList.toggle('open');};
@@ -2853,7 +2840,6 @@ function setLocMode(m){
   else { locBtn.classList.add('tracking'); startGPS(); orient(); }
 }
 locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('hidden'); };
-locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); following=false; lastUserInteraction=Date.now(); setBearingProg(0); });
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
 setInterval(function(){
