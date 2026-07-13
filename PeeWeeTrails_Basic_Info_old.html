@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)file:///home/peewee/Downloads/PeeWeeTrails_Basic_Info%20(1).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PeeWeeTrails_Basic</title>
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --accent-color: #27ae60;
+        --bg-color: #f8f9fa;
+        --text-color: #333;
+        --card-bg: #ffffff;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    header {
+        position: relative;
+        text-align: center;
+        padding: 40px 0 20px 0;
+        background: linear-gradient(135deg, var(--primary-color), #34495e);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .lang-switch {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .lang-switch button {
+        border: 2px solid transparent;
+        background: rgba(255,255,255,0.12);
+        border-radius: 6px;
+        padding: 4px 6px;
+        cursor: pointer;
+        line-height: 0;
+        transition: border-color 0.15s, background 0.15s;
+    }
+
+    .lang-switch button:hover {
+        background: rgba(255,255,255,0.25);
+    }
+
+    .lang-switch button.active {
+        border-color: var(--accent-color);
+        background: rgba(255,255,255,0.3);
+    }
+
+    .lang-switch span.flag {
+        font-size: 1.4rem;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    header p {
+        margin: 10px 0 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .intro-lead {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+        margin-bottom: 25px;
+        border-left: 5px solid var(--accent-color);
+        padding-left: 15px;
+    }
+
+    h2 {
+        color: var(--primary-color);
+        border-bottom: 2px solid #eaeded;
+        padding-bottom: 8px;
+        margin-top: 35px;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        background: var(--card-bg);
+        margin-bottom: 12px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .feature-list strong {
+        color: var(--primary-color);
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+
+    .note-box {
+        background: #fff8e6;
+        border: 1px solid #f0d998;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin: 20px 0;
+    }
+
+    .note-box strong {
+        color: #8a6d1a;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        background: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    th {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f4f4;
+    }
+
+    .btn-container {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .btn {
+        display: inline-block;
+        background-color: var(--accent-color);
+        color: white;
+        padding: 14px 30px;
+        text-shadow: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 30px;
+        box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn:hover {
+        background-color: #219653;
+        transform: translateY(-2px);
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 50px;
+        padding: 20px 0;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        border-top: 1px solid #eaeded;
+    }
+
+    /* language visibility */
+    [data-lang] { display: none; }
+    body.lang-en [data-lang="en"] { display: block; }
+    body.lang-nl [data-lang="nl"] { display: block; }
+    body.lang-en span[data-lang="en"],
+    body.lang-nl span[data-lang="nl"] { display: inline; }
+    body.lang-en th[data-lang="en"],
+    body.lang-nl th[data-lang="nl"],
+    body.lang-en td[data-lang="en"],
+    body.lang-nl td[data-lang="nl"] { display: table-cell; }
+</style>
+</head>
+<body class="lang-en">
+
+<div class="container">
+    <header>
+        <div class="lang-switch">
+            <button id="btn-en" onclick="setLang(&#39;en&#39;)" title="English" aria-label="English" class="active">
+                <span class="flag">🇬🇧</span>
+            </button>
+            <button id="btn-nl" onclick="setLang(&#39;nl&#39;)" title="Nederlands" aria-label="Nederlands" class="">
+                <span class="flag">🇳🇱</span>
+            </button>
+        </div>
+        <h1>PeeWeeTrails_Basic</h1>
+        <p data-lang="en">A simple, offline-friendly map in your browser.</p>
+        <p data-lang="nl">Een eenvoudige, offline-vriendelijke kaart in je browser.</p>
+    </header>
+
+    <div data-lang="en">
+        <div class="intro-lead">
+            PeeWeeTrails_Basic is a lightweight map application that runs entirely in your browser. No account, no cloud storage, no data leaving your device.
+        </div>
+        <p>Where most navigation and fitness apps quietly send your route data off to a server somewhere, PeeWeeTrails_Basic simply doesn't. Everything you see and do stays on the device you're using, for as long as the page is open.</p>
+    </div>
+
+    <div data-lang="nl">
+        <div class="intro-lead">
+            PeeWeeTrails_Basic is een lichte kaartapplicatie die volledig in je browser draait. Geen account, geen opslag in de cloud, geen data die je apparaat verlaat.
+        </div>
+        <p>Waar de meeste navigatie- en fitnessapps je routedata stilletjes naar een server sturen, doet PeeWeeTrails_Basic dat gewoon niet. Alles wat je ziet en doet blijft op het apparaat dat je gebruikt, zolang de pagina open staat.</p>
+    </div>
+
+    <h2 data-lang="en">Open data &amp; OpenStreetMap</h2>
+    <h2 data-lang="nl">Opendata &amp; OpenStreetMap</h2>
+
+    <div data-lang="en">
+        <p>PeeWeeTrails_Basic uses OpenStreetMap as its default background map.</p>
+        <ul class="feature-list">
+            <li><strong>No Google by default:</strong> no trackers or ads loading in the background when you open the map.</li>
+            <li><strong>Your choice:</strong> want to switch to a Google Maps view anyway? You can, with one click. It's just never the starting point.</li>
+        </ul>
+    </div>
+
+    <div data-lang="nl">
+        <p>PeeWeeTrails_Basic gebruikt OpenStreetMap als standaard achtergrondkaart.</p>
+        <ul class="feature-list">
+            <li><strong>Geen Google als standaard:</strong> geen trackers of advertenties die op de achtergrond meeladen wanneer je de kaart opent.</li>
+            <li><strong>Jouw keuze:</strong> wil je toch naar een Google Maps-weergave? Dat kan met één klik. Het is alleen nooit het startpunt.</li>
+        </ul>
+    </div>
+
+    <h2 data-lang="en">Features for on the go</h2>
+    <h2 data-lang="nl">Functies voor onderweg</h2>
+
+    <div data-lang="en">
+        <ul class="feature-list">
+            <li><strong>Place your own markers:</strong> handy for marking a parking spot, a starting point, or a rest stop.</li>
+            <li><strong>Live location on mobile:</strong> open the map on your phone to see your current GPS position.</li>
+            <li><strong>Follow your own track:</strong> the app can build up and show the track you're actually walking or cycling, in real time.</li>
+            <li><strong>Cycling and walking networks:</strong> switch official node networks and routes on or off as you need them.</li>
+        </ul>
+    </div>
+
+    <div data-lang="nl">
+        <ul class="feature-list">
+            <li><strong>Zelf markers plaatsen:</strong> handig om een parkeerplek, startpunt of rustplaats vast te leggen.</li>
+            <li><strong>Live locatie op mobiel:</strong> open de kaart op je telefoon om je actuele GPS-positie te zien.</li>
+            <li><strong>Je eigen spoor volgen:</strong> de app kan het spoor dat je daadwerkelijk aflegt tijdens het wandelen of fietsen realtime opbouwen en tonen.</li>
+            <li><strong>Fiets- en wandelnetwerken:</strong> schakel officiële knooppuntnetwerken en routes naar wens aan of uit.</li>
+        </ul>
+    </div>
+
+    <h2 data-lang="en">Importing your own files</h2>
+    <h2 data-lang="nl">Eigen bestanden importeren</h2>
+
+    <div data-lang="en">
+        <p>You can import your own GPX and GeoJSON files. The app splits them into separate layers (tracks, waypoints, polygons), and you can adjust the visibility of each layer with a simple slider.</p>
+    </div>
+
+    <div data-lang="nl">
+        <p>Je kunt je eigen GPX- en GeoJSON-bestanden importeren. De app splitst deze op in aparte lagen (tracks, waypoints, polygonen), en je kunt de zichtbaarheid van elke laag met een simpele schuifbalk aanpassen.</p>
+    </div>
+
+    <h2 data-lang="en">A few things worth knowing</h2>
+    <h2 data-lang="nl">Een paar dingen die goed zijn om te weten</h2>
+
+    <div data-lang="en">
+        <div class="note-box">
+            <strong>You need an internet connection.</strong> The app runs in your browser and always loads the current version, but it does need a connection to fetch the page and, in most cases, the background map tiles.
+        </div>
+        <div class="note-box">
+            <strong>Offline is limited.</strong> If your connection drops while you're using the app, your own location, your recorded track, and any GPX/GeoJSON files you've already loaded will keep showing on screen. The background map itself, however, will only keep showing where the map tiles happen to already be cached in your browser — anywhere outside that, the background stays blank.
+        </div>
+        <div class="note-box">
+            <strong>Nothing is saved.</strong> The app doesn't store anything for later, and doesn't upload anything anywhere. Once you close the tab, it's gone — if you want to keep a track or a file, export or save it yourself first.
+        </div>
+    </div>
+
+    <div data-lang="nl">
+        <div class="note-box">
+            <strong>Je hebt internet nodig.</strong> De app draait in je browser en laadt altijd de meest actuele versie, maar daarvoor is wel een verbinding nodig om de pagina en, in de meeste gevallen, de achtergrondkaart te laden.
+        </div>
+        <div class="note-box">
+            <strong>Offline werkt maar beperkt.</strong> Valt je verbinding weg terwijl je de app gebruikt, dan blijven je eigen locatie, je opgebouwde spoor en eventueel al geladen GPX/GeoJSON-bestanden gewoon in beeld. De achtergrondkaart zelf blijft echter alleen zichtbaar op plekken waar de kaarttegels toevallig al in je browser gecached zijn — daarbuiten blijft de achtergrond leeg.
+        </div>
+        <div class="note-box">
+            <strong>Er wordt niets opgeslagen.</strong> De app bewaart niets voor later en uploadt niets naar waar dan ook. Sluit je het tabblad, dan is het weg — wil je een spoor of bestand bewaren, exporteer of sla het dan zelf op.
+        </div>
+    </div>
+
+    <h2 data-lang="en">Privacy, in short</h2>
+    <h2 data-lang="nl">Privacy, kort samengevat</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th data-lang="en">Aspect</th>
+                <th data-lang="nl">Aspect</th>
+                <th data-lang="en">How PeeWeeTrails_Basic handles it</th>
+                <th data-lang="nl">Hoe PeeWeeTrails_Basic dit regelt</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span data-lang="en">Data storage</span><span data-lang="nl">Dataopslag</span></td>
+                <td>
+                    <span data-lang="en">Local only, for the duration of your session. Nothing is written to a server, and nothing is kept once you close the tab.</span>
+                    <span data-lang="nl">Alleen lokaal, voor de duur van je sessie. Er wordt niets naar een server geschreven, en niets bewaard zodra je het tabblad sluit.</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span data-lang="en">Accounts</span><span data-lang="nl">Accounts</span></td>
+                <td>
+                    <span data-lang="en">None needed. No sign-up, no email address, nothing to register.</span>
+                    <span data-lang="nl">Niet nodig. Geen registratie, geen e-mailadres, niets aan te melden.</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span data-lang="en">Always up to date</span><span data-lang="nl">Altijd actueel</span></td>
+                <td>
+                    <span data-lang="en">Because it runs straight from the browser, you always get the current version. That does mean a connection is required to load it.</span>
+                    <span data-lang="nl">Omdat de app rechtstreeks vanuit de browser draait, heb je altijd de laatste versie. Dat betekent wel dat er een verbinding nodig is om de app te laden.</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="btn-container">
+        <a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic.html" class="btn" target="_blank">
+            <span data-lang="en">Open the map</span>
+            <span data-lang="nl">Open de kaart</span>
+        </a>
+    </div>
+
+    <footer>
+        <span data-lang="en">© 2026 PeeWeeOSM Webmaps. Built on OpenStreetMap.</span>
+        <span data-lang="nl">© 2026 PeeWeeOSM Webmaps. Gebouwd op basis van OpenStreetMap.</span>
+    </footer>
+</div>
+
+<script>
+    function setLang(lang) {
+        document.body.classList.remove('lang-en', 'lang-nl');
+        document.body.classList.add('lang-' + lang);
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+        document.getElementById('btn-nl').classList.toggle('active', lang === 'nl');
+        try { localStorage.setItem('pwt-lang', lang); } catch (e) {}
+    }
+
+    (function () {
+        var saved = null;
+        try { saved = localStorage.getItem('pwt-lang'); } catch (e) {}
+        setLang(saved === 'nl' ? 'nl' : 'en');
+    })();
+</script>
+
+
+
+</body></html>
