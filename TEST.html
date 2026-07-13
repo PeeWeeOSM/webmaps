@@ -2474,36 +2474,36 @@ map.on('zoomend',function(){
       panel.addEventListener("click",function(e){ e.stopPropagation(); });
       input.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); doSearch(); } });
       go.addEventListener("click",function(e){ e.stopPropagation(); doSearch(); });
-      function refPoint(){ return (lastKnownLatLng)?L.latLng(lastKnownLatLng[0],lastKnownLatLng[1]):map.getCenter(); }
-      function nominatimUrl(q,bounded){
-        var b=map.getBounds();
-        var vb="&viewbox="+b.getWest()+","+b.getNorth()+","+b.getEast()+","+b.getSouth()+"&bounded="+(bounded?"1":"0");
-        return "https://nominatim.openstreetmap.org/search?format=json&limit=12&addressdetails=1&accept-language=nl,en"+vb+"&q="+encodeURIComponent(q);
+      function inExtentRef(){
+        if(lastKnownLatLng){
+          var ll=L.latLng(lastKnownLatLng[0],lastKnownLatLng[1]);
+          if(map.getBounds().contains(ll)) return {pt:ll, gps:true};
+        }
+        return {pt:map.getCenter(), gps:false};
       }
-      function showResults(list,nearby){
+      function nominatimUrl(q){
+        var b=map.getBounds();
+        var vb="&viewbox="+b.getWest()+","+b.getNorth()+","+b.getEast()+","+b.getSouth()+"&bounded=1";
+        return "https://nominatim.openstreetmap.org/search?format=json&limit=15&addressdetails=1&accept-language=nl,en"+vb+"&q="+encodeURIComponent(q);
+      }
+      function showResults(list){
         results.innerHTML="";
-        var rp=nearby?refPoint():null;
-        if(nearby){ list=list.slice().sort(function(a,b){ return rp.distanceTo([+a.lat,+a.lon])-rp.distanceTo([+b.lat,+b.lon]); }); }
-        list.forEach(function(item){ results.appendChild(makeResult(item,rp)); });
-        statusEl.textContent = nearby ? "Nearby — closest first" : "Results (nothing nearby)";
+        var ref=inExtentRef();
+        list=list.slice().sort(function(a,b){ return ref.pt.distanceTo([+a.lat,+a.lon])-ref.pt.distanceTo([+b.lat,+b.lon]); });
+        list.forEach(function(item){ results.appendChild(makeResult(item, ref.pt)); });
+        statusEl.textContent = ref.gps ? "In map area — nearest to you first" : "In map area — nearest to centre first";
       }
       function doSearch(){
         var q=(input.value||"").trim();
         if(!q||busy){ if(!q) input.focus(); return; }
         busy=true; results.innerHTML=""; statusEl.textContent="Searching…";
-        // 1) nearby first: restrict to the current map area (great for "restaurant", "cafe", "supermarket"...)
-        fetch(nominatimUrl(q,true),{headers:{"Accept":"application/json"}})
+        // results are restricted to the current map extent (bounded=1)
+        fetch(nominatimUrl(q),{headers:{"Accept":"application/json"}})
           .then(function(r){ return r.json(); })
           .then(function(list){
-            if(list&&list.length){ busy=false; showResults(list,true); return null; }
-            // 2) fallback: search everywhere
-            return fetch(nominatimUrl(q,false),{headers:{"Accept":"application/json"}})
-              .then(function(r){ return r.json(); })
-              .then(function(list2){
-                busy=false;
-                if(!list2||!list2.length){ statusEl.textContent="No results found."; return; }
-                showResults(list2,false);
-              });
+            busy=false;
+            if(!list||!list.length){ statusEl.textContent="No results in current map extent."; return; }
+            showResults(list);
           })
           .catch(function(){ busy=false; statusEl.textContent="Search failed — check your connection."; });
       }
