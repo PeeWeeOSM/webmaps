@@ -1874,39 +1874,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-overlay{position:absolute;top:138px;right:10px;z-index:1200}
 #route-btn svg{width:20px;height:20px;display:block}
 #route-btn:hover{background:#f4f4f4}
-#search-overlay{position:relative}
-#search-panel{position:fixed;top:8px;left:52px;width:300px;max-width:calc(100vw - 100px);background:#fff;border:2px solid rgba(0,0,0,0.25);border-radius:8px;padding:8px;box-shadow:0 2px 12px rgba(0,0,0,0.35);z-index:2000}
-#search-panel.results-collapsed #search-results,#search-panel.results-collapsed #search-status{display:none}
-#search-collapse svg{display:block;transition:transform .15s}
-#search-collapse.flip svg{transform:rotate(180deg)}
-#search-panel.hidden{display:none}
-#search-btn svg{display:block}
-.search-row{display:flex;gap:5px;align-items:center}
-#search-input{flex:1;min-width:0;padding:6px 8px;border:1px solid #bbb;border-radius:5px;font-size:14px}
-#search-go{flex:none;width:32px;height:32px;border:1px solid #2e7d32;border-radius:5px;background:#2e7d32;color:#fff;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
-.search-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.search-title{flex:1;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.03em}
-#search-collapse,#search-close{flex:none;width:26px;height:26px;border:1px solid #bbb;border-radius:5px;background:#f4f4f4;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;color:#333}
-#search-close:hover{background:#fde7ef;border-color:#d81b60;color:#d81b60}
-#search-results{margin-top:6px;max-height:240px;overflow-y:auto}
-.search-result{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:5px;cursor:pointer;border-bottom:1px solid #eee}
-.search-result:last-child{border-bottom:none}
-.search-result:hover,.search-result.sr-hover{background:#fde7ef}
-.sr-num{flex:none;width:20px;height:20px;border-radius:50%;background:#d81b60;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.sr-name{flex:1;min-width:0;font-weight:600;color:#111;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sr-dist{flex:none;color:#666;font-size:11.5px}
-.srn{position:relative;width:100%;height:100%;box-sizing:border-box;border-radius:50%;background:#d81b60;color:#fff;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1}
-.srn-label{position:absolute;left:calc(100% + 5px);top:50%;transform:translateY(-50%);white-space:nowrap;background:rgba(255,255,255,.92);color:#111;font-size:12px;font-weight:600;padding:1px 6px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.35);pointer-events:none;display:none;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
-.srn-show-labels .srn-label{display:block}
-.srn-hi{background:#8e1148;border-color:#ffd54a;font-size:14px}
-#search-status{font-size:12px;color:#666;margin-top:5px;min-height:14px}
-.sr-route-btn{margin-top:6px;padding:5px 10px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;border-radius:5px;cursor:pointer;font-size:13px}
-.sr-pop b{font-size:14px}
-.sr-pop-dist{color:#666;font-size:12px;margin:2px 0 4px}
-.sr-pop-actions{display:flex;align-items:center;gap:10px;margin-top:6px}
-.sr-pop-actions .sr-route-btn{margin-top:0}
-.sr-osm-link{display:inline-flex;align-items:center;gap:4px;color:#2c7fb8;text-decoration:none;font-size:12px;font-weight:600}
-.sr-osm-link:hover{text-decoration:underline}
 #route-btn.has-routes{border-color:rgba(0,0,0,0.25);background:#fff}
 /* Width is fluid: caps at 380px on wide screens (laptop, unchanged) but shrinks
    to the viewport width minus a 20px margin on narrow phones, so the panel never
@@ -1968,7 +1935,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .trail-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;color:#222}
 .trail-row label{flex:1;font-weight:500;min-width:40px}
 /* Map actions: long-press / right-click menu */
-.map-actions-menu{display:none;position:absolute;z-index:3000;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.3);padding:6px;min-width:190px;max-width:250px;font-size:13px;max-height:70vh;overflow-y:auto}
+.map-actions-menu{display:none;position:absolute;z-index:1300;background:white;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.3);padding:6px;min-width:190px;max-width:250px;font-size:13px;max-height:70vh;overflow-y:auto}
 .map-actions-menu.open{display:block}
 .mam-header{display:flex;align-items:center;gap:6px;padding:2px 6px 8px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #f0f0f0;margin-bottom:4px}
 .mam-back{background:none;border:none;cursor:pointer;font-size:16px;color:#2980b9;padding:0;line-height:1;flex-shrink:0}
@@ -2000,24 +1967,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="map"></div>
   <div id="controls-overlay">
     <div class="zoom-group">
-      <button class="ctrl-btn zoom" onclick="zoomBtn(1)" title="Zoom in">+</button>
-      <button class="ctrl-btn zoom" onclick="zoomBtn(-1)" title="Zoom out">&#8722;</button>
-    </div>
-    <div id="search-overlay">
-      <button class="ctrl-btn" id="search-btn" title="Search a place"><svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button>
-      <div id="search-panel" class="hidden">
-        <div class="search-head">
-          <span class="search-title">Search nearby</span>
-          <button id="search-collapse" title="Hide results"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/><path d="M6 19l6-6 6 6"/></svg></button>
-          <button id="search-close" title="End search (remove markers)">&times;</button>
-        </div>
-        <div class="search-row">
-          <input type="text" id="search-input" placeholder="Search place, city or address" autocomplete="off">
-          <button id="search-go" title="Search">&#8594;</button>
-        </div>
-        <div id="search-results"></div>
-        <div id="search-status"></div>
-      </div>
+      <button class="ctrl-btn zoom" onclick="map.zoomIn()" title="Zoom in">+</button>
+      <button class="ctrl-btn zoom" onclick="map.zoomOut()" title="Zoom out">&#8722;</button>
     </div>
     <div id="loc-overlay">
       <button class="ctrl-btn compass" id="loc-btn" title="Map orientation"><span class="compass-inner"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5 L29 32 L20 25 L11 32 Z" fill="currentColor"/></svg></span></button>
@@ -2779,7 +2730,6 @@ let programmaticMove=false;
 // --- Rotation / orientation state (compass modes) ---
 let locMode='off';
 let following=true;
-let searchActive=false;
 let smoothedHeading=null;
 function angleDeltaDeg(a,b){ return ((b-a+540)%360)-180; }
 function metersPerPixel(lat,zoom){ return 156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom); }
@@ -2793,24 +2743,6 @@ let compassAngle=0;
 function updateCompass(){ const inner=locBtn.querySelector('.compass-inner'); if(!inner) return; compassAngle+=angleDeltaDeg(compassAngle, map.getBearing()); inner.style.transform='rotate('+compassAngle+'deg)'; }
 map.on('rotate move zoom', updateCompass);
 function setBearingProg(b){ programmaticMove=true; map.setBearing(b); programmaticMove=false; updateCompass(); }
-// +/- zoom: while actively following, zoom around the user's own on-map position
-// (25% from the bottom in movement mode, centre in north mode) instead of the map
-// centre, so the user's location stays put. The new zoom sticks (RECENTER_ZOOM) so
-// the next GPS fix re-anchors at this level rather than snapping back.
-function zoomBtn(delta){
-  var cur=map.getZoom();
-  var nz=Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), cur+delta));
-  if(nz===cur) return;
-  if(following && locMode!=='off' && lastKnownLatLng){
-    RECENTER_ZOOM=nz;
-    var zi=document.getElementById('trail-zoom-input'); if(zi) zi.value=nz;
-    programmaticMove=true;
-    map.once('zoomend', function(){ programmaticMove=false; });
-    map.setZoomAround(lastKnownLatLng, nz);
-  } else {
-    map.setZoom(nz);
-  }
-}
 
 function haversineMeters(p1,p2){
   const R=6371000;
@@ -3043,7 +2975,6 @@ locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropag
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
 setInterval(function(){
-  if(searchActive) return;
   if(FOLLOW_DELAY<=0) return;
   if(!following && (Date.now()-lastUserInteraction)>=FOLLOW_DELAY){
     following=true;
@@ -4288,131 +4219,6 @@ map.on('zoomend',function(){
     // node), menuEl.contains(e.target) would wrongly evaluate to false once
     // the event bubbles up, instantly closing the menu we just re-rendered.
     menuEl.addEventListener('click',e=>e.stopPropagation());
-
-    // ---- Place search (Nominatim geocoding) ----
-    (function(){
-      var btn=document.getElementById('search-btn');
-      if(!btn) return;
-      var panel=document.getElementById('search-panel');
-      var input=document.getElementById('search-input');
-      var go=document.getElementById('search-go');
-      var closeBtn=document.getElementById('search-close');
-      var collapseBtn=document.getElementById('search-collapse');
-      var results=document.getElementById('search-results');
-      var statusEl=document.getElementById('search-status');
-      var busy=false;
-      var numMarkers=[], curList=[];
-      function openPanel(){ panel.classList.remove("hidden"); searchActive=true; following=false; setResultsCollapsed(false); setTimeout(function(){ input.focus(); },40); }
-      function closePanel(){ panel.classList.add("hidden"); } // collapse: keep markers + keep auto-centering paused
-      function endSearch(){ clearMarkers(); results.innerHTML=""; statusEl.textContent=""; input.value=""; panel.classList.add("hidden"); searchActive=false; lastUserInteraction=Date.now(); }
-      btn.addEventListener("click",function(e){ e.stopPropagation(); if(panel.classList.contains("hidden")) openPanel(); else closePanel(); });
-      var resultsCollapsed=false;
-      function setResultsCollapsed(on){ resultsCollapsed=on; panel.classList.toggle("results-collapsed",on); collapseBtn.classList.toggle("flip",on); collapseBtn.title=on?"Show results":"Hide results"; }
-      collapseBtn.addEventListener("click",function(e){ e.stopPropagation(); setResultsCollapsed(!resultsCollapsed); });
-      closeBtn.addEventListener("click",function(e){ e.stopPropagation(); endSearch(); });
-      panel.addEventListener("click",function(e){ e.stopPropagation(); });
-      map.on("zoomend", updateLabels);
-      input.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); doSearch(); } });
-      go.addEventListener("click",function(e){ e.stopPropagation(); doSearch(); });
-      function inExtentRef(){
-        if(lastKnownLatLng){
-          var ll=L.latLng(lastKnownLatLng[0],lastKnownLatLng[1]);
-          if(map.getBounds().contains(ll)) return {pt:ll, gps:true};
-        }
-        return {pt:map.getCenter(), gps:false};
-      }
-      function nominatimUrl(q){
-        var b=map.getBounds();
-        var vb="&viewbox="+b.getWest()+","+b.getNorth()+","+b.getEast()+","+b.getSouth()+"&bounded=1";
-        return "https://nominatim.openstreetmap.org/search?format=json&limit=30&addressdetails=1&accept-language=nl,en"+vb+"&q="+encodeURIComponent(q);
-      }
-      function numberIcon(n,name,hi){
-        var sz=hi?30:24;
-        var label=name?('<span class="srn-label">'+esc(name)+'</span>'):"";
-        return L.divIcon({className:"",html:'<div class="srn'+(hi?" srn-hi":"")+'">'+n+label+'</div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
-      }
-      function updateLabels(){ var c=map.getContainer(); if(map.getZoom()>=15) c.classList.add("srn-show-labels"); else c.classList.remove("srn-show-labels"); }
-      function nameOf(item){ var dn=item.display_name||""; return (item.name&&item.name.trim())?item.name.trim():((dn.split(",")[0])||dn).trim(); }
-      function fmtDist(m){ return (m<1000)?(Math.round(m)+" m"):((m/1000).toFixed(1)+" km"); }
-      function clearMarkers(){ numMarkers.forEach(function(m){ if(m) map.removeLayer(m); }); numMarkers=[]; }
-      function setHi(idx,on){
-        var m=numMarkers[idx];
-        if(m){ m.setIcon(numberIcon(idx+1,nameOf(curList[idx]),on)); m.setZIndexOffset(on?4000:(2000+(curList.length-idx))); }
-        var rows=results.children; if(rows[idx]) rows[idx].classList.toggle("sr-hover",on);
-      }
-      function osmUrl(item,lat,lon){
-        if(item && item.osm_type && item.osm_id){ return "https://www.openstreetmap.org/"+item.osm_type+"/"+item.osm_id; }
-        return "https://www.openstreetmap.org/?mlat="+lat+"&mlon="+lon+"#map=18/"+lat+"/"+lon;
-      }
-      function makePopupDiv(item,marker){
-        var lat=parseFloat(item.lat), lon=parseFloat(item.lon), name=nameOf(item);
-        var pdiv=document.createElement("div"); pdiv.className="sr-pop";
-        var html='<b>'+esc(name)+'</b>';
-        if(lastKnownLatLng){
-          var d=L.latLng(lastKnownLatLng[0],lastKnownLatLng[1]).distanceTo([lat,lon]);
-          html+='<div class="sr-pop-dist">'+esc(fmtDist(d))+' from you</div>';
-        }
-        var linkIcon='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>';
-        html+='<div class="sr-pop-actions"><button type="button" class="sr-route-btn">Route to / actions</button>'
-            +'<a class="sr-osm-link" href="'+esc(osmUrl(item,lat,lon))+'" target="_blank" rel="noopener" title="Open on OpenStreetMap (tags / details)">'+linkIcon+'OSM</a></div>';
-        pdiv.innerHTML=html;
-        pdiv.querySelector(".sr-route-btn").addEventListener("click",function(ev){
-          ev.stopPropagation();
-          if(marker) marker.closePopup();
-          openMenuAt(L.latLng(lat,lon), ev.clientX, ev.clientY);
-        });
-        var lnk=pdiv.querySelector(".sr-osm-link"); if(lnk) lnk.addEventListener("click",function(ev){ ev.stopPropagation(); });
-        return pdiv;
-      }
-      function makeResult(item,idx,rp){
-        var el=document.createElement("div"); el.className="search-result";
-        var name=nameOf(item);
-        var dist=rp?fmtDist(rp.distanceTo([+item.lat,+item.lon])):"";
-        el.innerHTML='<span class="sr-num">'+(idx+1)+'</span><span class="sr-name">'+esc(name)+'</span>'+(dist?'<span class="sr-dist">'+esc(dist)+'</span>':'');
-        el.addEventListener("click",function(){ selectResult(idx); });
-        el.addEventListener("mouseenter",function(){ setHi(idx,true); });
-        el.addEventListener("mouseleave",function(){ setHi(idx,false); });
-        return el;
-      }
-      function selectResult(idx){
-        var item=curList[idx]; if(!item) return;
-        var lat=parseFloat(item.lat), lon=parseFloat(item.lon); if(isNaN(lat)||isNaN(lon)) return;
-        closePanel();
-        map.panTo([lat,lon]);
-        var m=numMarkers[idx]; if(m) m.openPopup();
-      }
-      function showResults(list){
-        clearMarkers(); results.innerHTML="";
-        var ref=inExtentRef();
-        list=list.slice().sort(function(a,b){ return ref.pt.distanceTo([+a.lat,+a.lon])-ref.pt.distanceTo([+b.lat,+b.lon]); });
-        curList=list;
-        list.forEach(function(item,idx){
-          results.appendChild(makeResult(item, idx, ref.pt));
-          var lat=parseFloat(item.lat), lon=parseFloat(item.lon);
-          if(isNaN(lat)||isNaN(lon)){ numMarkers.push(null); return; }
-          var m=L.marker([lat,lon],{icon:numberIcon(idx+1,nameOf(item),false),zIndexOffset:2000+(list.length-idx)}).addTo(map);
-          m.bindPopup(makePopupDiv(item,m),{closeButton:true});
-          (function(k){ m.on("popupopen",function(){ setHi(k,true); }); m.on("popupclose",function(){ setHi(k,false); }); })(idx);
-          numMarkers.push(m);
-        });
-        statusEl.textContent = ref.gps ? "In map area \u2014 nearest to you first" : "In map area \u2014 nearest to centre first";
-        searchActive=true; following=false;
-        updateLabels();
-      }
-      function doSearch(){
-        var q=(input.value||"").trim();
-        if(!q||busy){ if(!q) input.focus(); return; }
-        busy=true; results.innerHTML=""; clearMarkers(); setResultsCollapsed(false); statusEl.textContent="Searching\u2026";
-        fetch(nominatimUrl(q),{headers:{"Accept":"application/json"}})
-          .then(function(r){ return r.json(); })
-          .then(function(list){
-            busy=false;
-            if(!list||!list.length){ clearMarkers(); searchActive=false; statusEl.textContent="No results in current map extent."; return; }
-            showResults(list);
-          })
-          .catch(function(){ busy=false; statusEl.textContent="Search failed \u2014 check your connection."; });
-      }
-    })();
 
     document.addEventListener('click',e=>{
       if(!menuEl.contains(e.target)) closeMenu();
