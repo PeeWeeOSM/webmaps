@@ -72,11 +72,14 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #search-go,#search-close{flex:none;width:30px;height:30px;border:1px solid #bbb;border-radius:5px;background:#f4f4f4;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
 #search-go{background:#2e7d32;border-color:#2e7d32;color:#fff}
 #search-results{margin-top:6px;max-height:240px;overflow-y:auto}
-.search-result{padding:7px 8px;border-radius:5px;cursor:pointer;border-bottom:1px solid #eee}
+.search-result{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:5px;cursor:pointer;border-bottom:1px solid #eee}
 .search-result:last-child{border-bottom:none}
-.search-result:hover{background:#eef5ee}
-.sr-name{font-weight:600;color:#111;font-size:13px}
-.sr-sub{color:#666;font-size:11.5px;margin-top:1px}
+.search-result:hover,.search-result.sr-hover{background:#fde7ef}
+.sr-num{flex:none;width:20px;height:20px;border-radius:50%;background:#d81b60;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sr-name{flex:1;min-width:0;font-weight:600;color:#111;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-dist{flex:none;color:#666;font-size:11.5px}
+.srn{width:100%;height:100%;box-sizing:border-box;border-radius:50%;background:#d81b60;color:#fff;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1}
+.srn-hi{background:#8e1148;border-color:#ffd54a;font-size:14px}
 #search-status{font-size:12px;color:#666;margin-top:5px;min-height:14px}
 .sr-route-btn{margin-top:6px;padding:5px 10px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;border-radius:5px;cursor:pointer;font-size:13px}
 #route-btn.has-routes{border-color:rgba(0,0,0,0.25);background:#fff}
@@ -2465,8 +2468,8 @@ map.on('zoomend',function(){
       var closeBtn=document.getElementById('search-close');
       var results=document.getElementById('search-results');
       var statusEl=document.getElementById('search-status');
-      var searchMarker=null, busy=false;
-      var SEARCH_PIN='<svg width="30" height="38" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg"><path d="M17 0C7.6 0 0 7.6 0 17c0 12.2 17 27 17 27s17-14.8 17-27C34 7.6 26.4 0 17 0z" fill="#d81b60" stroke="#fff" stroke-width="2"/><circle cx="17" cy="16" r="6.5" fill="#fff"/></svg>';
+      var busy=false;
+      var numMarkers=[], curList=[];
       function openPanel(){ panel.classList.remove("hidden"); setTimeout(function(){ input.focus(); },40); }
       function closePanel(){ panel.classList.add("hidden"); }
       btn.addEventListener("click",function(e){ e.stopPropagation(); if(panel.classList.contains("hidden")) openPanel(); else closePanel(); });
@@ -2484,20 +2487,67 @@ map.on('zoomend',function(){
       function nominatimUrl(q){
         var b=map.getBounds();
         var vb="&viewbox="+b.getWest()+","+b.getNorth()+","+b.getEast()+","+b.getSouth()+"&bounded=1";
-        return "https://nominatim.openstreetmap.org/search?format=json&limit=15&addressdetails=1&accept-language=nl,en"+vb+"&q="+encodeURIComponent(q);
+        return "https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&accept-language=nl,en"+vb+"&q="+encodeURIComponent(q);
+      }
+      function numberIcon(n,hi){
+        var sz=hi?30:24;
+        return L.divIcon({className:"",html:'<div class="srn'+(hi?" srn-hi":"")+'">'+n+'</div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+      }
+      function nameOf(item){ var dn=item.display_name||""; return (item.name&&item.name.trim())?item.name.trim():((dn.split(",")[0])||dn).trim(); }
+      function fmtDist(m){ return (m<1000)?(Math.round(m)+" m"):((m/1000).toFixed(1)+" km"); }
+      function clearMarkers(){ numMarkers.forEach(function(m){ if(m) map.removeLayer(m); }); numMarkers=[]; }
+      function setHi(idx,on){
+        var m=numMarkers[idx];
+        if(m){ m.setIcon(numberIcon(idx+1,on)); m.setZIndexOffset(on?4000:(2000+(curList.length-idx))); }
+        var rows=results.children; if(rows[idx]) rows[idx].classList.toggle("sr-hover",on);
+      }
+      function makePopupDiv(lat,lon,name,marker){
+        var pdiv=document.createElement("div");
+        pdiv.innerHTML='<b>'+esc(name)+'</b><br><button type="button" class="sr-route-btn">Route to / actions</button>';
+        pdiv.querySelector(".sr-route-btn").addEventListener("click",function(ev){
+          ev.stopPropagation();
+          if(marker) marker.closePopup();
+          openMenuAt(L.latLng(lat,lon), ev.clientX, ev.clientY);
+        });
+        return pdiv;
+      }
+      function makeResult(item,idx,rp){
+        var el=document.createElement("div"); el.className="search-result";
+        var name=nameOf(item);
+        var dist=rp?fmtDist(rp.distanceTo([+item.lat,+item.lon])):"";
+        el.innerHTML='<span class="sr-num">'+(idx+1)+'</span><span class="sr-name">'+esc(name)+'</span>'+(dist?'<span class="sr-dist">'+esc(dist)+'</span>':'');
+        el.addEventListener("click",function(){ selectResult(idx); });
+        el.addEventListener("mouseenter",function(){ setHi(idx,true); });
+        el.addEventListener("mouseleave",function(){ setHi(idx,false); });
+        return el;
+      }
+      function selectResult(idx){
+        var item=curList[idx]; if(!item) return;
+        var lat=parseFloat(item.lat), lon=parseFloat(item.lon); if(isNaN(lat)||isNaN(lon)) return;
+        closePanel();
+        map.panTo([lat,lon]);
+        var m=numMarkers[idx]; if(m) m.openPopup();
       }
       function showResults(list){
-        results.innerHTML="";
+        clearMarkers(); results.innerHTML="";
         var ref=inExtentRef();
         list=list.slice().sort(function(a,b){ return ref.pt.distanceTo([+a.lat,+a.lon])-ref.pt.distanceTo([+b.lat,+b.lon]); });
-        list.forEach(function(item){ results.appendChild(makeResult(item, ref.pt)); });
+        curList=list;
+        list.forEach(function(item,idx){
+          results.appendChild(makeResult(item, idx, ref.pt));
+          var lat=parseFloat(item.lat), lon=parseFloat(item.lon);
+          if(isNaN(lat)||isNaN(lon)){ numMarkers.push(null); return; }
+          var m=L.marker([lat,lon],{icon:numberIcon(idx+1,false),zIndexOffset:2000+(list.length-idx)}).addTo(map);
+          m.bindPopup(makePopupDiv(lat,lon,nameOf(item),m),{closeButton:true});
+          (function(k){ m.on("popupopen",function(){ setHi(k,true); }); m.on("popupclose",function(){ setHi(k,false); }); })(idx);
+          numMarkers.push(m);
+        });
         statusEl.textContent = ref.gps ? "In map area — nearest to you first" : "In map area — nearest to centre first";
       }
       function doSearch(){
         var q=(input.value||"").trim();
         if(!q||busy){ if(!q) input.focus(); return; }
-        busy=true; results.innerHTML=""; statusEl.textContent="Searching…";
-        // results are restricted to the current map extent (bounded=1)
+        busy=true; results.innerHTML=""; clearMarkers(); statusEl.textContent="Searching…";
         fetch(nominatimUrl(q),{headers:{"Accept":"application/json"}})
           .then(function(r){ return r.json(); })
           .then(function(list){
@@ -2506,38 +2556,6 @@ map.on('zoomend',function(){
             showResults(list);
           })
           .catch(function(){ busy=false; statusEl.textContent="Search failed — check your connection."; });
-      }
-      function makeResult(item,rp){
-        var el=document.createElement("div"); el.className="search-result";
-        var dn=item.display_name||""; var parts=dn.split(",");
-        var name=(item.name&&item.name.trim())?item.name.trim():((parts.shift()||dn).trim());
-        var sub=parts.join(",").trim();
-        var dist="";
-        if(rp){ var mm=rp.distanceTo([+item.lat,+item.lon]); dist=(mm<1000)?(" · "+Math.round(mm)+" m"):(" · "+(mm/1000).toFixed(1)+" km"); }
-        el.innerHTML='<div class="sr-name">'+esc(name)+'</div><div class="sr-sub">'+esc(sub+dist)+'</div>';
-        el.addEventListener("click",function(){ chooseResult(item,name); });
-        return el;
-      }
-      function chooseResult(item,name){
-        var lat=parseFloat(item.lat), lon=parseFloat(item.lon);
-        if(isNaN(lat)||isNaN(lon)) return;
-        closePanel();
-        if(item.boundingbox&&item.boundingbox.length===4){
-          var bb=item.boundingbox.map(parseFloat);
-          try{ map.fitBounds([[bb[0],bb[2]],[bb[1],bb[3]]],{maxZoom:17,padding:[30,30]}); }
-          catch(e){ map.setView([lat,lon],17); }
-        } else { map.setView([lat,lon],17); }
-        if(searchMarker){ map.removeLayer(searchMarker); searchMarker=null; }
-        var icon=L.divIcon({className:"",html:SEARCH_PIN,iconSize:[30,38],iconAnchor:[15,38]});
-        searchMarker=L.marker([lat,lon],{icon:icon,zIndexOffset:2500}).addTo(map);
-        var pdiv=document.createElement("div");
-        pdiv.innerHTML='<b>'+esc(name)+'</b><br><button type="button" class="sr-route-btn">Route to / actions</button>';
-        pdiv.querySelector(".sr-route-btn").addEventListener("click",function(ev){
-          ev.stopPropagation();
-          if(searchMarker) searchMarker.closePopup();
-          openMenuAt(L.latLng(lat,lon), ev.clientX, ev.clientY);
-        });
-        searchMarker.bindPopup(pdiv,{closeButton:true}).openPopup();
       }
     })();
 
