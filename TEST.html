@@ -89,9 +89,9 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .srn-label.on{display:block}
 .srn-hi{background:#8e1148;border-color:#ffd54a;font-size:14px}
 #search-status{font-size:12px;color:#666;margin-top:5px;min-height:14px}
-.search-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 2px;-webkit-overflow-scrolling:touch}
-.search-chip{flex:none;padding:5px 11px;border:1px solid #bbb;border-radius:14px;background:#f4f6f4;color:#222;font-size:12.5px;cursor:pointer;white-space:nowrap}
-.search-chip:hover,.search-chip:active{background:#e3efe3;border-color:#2e7d32;color:#1b4d1f}
+.search-catrow{display:flex;align-items:center;gap:7px;margin-top:8px}
+.search-caticon{flex:none;color:#2e7d32}
+.search-catsel{flex:1;min-width:0;padding:7px 8px;border:1px solid #bbb;border-radius:5px;font-size:14px;background:#fff;color:#222}
 .sr-route-btn{margin-top:6px;padding:5px 10px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;border-radius:5px;cursor:pointer;font-size:13px}
 .sr-pop b{font-size:14px}
 .sr-pop-dist{color:#666;font-size:12px;margin:2px 0 4px}
@@ -210,7 +210,10 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
           <input type="text" id="search-input" placeholder="Search place, city or address" autocomplete="off">
           <button id="search-go" title="Search">&#8594;</button>
         </div>
-        <div id="search-cats" class="search-cats"></div>
+        <div class="search-catrow">
+          <svg class="search-caticon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+          <select id="search-catsel" class="search-catsel"><option value="">Find nearby (choose category)</option></select>
+        </div>
         <div id="search-results"></div>
         <div id="search-status"></div>
       </div>
@@ -2648,8 +2651,8 @@ map.on('zoomend',function(){
       // ---- Category search via Overpass: complete + distance-sorted, within the current map view ----
       var OVERPASS_EPS=[
         "https://overpass.kumi.systems/api/interpreter",
-        "https://overpass.private.coffee/api/interpreter",
-        "https://overpass-api.de/api/interpreter"
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter"
       ];
       var SEARCH_CATS=[
         {name:"Restaurant", filter:'nwr["amenity"="restaurant"]'},
@@ -2681,7 +2684,8 @@ map.on('zoomend',function(){
       function fetchOverpass(query,eps,i){
         i=i||0;
         if(i>=eps.length) return Promise.reject(new Error("all endpoints failed"));
-        return fetchWithTimeout(eps[i],{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(query)},20000)
+        var url=eps[i]+"?data="+encodeURIComponent(query);
+        return fetchWithTimeout(url,{method:"GET"},30000)
           .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
           .catch(function(){ return fetchOverpass(query,eps,i+1); });
       }
@@ -2714,13 +2718,18 @@ map.on('zoomend',function(){
           .catch(function(){ if(myseq!==searchSeq) return; statusEl.textContent="Category search failed — servers busy, try again."; });
       }
       (function(){
-        var row=document.getElementById("search-cats");
-        if(!row) return;
-        SEARCH_CATS.forEach(function(cat){
-          var chip=document.createElement("button");
-          chip.type="button"; chip.className="search-chip"; chip.textContent=cat.name;
-          chip.addEventListener("click",function(e){ e.stopPropagation(); runCategory(cat); });
-          row.appendChild(chip);
+        var sel=document.getElementById("search-catsel");
+        if(!sel) return;
+        SEARCH_CATS.forEach(function(cat,i){
+          var opt=document.createElement("option");
+          opt.value=String(i); opt.textContent=cat.name;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener("change",function(e){
+          e.stopPropagation();
+          var i=parseInt(sel.value,10);
+          sel.value="";
+          if(!isNaN(i) && SEARCH_CATS[i]) runCategory(SEARCH_CATS[i]);
         });
       })();
     })();
