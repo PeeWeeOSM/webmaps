@@ -89,6 +89,9 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .srn-label.on{display:block}
 .srn-hi{background:#8e1148;border-color:#ffd54a;font-size:14px}
 #search-status{font-size:12px;color:#666;margin-top:5px;min-height:14px}
+.search-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 2px;-webkit-overflow-scrolling:touch}
+.search-chip{flex:none;padding:5px 11px;border:1px solid #bbb;border-radius:14px;background:#f4f6f4;color:#222;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.search-chip:hover,.search-chip:active{background:#e3efe3;border-color:#2e7d32;color:#1b4d1f}
 .sr-route-btn{margin-top:6px;padding:5px 10px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;border-radius:5px;cursor:pointer;font-size:13px}
 .sr-pop b{font-size:14px}
 .sr-pop-dist{color:#666;font-size:12px;margin:2px 0 4px}
@@ -207,6 +210,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
           <input type="text" id="search-input" placeholder="Search place, city or address" autocomplete="off">
           <button id="search-go" title="Search">&#8594;</button>
         </div>
+        <div id="search-cats" class="search-cats"></div>
         <div id="search-results"></div>
         <div id="search-status"></div>
       </div>
@@ -2640,6 +2644,85 @@ map.on('zoomend',function(){
           })
           .catch(function(){ if(myseq!==searchSeq) return; statusEl.textContent="Search failed — check your connection."; });
       }
+
+      // ---- Category search via Overpass: complete + distance-sorted, within the current map view ----
+      var OVERPASS_EPS=[
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
+        "https://overpass-api.de/api/interpreter"
+      ];
+      var SEARCH_CATS=[
+        {name:"Restaurant", filter:'nwr["amenity"="restaurant"]'},
+        {name:"Cafe", filter:'nwr["amenity"="cafe"]'},
+        {name:"Camping", filter:'nwr["tourism"="camp_site"]'},
+        {name:"Supermarket", filter:'nwr["shop"="supermarket"]'},
+        {name:"Bike shop", filter:'nwr["shop"="bicycle"]'},
+        {name:"Bakery", filter:'nwr["shop"="bakery"]'},
+        {name:"Drinking water", filter:'nwr["amenity"="drinking_water"]'},
+        {name:"Toilets", filter:'nwr["amenity"="toilets"]'},
+        {name:"ATM", filter:'nwr["amenity"="atm"]'},
+        {name:"Pharmacy", filter:'nwr["amenity"="pharmacy"]'},
+        {name:"Picnic", filter:'nwr["tourism"="picnic_site"]'},
+        {name:"Viewpoint", filter:'nwr["tourism"="viewpoint"]'}
+      ];
+      function overpassQuery(filter){
+        var b=map.getBounds();
+        var bbox=b.getSouth()+","+b.getWest()+","+b.getNorth()+","+b.getEast();
+        return "[out:json][timeout:25];"+filter+"("+bbox+");out center 300;";
+      }
+      function fetchWithTimeout(url,opts,ms){
+        return new Promise(function(resolve,reject){
+          var ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
+          var t=setTimeout(function(){ if(ctrl) ctrl.abort(); reject(new Error("timeout")); }, ms);
+          var o={}; for(var k in opts){ o[k]=opts[k]; } if(ctrl) o.signal=ctrl.signal;
+          fetch(url,o).then(function(r){ clearTimeout(t); resolve(r); }).catch(function(e){ clearTimeout(t); reject(e); });
+        });
+      }
+      function fetchOverpass(query,eps,i){
+        i=i||0;
+        if(i>=eps.length) return Promise.reject(new Error("all endpoints failed"));
+        return fetchWithTimeout(eps[i],{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(query)},20000)
+          .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+          .catch(function(){ return fetchOverpass(query,eps,i+1); });
+      }
+      function overpassItems(json,catName){
+        var out=[]; var els=(json&&json.elements)||[];
+        els.forEach(function(el){
+          var lat=(el.lat!=null)?el.lat:(el.center?el.center.lat:null);
+          var lon=(el.lon!=null)?el.lon:(el.center?el.center.lon:null);
+          if(lat==null||lon==null) return;
+          var tags=el.tags||{};
+          var nm=tags.name||tags.brand||tags.operator||catName;
+          out.push({lat:String(lat), lon:String(lon), display_name:nm, name:nm, osm_type:el.type, osm_id:el.id, extratags:tags});
+        });
+        return out;
+      }
+      function runCategory(cat){
+        var myseq=++searchSeq;
+        searchActive=true; following=false;
+        results.innerHTML=""; clearMarkers(); setResultsCollapsed(false); input.value=""; statusEl.textContent="Searching "+cat.name+"…";
+        fetchOverpass(overpassQuery(cat.filter),OVERPASS_EPS)
+          .then(function(json){
+            if(myseq!==searchSeq) return;
+            var items=overpassItems(json,cat.name);
+            if(!items.length){ clearMarkers(); searchActive=false; statusEl.textContent="No "+cat.name+" in current map extent."; return; }
+            var ref=inExtentRef();
+            items.sort(function(a,b){ return ref.pt.distanceTo([+a.lat,+a.lon])-ref.pt.distanceTo([+b.lat,+b.lon]); });
+            if(items.length>50) items=items.slice(0,50);
+            showResults(items);
+          })
+          .catch(function(){ if(myseq!==searchSeq) return; statusEl.textContent="Category search failed — servers busy, try again."; });
+      }
+      (function(){
+        var row=document.getElementById("search-cats");
+        if(!row) return;
+        SEARCH_CATS.forEach(function(cat){
+          var chip=document.createElement("button");
+          chip.type="button"; chip.className="search-chip"; chip.textContent=cat.name;
+          chip.addEventListener("click",function(e){ e.stopPropagation(); runCategory(cat); });
+          row.appendChild(chip);
+        });
+      })();
     })();
 
     document.addEventListener('click',e=>{
