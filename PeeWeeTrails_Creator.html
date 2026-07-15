@@ -237,10 +237,11 @@ const DEFAULT_LAYERS=[
   // change url + displayName). type:'xyz' = XYZ/WMTS tile URL using {z}/{x}/{y};
   // type:'wms' additionally needs a wmsLayer. defaultOn = on from the start in the
   // exported map; previewOn = shown in this editor's own preview.
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Hiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Mountainbiking',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'http://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'WMT Horseriding',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png',wmsLayer:'',displayName:'Cycleroutes WMT',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',wmsLayer:'',displayName:'Hiking trails WMT',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png',wmsLayer:'',displayName:'Mountainbike trails WMT',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png',wmsLayer:'',displayName:'Horseriding trails WMT',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',wmsLayer:'',displayName:'Hillshade / relief (Esri)',opacity:0.4,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Hillshade &copy; <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>'},
   {type:'xyz',url:'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=Actueel_orthoHR&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL PDOK',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',wmsLayer:'',displayName:'Satelite World (EOX Sentinel-2)',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Sentinel-2 cloudless <a href="https://s2maps.eu" target="_blank" rel="noopener">s2maps.eu</a> by <a href="https://eox.at" target="_blank" rel="noopener">EOX</a> (Contains modified Copernicus Sentinel data 2024)'},
@@ -1882,7 +1883,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #search-panel.hidden{display:none}
 #search-btn svg{display:block}
 .search-row{display:flex;gap:5px;align-items:center}
-#search-input{flex:1;min-width:0;padding:6px 8px;border:1px solid #bbb;border-radius:5px;font-size:14px}
+#search-input{flex:1;min-width:0;padding:6px 8px;border:1px solid #bbb;border-radius:5px;font-size:16px}
 #search-go{flex:none;width:32px;height:32px;border:1px solid #2e7d32;border-radius:5px;background:#2e7d32;color:#fff;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
 .search-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .search-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.03em}
@@ -2456,6 +2457,8 @@ const wmsLayerObjs=new Array(EX.length);
   // --- Base map: choose ONE with radio buttons. Default: standard OpenStreetMap (Carto). ---
   const tilesFR=L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:20,opacity:OSM_OPACITY,attribution:'&copy; OpenStreetMap France'});
 
+  const tilesTopo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:17,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'});
+
   const osmRow=document.createElement('label');
   osmRow.className='layer-toggle-row';
   osmRow.innerHTML='<input type="radio" name="basemap" value="osm" checked><span>OpenStreetMap</span>';
@@ -2470,19 +2473,26 @@ const wmsLayerObjs=new Array(EX.length);
   const osmfrOpSlider=makeOpacitySlider(tilesFR, OSM_OPACITY, ' OSM France');
   panelContent.appendChild(osmfrOpSlider);
 
+  const topoRow=document.createElement('label');
+  topoRow.className='layer-toggle-row';
+  topoRow.innerHTML='<input type="radio" name="basemap" value="topo"><span>OpenTopoMap (relief + contours)</span>';
+  panelContent.appendChild(topoRow);
+  const topoOpSlider=makeOpacitySlider(tilesTopo, OSM_OPACITY, ' OpenTopoMap');
+  panelContent.appendChild(topoOpSlider);
+
   function selectBaseMap(which){
-    if(which==='osmfr'){
-      if(!map.hasLayer(tilesFR)) tilesFR.addTo(map);
-      tilesFR.setOpacity(osmfrOpSlider.querySelector('input').value/100);
-      if(map.hasLayer(tiles)) map.removeLayer(tiles);
-    } else {
-      if(!map.hasLayer(tiles)) tiles.addTo(map);
-      tiles.setOpacity(osmOpSlider.querySelector('input').value/100);
-      if(map.hasLayer(tilesFR)) map.removeLayer(tilesFR);
-    }
+    [tiles,tilesFR,tilesTopo].forEach(function(t){ if(map.hasLayer(t)) map.removeLayer(t); });
+    var lyr, sl;
+    if(which==='osmfr'){ lyr=tilesFR; sl=osmfrOpSlider; }
+    else if(which==='topo'){ lyr=tilesTopo; sl=topoOpSlider; }
+    else { lyr=tiles; sl=osmOpSlider; }
+    lyr.addTo(map);
+    lyr.setOpacity(sl.querySelector('input').value/100);
+    lyr.bringToBack();
   }
   osmRow.querySelector('input').addEventListener('change',function(){ if(this.checked) selectBaseMap('osm'); });
   osmfrRow.querySelector('input').addEventListener('change',function(){ if(this.checked) selectBaseMap('osmfr'); });
+  topoRow.querySelector('input').addEventListener('change',function(){ if(this.checked) selectBaseMap('topo'); });
 
   layersBtn.onclick=function(){layersPanel.classList.toggle('open');};
   document.addEventListener('click',function(e){
@@ -2767,7 +2777,7 @@ map.whenReady(updateZoomIndicator);
 // timer (see followCheckInterval below), not only when a new GPS fix arrives,
 // since a stationary device may not get a new fix for a long time.
 const locBtn=document.getElementById('loc-btn');
-let wid=null,locTrail=null,locTrailBg=null,lc=null,dirMarker=null;
+let wid=null,locTrail=null,locTrailBg=null,gapTrail=null,lc=null,dirMarker=null;
 let followZoom=null;
 let lastGeoHeading=0;
 let RECENTER_ZOOM=17;
@@ -2834,6 +2844,7 @@ function bringTrailToFront(){
   // BRouter/imported route to the list).
   if(locTrailBg && locTrailBg.bringToFront) locTrailBg.bringToFront();
   if(locTrail && locTrail.bringToFront) locTrail.bringToFront();
+  if(gapTrail && gapTrail.bringToFront) gapTrail.bringToFront();
   if(lc && lc.bringToFront) lc.bringToFront();
   if(dirMarker && dirMarker.bringToFront) dirMarker.bringToFront();
 }
@@ -2848,6 +2859,31 @@ function trimTrail(history){
     cutIdx=0;
   }
   return history.slice(cutIdx);
+}
+
+// When the phone screen switches off, no coordinates are recorded; the next fix
+// (screen back on) is far away in time. Draw those stretches as a thin dotted
+// line so it is clear that no recording happened there.
+const GAP_MS=15000; // > 15s between two consecutive fixes = a recording gap
+function splitTrail(hist){
+  var solid=[], gaps=[], cur=[];
+  for(var i=0;i<hist.length;i++){
+    cur.push(hist[i]);
+    if(i<hist.length-1){
+      var t0=hist[i][2], t1=hist[i+1][2];
+      if(t0!=null && t1!=null && (t1-t0)>GAP_MS){ solid.push(cur); cur=[]; gaps.push([hist[i],hist[i+1]]); }
+    }
+  }
+  if(cur.length) solid.push(cur);
+  return {solid:solid, gaps:gaps};
+}
+function gapStyle(){ return {color:TRAIL_COLOR,weight:Math.min(4,Math.max(2,Math.round(TRAIL_WIDTH*0.5))),opacity:0.9,lineCap:'round',dashArray:'1,14'}; }
+function redrawTrail(){
+  if(!locTrail) return;
+  var seg=splitTrail(locHistory);
+  locTrail.setLatLngs(seg.solid);
+  locTrailBg.setLatLngs(seg.solid);
+  if(gapTrail) gapTrail.setLatLngs(seg.gaps);
 }
 
 // --- Trail settings panel: lets the visitor adjust the recorded trail's
@@ -2889,6 +2925,7 @@ trailBtn.onclick=function(e){
     if(locTrail){
       locTrail.setStyle({color:TRAIL_COLOR,weight:TRAIL_WIDTH,dashArray:(TRAIL_WIDTH*1.6)+','+(TRAIL_WIDTH*1.3)});
       locTrailBg.setStyle({weight:TRAIL_WIDTH});
+      if(gapTrail) gapTrail.setStyle(gapStyle());
     }
     if(lc) lc.setStyle({color:TRAIL_COLOR,fillColor:TRAIL_COLOR});
     if(dirMarker) dirMarker.setIcon(makeDirIcon(lastGeoHeading + map.getBearing())); // recolor arrow immediately
@@ -2907,13 +2944,13 @@ trailBtn.onclick=function(e){
     TRAIL_MODE=modeInput.value;
     metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
     locHistory=trimTrail(locHistory);
-    if(locTrail){ locTrail.setLatLngs(locHistory); locTrailBg.setLatLngs(locHistory); }
+    redrawTrail();
   });
   metersInput.addEventListener('change',function(){
     TRAIL_METERS=Math.max(5,Math.min(5000,parseInt(metersInput.value)||50));
     metersInput.value=TRAIL_METERS;
     locHistory=trimTrail(locHistory);
-    if(locTrail){ locTrail.setLatLngs(locHistory); locTrailBg.setLatLngs(locHistory); }
+    redrawTrail();
   });
   function applyCenterSetting(){
     if(centerInput.value==='0'){ FOLLOW_DELAY=0; secRow.style.display='none'; }
@@ -2992,7 +3029,7 @@ function startGPS(){
   if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
 
   wid=navigator.geolocation.watchPosition(function(p){
-    const ll=[p.coords.latitude,p.coords.longitude];
+    const ll=[p.coords.latitude,p.coords.longitude,Date.now()];
     lastKnownLatLng=ll;
     locHistory.push(ll);
     locHistory=trimTrail(locHistory);
@@ -3012,8 +3049,7 @@ function startGPS(){
     lastGeoHeading=deg;
 
     if(locTrail){
-      locTrail.setLatLngs(locHistory);
-      locTrailBg.setLatLngs(locHistory);
+      redrawTrail();
       if(lc) lc.setLatLng(ll).setRadius(p.coords.accuracy);
       else lc=L.circle(ll,{radius:p.coords.accuracy,color:TRAIL_COLOR,fillColor:TRAIL_COLOR,fillOpacity:.12,weight:1}).addTo(map);
       if(dirMarker) dirMarker.setLatLng(ll).setIcon(makeDirIcon(deg + map.getBearing()));
@@ -3025,6 +3061,7 @@ function startGPS(){
       // and reads more clearly against imported tracks of a similar solid color.
       locTrailBg=L.polyline(locHistory,{color:'#fff',weight:TRAIL_WIDTH,opacity:.9,lineCap:'round'}).addTo(map);
       locTrail=L.polyline(locHistory,{color:TRAIL_COLOR,weight:TRAIL_WIDTH,opacity:1,lineCap:'butt',dashArray:(TRAIL_WIDTH*1.6)+','+(TRAIL_WIDTH*1.3)}).addTo(map);
+      gapTrail=L.polyline(splitTrail(locHistory).gaps,gapStyle()).addTo(map);
       dirMarker=L.marker(ll,{icon:makeDirIcon(deg + map.getBearing()),interactive:false,zIndexOffset:500}).addTo(map).bindPopup('Your location');
     }
     bringTrailToFront();
@@ -4121,7 +4158,23 @@ map.on('zoomend',function(){
       return url;
     }
 
-    function showToast(msg,duration){
+    // "Desktop site" on a phone makes the browser ignore this page's mobile viewport:
+// everything is laid out ~980px wide and scaled down, and tapping a field zooms in,
+// pushing the controls off-screen. Warn once so the user can switch it off.
+function looksLikeDesktopMode(){
+  try{
+    var touch=(navigator.maxTouchPoints||0)>0 || ("ontouchstart" in window);
+    if(!touch) return false;
+    if(window.innerWidth<900) return false;
+    var smallScreen=!!(window.screen && window.screen.width && window.screen.width<900);
+    var zoomedOut=!!(window.visualViewport && window.visualViewport.scale && window.visualViewport.scale<0.9);
+    return smallScreen||zoomedOut;
+  }catch(e){ return false; }
+}
+setTimeout(function(){
+  if(looksLikeDesktopMode()) showToast('Tip: switch off "Desktop site" in your browser menu \u2014 this map works best in the normal mobile view.',8000);
+},1500);
+function showToast(msg,duration){
       let t=document.getElementById('mam-toast');
       if(!t){
         t=document.createElement('div');
@@ -4311,7 +4364,11 @@ map.on('zoomend',function(){
       var statusEl=document.getElementById('search-status');
       var busy=false;
       var numMarkers=[], curList=[]; var searchLayer=L.layerGroup().addTo(map);
-      function openPanel(){ panel.classList.remove("hidden"); searchActive=true; following=false; setResultsCollapsed(false); setTimeout(function(){ input.focus(); },40); }
+      function isTouchDevice(){ try{ return (navigator.maxTouchPoints||0)>0 || ("ontouchstart" in window); }catch(e){ return false; } }
+      // Autofocus only on a real desktop: on touch devices it makes the browser zoom
+      // into the field (also in Chrome's "Desktop site" mode, which reports pointer:fine).
+      function isFinePointer(){ try{ return !isTouchDevice() && window.matchMedia && window.matchMedia("(pointer:fine)").matches; }catch(e){ return false; } }
+      function openPanel(){ panel.classList.remove("hidden"); searchActive=true; following=false; setResultsCollapsed(false); if(isFinePointer()) setTimeout(function(){ input.focus(); },40); }
       function closePanel(){ panel.classList.add("hidden"); } // collapse: keep markers + keep auto-centering paused
       function endSearch(){ clearMarkers(); results.innerHTML=""; statusEl.textContent=""; input.value=""; panel.classList.add("hidden"); searchActive=false; lastUserInteraction=Date.now(); }
       btn.addEventListener("click",function(e){ e.stopPropagation(); if(panel.classList.contains("hidden")) openPanel(); else closePanel(); });
@@ -4321,6 +4378,7 @@ map.on('zoomend',function(){
       closeBtn.addEventListener("click",function(e){ e.stopPropagation(); endSearch(); });
       panel.addEventListener("click",function(e){ e.stopPropagation(); });
       map.on("moveend zoomend rotate", scheduleLabels);
+      map.on("click", function(){ if(!panel.classList.contains("hidden") && !resultsCollapsed) setResultsCollapsed(true); });
       input.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); doSearch(); } });
       go.addEventListener("click",function(e){ e.stopPropagation(); doSearch(); });
       function inExtentRef(){
