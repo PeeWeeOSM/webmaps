@@ -58,6 +58,7 @@
   <div id="p-edit" style="display:none">
     <div class="p-row">
       <span class="p-hint" id="p-hint">Choose a destination or via point</span>
+      <button class="ok-btn" id="btn-gpx" disabled style="background:#1565c0;border-color:#1565c0">GPX</button>
       <button class="ok-btn" id="btn-ok" disabled>Route is OK</button>
       <button class="cancel-btn" id="btn-cancel">&times;</button>
     </div>
@@ -207,7 +208,7 @@
     return 'https://brouter.de/brouter?lonlats='+ll+'&profile='+encodeURIComponent(profile)+'&format=geojson';
   }
   function recalc(){
-    if(wps.length<2){ clearRouteLine(); btnOk.disabled=true; pStat.textContent='Start point set. Tap the map to add points.'; return; }
+    if(wps.length<2){ clearRouteLine(); btnOk.disabled=true; document.getElementById('btn-gpx').disabled=true; pStat.textContent='Start point set. Tap the map to add points.'; return; }
     var seq=++calcSeq;
     pStat.textContent='Calculating\u2026';
     fetch(brouterUrl())
@@ -223,7 +224,7 @@
         var p=f.properties||{};
         var len=parseFloat(p['track-length']||0), tim=parseFloat(p['total-time']||0);
         pStat.textContent=profileName+' \u00b7 '+fmtKm(len)+(tim?(' \u00b7 '+fmtTime(tim)):'')+' \u00b7 '+wps.length+' points';
-        btnOk.disabled=false;
+        btnOk.disabled=false; document.getElementById('btn-gpx').disabled=false;
       })
       .catch(function(){ if(seq===calcSeq) pStat.textContent='Routing failed \u2014 check your connection.'; });
   }
@@ -287,6 +288,39 @@
       el.addEventListener('pointercancel',up);
     });
   }
+
+  // ---- GPX export: a real file in the device's Downloads, so it survives closing the browser ----
+  function xmlEsc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function buildGpx(name){
+    var now=new Date().toISOString();
+    var out='<?xml version="1.0" encoding="UTF-8"?>\n';
+    out+='<gpx version="1.1" creator="PeeWeeTrails" xmlns="http://www.topografix.com/GPX/1/1">\n';
+    out+='  <metadata><name>'+xmlEsc(name)+'</name><time>'+now+'</time></metadata>\n';
+    wps.forEach(function(w,i){
+      var wn=(i===0)?'Start':((i===wps.length-1)?'Finish':('Via '+i));
+      out+='  <wpt lat="'+w.lat.toFixed(6)+'" lon="'+w.lng.toFixed(6)+'"><name>'+wn+'</name></wpt>\n';
+    });
+    out+='  <trk><name>'+xmlEsc(name)+'</name><trkseg>\n';
+    routeCoords.forEach(function(c){
+      out+='    <trkpt lat="'+(+c[0]).toFixed(6)+'" lon="'+(+c[1]).toFixed(6)+'"></trkpt>\n';
+    });
+    out+='  </trkseg></trk>\n</gpx>\n';
+    return out;
+  }
+  function saveGpx(){
+    if(!routeCoords.length) return;
+    var d=new Date(), pad=function(n){ return (n<10?'0':'')+n; };
+    var stamp=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes());
+    var name=(profileName||'route').replace(/[^A-Za-z0-9]+/g,'_')+'_'+stamp;
+    var blob=new Blob([buildGpx(name)],{type:'application/gpx+xml'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download=name+'.gpx';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
+    showToast('Saved as '+name+'.gpx');
+  }
+  document.getElementById('btn-gpx').addEventListener('click',saveGpx);
 
   // ---- finish / cancel ----
   btnOk.addEventListener('click',function(){
