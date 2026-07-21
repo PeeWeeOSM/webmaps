@@ -191,11 +191,6 @@ input:checked+.slider:before{transform:translateX(14px)}
           <option value="5000">after 5 s</option>
           <option value="10000">after 10 s</option>
         </select>
-        <span class="toggle-label" style="color:#000">rotate by gesture</span>
-        <select id="opt-rotate-gesture" class="posselect" title="Default for two-finger rotation in the exported map. 'off' prevents the map rotating by accident while pinch-zooming; the compass modes still rotate the map on their own. Visitors can override this in the map's own settings.">
-          <option value="0" selected>off</option>
-          <option value="1">on</option>
-        </select>
       </div>
     </div>
     <div>
@@ -1788,7 +1783,6 @@ function exportMap(){
   const centerDelay=parseInt(document.getElementById('opt-center-delay').value)||0;
   const recenterZoom=Math.max(1,Math.min(22,parseInt(document.getElementById('opt-zoom-level').value)||17));
   const hideUiDelay=parseInt(document.getElementById('opt-hide-ui').value)||0;
-  const rotateGestureDefault=(document.getElementById('opt-rotate-gesture').value==='1');
   const exportSearchCats=(document.getElementById('search-cats-input').value||'').split('\n').map(line=>{
     const p=line.split('|').map(x=>x.trim());
     if(p.length<2 || !p[1]) return null;
@@ -2079,7 +2073,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
       <button class="ctrl-btn zoom" onclick="zoomBtn(1)" title="Zoom in">+</button>
       <button class="ctrl-btn zoom" onclick="zoomBtn(-1)" title="Zoom out">&#8722;</button>
     </div>
-    <button class="ctrl-btn" id="fullscreen-btn" title="Full screen" style="display:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H4v5"/><path d="M20 9V4h-5"/><path d="M15 20h5v-5"/><path d="M4 15v5h5"/></svg></button>
     <div id="search-overlay">
       <button class="ctrl-btn" id="search-btn" title="Search"><svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button>
       <div id="search-panel" class="hidden">
@@ -2901,7 +2894,6 @@ let routeEditing=false;   // true while a 'Route from' route is being built
 // "Hide buttons": after N seconds without interaction the controls fade out for a calm
 // map while navigating; a tap anywhere on the map brings them straight back.
 let HIDE_UI_DELAY=${hideUiDelay}, uiHideTimer=null, uiHidden=false;
-let ROTATE_GESTURE_DEFAULT=${rotateGestureDefault};  // baked-in default for two-finger rotation
 function anyPanelOpen(){
   if(document.querySelector('#route-panel.open,#layers-panel.open,#trail-panel.open,#vis-panel.open,#rf-panel.open,#compass-menu:not(.hidden)')) return true;
   const sp=document.getElementById('search-panel');
@@ -3139,7 +3131,7 @@ function redrawTrail(){
   if(rotateInput){
     const ROT_KEY='PeeWeeTrails_gestureRotate__'+location.pathname;
     let rotSaved=null; try{ rotSaved=localStorage.getItem(ROT_KEY); }catch(e){}
-    const rotOn=(rotSaved===null)?ROTATE_GESTURE_DEFAULT:(rotSaved==='1'); // baked default until the visitor overrides it
+    const rotOn=(rotSaved==='1'); // default off
     rotateInput.value=rotOn?'1':'0';
     applyGestureRotate(rotOn);
     rotateInput.addEventListener('change',function(){
@@ -3209,66 +3201,6 @@ trailBtn.onclick=function(e){
     hideInput.addEventListener('change',function(){ HIDE_UI_DELAY=parseInt(hideInput.value)||0; showUi(); });
   }
 }
-
-// --- Full-screen toggle ---
-// On Android Chromium (Brave/Chrome) this gives a true immersive view with no
-// address bar and no system bars. Feature-detected, so the button stays hidden
-// where the Fullscreen API isn't available (e.g. iOS Safari, which only allows
-// fullscreen on <video>). Exit with the button, the Android back gesture, or a
-// swipe from the top edge.
-(function(){
-  const btn=document.getElementById('fullscreen-btn');
-  if(!btn) return;
-  const root=document.documentElement;
-  const reqFs=root.requestFullscreen||root.webkitRequestFullscreen;
-  const exitFs=document.exitFullscreen||document.webkitExitFullscreen;
-  if(!reqFs){ btn.style.display='none'; return; }
-  btn.style.display='';
-  const ICON_OPEN='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H4v5"/><path d="M20 9V4h-5"/><path d="M15 20h5v-5"/><path d="M4 15v5h5"/></svg>';
-  const ICON_CLOSE='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h5V4"/><path d="M20 9h-5V4"/><path d="M15 20v-5h5"/><path d="M9 20v-5H4"/></svg>';
-  function isFull(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
-  function sync(){
-    const f=isFull();
-    btn.innerHTML=f?ICON_CLOSE:ICON_OPEN;
-    btn.title=f?'Exit full screen':'Full screen';
-    btn.classList.toggle('on', f);
-  }
-  btn.addEventListener('click',function(e){
-    e.stopPropagation();
-    try{ if(isFull()){ if(exitFs) exitFs.call(document); } else { reqFs.call(root); } }catch(err){}
-  });
-  document.addEventListener('fullscreenchange', sync);
-  document.addEventListener('webkitfullscreenchange', sync);
-  sync();
-})();
-
-// --- Web app manifest (injected at runtime) ---
-// Built here rather than as a static file so start_url matches the real page
-// URL wherever the map is hosted. Lets "Add to home screen" launch the map
-// full-screen / app-like on Android. Reuses the page's own SVG icon. Harmless
-// where unsupported.
-(function(){
-  try{
-    const iconEl=document.querySelector('link[rel="icon"]');
-    const iconHref=iconEl?iconEl.href:'';
-    const manifest={
-      name:document.title||'PeeWeeTrails map',
-      short_name:(document.title||'Map').slice(0,24),
-      start_url:location.href,
-      scope:location.href,
-      display:'fullscreen',
-      orientation:'any',
-      background_color:'#1c1c1e',
-      theme_color:'#111111',
-      icons: iconHref?[{src:iconHref, sizes:'any', type:'image/svg+xml', purpose:'any maskable'}]:[]
-    };
-    const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-    const link=document.createElement('link');
-    link.rel='manifest';
-    link.href=URL.createObjectURL(blob);
-    document.head.appendChild(link);
-  }catch(e){}
-})();
 
 function bearing(p1,p2){
   // peiling in graden van p1 naar p2 (0=noord)
