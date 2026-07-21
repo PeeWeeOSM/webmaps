@@ -1047,7 +1047,7 @@ let searchActive=false;
 let routeEditing=false;   // true while a 'Route from' route is being built
 // "Hide buttons": after N seconds without interaction the controls fade out for a calm
 // map while navigating; a tap anywhere on the map brings them straight back.
-let HIDE_UI_DELAY=0, uiHideTimer=null, uiHidden=false;
+let HIDE_UI_DELAY=10000, uiHideTimer=null, uiHidden=false;
 let ROTATE_GESTURE_DEFAULT=false;  // baked-in default for two-finger rotation
 function anyPanelOpen(){
   if(document.querySelector('#route-panel.open,#layers-panel.open,#trail-panel.open,#vis-panel.open,#rf-panel.open,#compass-menu:not(.hidden)')) return true;
