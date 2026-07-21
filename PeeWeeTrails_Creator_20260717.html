@@ -1936,9 +1936,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 .srn-label.on{display:block}
 .srn-hi{background:#8e1148;border-color:#ffd54a;font-size:14px}
 #search-status{font-size:12px;color:#666;margin-top:5px;min-height:14px}
-#search-status.sr-warn{color:#d81b60;font-weight:700;font-size:12.5px;animation:sr-blink 1s infinite}
-#search-status.sr-wide{color:#e8590c;font-weight:600}
-@keyframes sr-blink{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+#search-status.sr-warn{color:#d81b60;font-weight:700;font-size:12.5px;animation:sr-pulse 1.2s ease-in-out infinite}
+@keyframes sr-pulse{0%,100%{opacity:1}50%{opacity:.35}}
 #search-cat{width:100%;margin-top:7px;padding:7px 8px;border:1px solid #bbb;border-radius:5px;font-size:14px;background:#fff;color:#222}
 .user-route-row .ur-prof{flex:none;width:17px;height:17px;display:flex;align-items:center;justify-content:center;margin-right:1px}
 .user-route-row .ur-prof svg{width:17px;height:17px;display:block}
@@ -1987,7 +1986,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-panel #route-list{flex:1 1 auto;min-height:0;overflow-y:auto}
 #route-panel #route-add-bar{flex:0 0 auto;padding-top:8px;margin-top:4px;border-top:1px solid #eee;background:#fff}
 #route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
-#route-clear-all{margin-left:auto;margin-right:18px;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
+#route-clear-all{margin-left:auto;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
 #route-clear-all:hover{background:#fdeeee}
 #route-panel-close{background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
 #route-panel-close:hover{color:#333}
@@ -2082,7 +2081,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
           <button id="search-close" title="End search (remove markers)">&times;</button>
         </div>
         <div class="search-row">
-          <input type="text" id="search-input" placeholder="Place, caf&eacute;, bench, water&hellip;" autocomplete="off" list="search-hist"><datalist id="search-hist"></datalist>
+          <input type="text" id="search-input" placeholder="Place, caf&eacute;, bench, water&hellip;" autocomplete="off">
           <button id="search-go" title="Search">&#8594;</button>
         </div>
         <select id="search-cat" title="Pick something to look for in the current map view"></select>
@@ -2147,13 +2146,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
         <div class="trail-row">
           <label for="trail-zoom-input">Zoom level</label>
           <input type="number" id="trail-zoom-input" min="1" max="22" value="17" style="width:72px">
-        </div>
-        <div class="trail-row">
-          <label for="rotate-gesture-input" title="Allow rotating the map with a two-finger twist. Turn off to stop the map rotating by accident while pinch-zooming; the compass modes still rotate the map on their own.">Rotate by gesture</label>
-          <select id="rotate-gesture-input">
-            <option value="0">Off</option>
-            <option value="1">On</option>
-          </select>
         </div>
         <div class="trail-row">
           <label for="hide-ui-input" title="Hide all buttons while navigating; tap the map to bring them back">Hide buttons</label>
@@ -2884,8 +2876,6 @@ let lastUserInteraction=Date.now();
 let lastKnownLatLng=null;
 let followCheckInterval=null;
 let programmaticMove=false;
-let wakeLock=null;        // Screen Wake Lock sentinel while navigating
-let lastGpsHintAt=0;      // throttle for the "weak signal" hint (ms timestamp)
 // --- Rotation / orientation state (compass modes) ---
 let locMode='off';
 let following=true;
@@ -3115,32 +3105,6 @@ function redrawTrail(){
   zoomInput.value=RECENTER_ZOOM;
   zoomInput.addEventListener('change',function(){ RECENTER_ZOOM=Math.max(1,Math.min(22,parseInt(zoomInput.value)||17)); zoomInput.value=RECENTER_ZOOM; });
 
-  // Two-finger gesture rotation. Off by default: it's almost always triggered by
-  // accident during a pinch-zoom, and the compass modes rotate the map on their
-  // own anyway. Disabling touchRotate only switches off the rotate part of the
-  // pinch gesture (zoom keeps working), and shiftKeyRotate covers desktop
-  // shift+wheel. Programmatic map.setBearing() (used by the compass modes) is
-  // unaffected. The choice is remembered per map.
-  function applyGestureRotate(on){
-    try{
-      if(on){ if(map.touchRotate) map.touchRotate.enable(); if(map.shiftKeyRotate) map.shiftKeyRotate.enable(); }
-      else { if(map.touchRotate) map.touchRotate.disable(); if(map.shiftKeyRotate) map.shiftKeyRotate.disable(); }
-    }catch(e){}
-  }
-  const rotateInput=document.getElementById('rotate-gesture-input');
-  if(rotateInput){
-    const ROT_KEY='PeeWeeTrails_gestureRotate__'+location.pathname;
-    let rotSaved=null; try{ rotSaved=localStorage.getItem(ROT_KEY); }catch(e){}
-    const rotOn=(rotSaved==='1'); // default off
-    rotateInput.value=rotOn?'1':'0';
-    applyGestureRotate(rotOn);
-    rotateInput.addEventListener('change',function(){
-      const on=rotateInput.value==='1';
-      applyGestureRotate(on);
-      try{ localStorage.setItem(ROT_KEY, on?'1':'0'); }catch(e){}
-    });
-  }
-
   var gearTimer=null;
 trailBtn.onclick=function(e){
   e.stopPropagation();
@@ -3223,26 +3187,6 @@ function makeDirIcon(deg){
   });
 }
 
-// --- Screen Wake Lock ---
-// Keep the display awake while navigating so a phone on the handlebars doesn't
-// dim or sleep mid-ride. Silently no-ops where the API is missing. The browser
-// auto-releases the lock when the tab is hidden, so we re-acquire it on
-// visibilitychange whenever location tracking is still on.
-async function requestWakeLock(){
-  try{
-    if(!('wakeLock' in navigator)) return;
-    if(wakeLock) return;
-    wakeLock=await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release',function(){ wakeLock=null; });
-  }catch(e){ wakeLock=null; }
-}
-function releaseWakeLock(){
-  try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){ wakeLock=null; }
-}
-document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible' && locMode!=='off') requestWakeLock();
-});
-
 function stopLoc(){
   // Stop GPS watching but KEEP the trail on the map and locHistory intact
   // so the trail survives toggling the location button off and on again.
@@ -3254,7 +3198,6 @@ function stopLoc(){
   if(lc){map.removeLayer(lc);lc=null;}
   if(dirMarker){map.removeLayer(dirMarker);dirMarker=null;}
   followZoom=null;
-  releaseWakeLock();
 }
 
 // Detect manual map interaction (drag/zoom by user) to temporarily pause auto-centering
@@ -3330,23 +3273,8 @@ function startGPS(){
     if(following) orient();
     if(dirMarker) dirMarker.setIcon(makeDirIcon(deg + map.getBearing()));
   },function(e){
-    // GPS errors come in two flavours:
-    //  - PERMISSION_DENIED (code 1): a real, permanent stop. The user has to
-    //    grant permission, so turn location off cleanly and tell them once.
-    //  - TIMEOUT (3) / POSITION_UNAVAILABLE (2): usually transient (a tunnel,
-    //    tree cover, a slow first fix). Keep the watch alive so a later fix
-    //    recovers on its own; show a discreet, throttled hint instead of
-    //    killing navigation with a blocking alert mid-ride.
-    if(e && e.code===1){
-      stopLoc();
-      locBtn.classList.remove('tracking');
-      locMode='off'; following=false; setBearingProg(0);
-      document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode==='off'); });
-      showToast('Location permission denied \u2014 enable it in your browser settings.',4000);
-    } else {
-      var now=Date.now();
-      if(now-lastGpsHintAt>8000){ lastGpsHintAt=now; showToast('Weak GPS signal \u2014 trying to reconnect\u2026',2500); }
-    }
+    stopLoc();
+    alert('Location unavailable: '+e.message);
   },{enableHighAccuracy:true,maximumAge:1000});
 }
 
@@ -3357,7 +3285,7 @@ function setLocMode(m){
   compassMenu.classList.add('hidden');
   document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode===m); });
   if(m==='off'){ stopLoc(); locBtn.classList.remove('tracking'); setBearingProg(0); }
-  else { locBtn.classList.add('tracking'); startGPS(); orient(); requestWakeLock(); }
+  else { locBtn.classList.add('tracking'); startGPS(); orient(); }
 }
 locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('hidden'); };
 locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); following=false; lastUserInteraction=Date.now(); setBearingProg(0); });
@@ -4411,7 +4339,6 @@ map.on('zoomend',function(){
           openUrl(filledUrl);
         }
         closeMenu();
-        searchActive=false;   // an action was taken: the map may follow your location again
       }
 
       if(!needsCurrentLocation){
@@ -4777,7 +4704,6 @@ function showToast(msg,duration){
       const lonlats=rfLonlats(), prof=rfProfile, srv=rfServer, nm=rfProfileName;
       const rfIcoSvg=rfIconSvg, rfIcoCol=rfIconColor;
       rfCleanup();
-      searchActive=false;   // route made: the map may follow your location again
       // Hand the finished route to the same code path as a "Route to" action: it gets its
       // own row in "Imported files" (colour, width, label, GPX) and is stored locally.
       showBrouterRoute(lonlats, prof, null, nm, srv||undefined, {svg:rfIcoSvg, color:rfIcoCol});
@@ -4888,7 +4814,7 @@ function showToast(msg,duration){
           var i=parseInt(catSel.value,10); catSel.value="";
           if(isNaN(i)||!catList[i]) return;
           input.value=catList[i].label;
-          doSearchTerms(catList[i].terms, catList[i].label, true);
+          doSearchTerms(catList[i].terms, catList[i].label);
         });
       }
       function inExtentRef(){
@@ -4901,11 +4827,6 @@ function showToast(msg,duration){
       var NOM_LIMIT=40;          // Nominatim hard limit: it never returns more than 40
       function searchDebugOn(){ try{ return (location.search+location.hash).indexOf('debug')>=0 || !!window.PW_DEBUG; }catch(e){ return false; } }
       var dbg=[];
-      var WIDE_KM=8;           // wider than this, a category search is only a sample
-      function viewKm(){
-        var b=map.getBounds(), c=b.getCenter();
-        return Math.abs(b.getEast()-b.getWest())*111.32*Math.max(0.2,Math.cos(c.lat*Math.PI/180));
-      }
       var NOM_GAP=1100;        // ms between Nominatim calls (their policy: max 1 req/s)
       var nomLast=0;
       function nomFetch(url){
@@ -5028,41 +4949,10 @@ function showToast(msg,duration){
         layoutLabels();
       }
       var searchSeq=0;
-      // Remember what was typed before, and offer it again when the field is tapped.
-      var HIST_KEY='PeeWeeTrails_searchhist_'+location.pathname, hist=[];
-      function loadHist(){ try{ hist=JSON.parse(localStorage.getItem(HIST_KEY)||'[]')||[]; }catch(e){ hist=[]; } fillHist(); }
-      function fillHist(){
-        var dl=document.getElementById('search-hist'); if(!dl) return;
-        dl.innerHTML='';
-        hist.forEach(function(h){ var o=document.createElement('option'); o.value=h; dl.appendChild(o); });
-      }
-      function rememberSearch(q){
-        q=(q||'').trim(); if(!q) return;
-        hist=hist.filter(function(h){ return h.toLowerCase()!==q.toLowerCase(); });
-        hist.unshift(q);
-        if(hist.length>8) hist=hist.slice(0,8);
-        try{ localStorage.setItem(HIST_KEY, JSON.stringify(hist)); }catch(e){}
-        fillHist();
-      }
-      loadHist();
-      // The field shows the category label after picking one from the list. Pressing the
-      // arrow (or Enter) must then repeat that CATEGORY search, not search for the label as
-      // a name — that is why "Cafe Pub" used to come back as the one pub actually called
-      // "Pub". Anything the user types themselves stays a normal (name/place) search.
-      function catByLabel(q){
-        var list=(typeof SEARCH_CATS!=='undefined'?SEARCH_CATS:[]);
-        for(var i=0;i<list.length;i++){
-          if((list[i].label||'').trim().toLowerCase()===q.toLowerCase()) return list[i];
-        }
-        return null;
-      }
       function doSearch(){
         var q=(input.value||"").trim();
         if(!q){ input.focus(); return; }
-        var cat=catByLabel(q);
-        if(cat){ doSearchTerms(cat.terms, cat.label, true); return; }
-        rememberSearch(q);
-        doSearchTerms([q], null, false);
+        doSearchTerms([q], null);
       }
       // Nominatim has no OR/AND: each term is searched on its own (one after another,
       // to stay friendly to the server) and the results are merged and de-duplicated.
@@ -5070,10 +4960,10 @@ function showToast(msg,duration){
       // ranks by importance, not by distance, so when 40 come back we simply say so: zoom in
       // and search again. Simple, fast and predictable beats a clever scheme that fires many
       // requests and still cannot guarantee completeness.
-      function doSearchTerms(terms, label, isCategory){
+      function doSearchTerms(terms, label){
         var myseq=++searchSeq;
         results.innerHTML=""; clearMarkers(); setResultsCollapsed(false);
-        statusEl.classList.remove('sr-warn'); statusEl.classList.remove('sr-wide'); statusEl.textContent="Searching\u2026";
+        statusEl.classList.remove('sr-warn'); statusEl.textContent="Searching\u2026";
         var all=[], seen={}, truncated=false, blocked=false, failed=false;
         dbg=[];
         function collect(list){
@@ -5084,39 +4974,21 @@ function showToast(msg,duration){
             seen[key]=1; all.push(it);
           });
         }
-        function fetchQ(q){
-          return nomFetch(nominatimUrlBox(q, map.getBounds()))
-            .then(function(r){
-              if(r.status===429 || r.status===503){ blocked=true; return null; }
-              if(!r.ok){ failed=true; return null; }
-              return r.json();
-            })
-            .then(function(list){
-              if(list) collect(list);
-              if(searchDebugOn()) dbg.push(q+':'+(list?list.length:(blocked?'429':'err')));
-              return list;
-            })
-            .catch(function(){ failed=true; if(searchDebugOn()) dbg.push(q+':err'); return null; });
-        }
         var chain=Promise.resolve();
         terms.forEach(function(t){
           chain=chain.then(function(){
             if(myseq!==searchSeq) return;
-            // A category needs square brackets for an amenity-only search ([pub]). That is
-            // documented for a single keyword; multi-word phrases such as "picnic site" may
-            // not be understood that way, so if the bracketed search comes back empty, try
-            // the plain phrase as well.
-            if(!isCategory) return fetchQ(t);
-            return fetchQ('['+t+']').then(function(list){
-              if(myseq!==searchSeq) return;
-              if(list && list.length) return;      // brackets worked
-              if(blocked||failed) return;          // don't hammer a busy server
-              // Only retry multi-word phrases without brackets: for a single keyword the
-              // bracket form is the documented one, and a plain retry would just return
-              // objects whose NAME contains the word (e.g. a pub actually called "Pub").
-              if(t.indexOf(' ')<0) return;
-              return fetchQ(t);
-            });
+            return nomFetch(nominatimUrlBox(t, map.getBounds()))
+              .then(function(r){
+                if(r.status===429 || r.status===503){ blocked=true; return null; }
+                if(!r.ok){ failed=true; return null; }
+                return r.json();
+              })
+              .then(function(list){
+                if(list) collect(list);
+                if(searchDebugOn()) dbg.push(t+':'+(list?list.length:(blocked?'429':'err')));
+              })
+              .catch(function(){ failed=true; if(searchDebugOn()) dbg.push(t+':err'); });
           });
         });
         chain.then(function(){
@@ -5133,16 +5005,7 @@ function showToast(msg,duration){
           // At 40 Nominatim cut the list (ranked by importance, not by distance), so even
           // something close by can be missing: say that instead of "nearest first".
           if(truncated){ statusEl.textContent='Max 40 reached. Zoom in to not miss results.'; statusEl.classList.add('sr-warn'); }
-          else {
-            statusEl.classList.remove('sr-warn');
-            // Nominatim gives no guarantee that it returns everything in a large area: it
-            // picks a selection by importance. Fewer than 40 results is therefore no proof
-            // that the list is complete, so say so while the map view is wide.
-            if(isCategory && viewKm()>WIDE_KM){
-              statusEl.textContent='Map area is large \u2014 this is a selection, not all of them. Zoom in for a reliable list.';
-              statusEl.classList.add('sr-wide');
-            }
-          }
+          else statusEl.classList.remove('sr-warn');
           if(blocked||failed) statusEl.textContent+=' \u00b7 some results may be missing (server busy)';
           if(searchDebugOn()) statusEl.textContent+='  [ '+dbg.join(' \u00b7 ')+' \u2192 '+all.length+' unique ]';
         });
