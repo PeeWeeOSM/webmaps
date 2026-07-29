@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!--
+  PeeWeeTrails Basic — information page.
+  Copyright (C) 2026 PeeWeeOSM. GNU General Public License v3 or later.
+  https://www.gnu.org/licenses/gpl-3.0.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>PeeWeeTrails Basic</title>
+<style>
+  :root{
+    --bg:#f4f7ef; --paper:#ffffff; --ink:#22302a; --muted:#5c6b62;
+    --green:#2f8f4e; --green-d:#1f6b39; --green-l:#e7f3e9;
+    --line:#e3e9df; --shadow:0 6px 22px rgba(31,74,45,0.10);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:0 18px 64px}
+
+  /* ---------- language switch ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(180deg,#2f8f4e,#26773f);
+    box-shadow:0 2px 10px rgba(0,0,0,0.15);
+  }
+  .topbar-in{max-width:860px; margin:0 auto; padding:9px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+  .brand{display:flex; align-items:center; gap:9px; color:#fff; font-weight:700; letter-spacing:.2px}
+  .brand svg{width:24px; height:24px; flex:0 0 auto}
+  .lang-switch{display:flex; gap:7px}
+  .lang-switch button{
+    padding:0; border:0; background:rgba(255,255,255,.16); border-radius:6px;
+    width:38px; height:27px; cursor:pointer; display:grid; place-items:center;
+    transition:transform .08s, background .15s;
+  }
+  .lang-switch button:hover{background:rgba(255,255,255,.3)}
+  .lang-switch button:active{transform:scale(.93)}
+  .lang-switch button.active{background:#fff; box-shadow:0 0 0 2px #9be7bd}
+  .lang-switch button:focus-visible{outline:3px solid #9be7bd; outline-offset:2px}
+  .flag{display:block; width:26px; height:17px; border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:34px 0 8px; text-align:center}
+  .hero .eyebrow{
+    display:inline-block; background:var(--green-l); color:var(--green-d);
+    font-weight:700; font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:5px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  h1{font-size:2.15rem; line-height:1.15; margin:.1em 0 .35em}
+  .tagline{font-size:1.12rem; color:var(--muted); max-width:640px; margin:0 auto}
+
+  section{margin-top:34px}
+  h2{font-size:1.5rem; margin:0 0 .5em; display:flex; align-items:center; gap:10px}
+  h2 svg{width:26px; height:26px; color:var(--green); flex:0 0 auto}
+  h3{font-size:1.06rem; margin:.2em 0 .3em}
+  p{margin:.5em 0}
+  a{color:var(--green-d)}
+
+  .lead{font-size:1.08rem}
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px}
+  .note{background:#fff8e9; border:1px solid #f0dfb2; border-radius:var(--radius); padding:16px 18px}
+  .note h3{color:#8a6d1f}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media(max-width:640px){ .grid{grid-template-columns:1fr} h1{font-size:1.8rem} }
+  .mini{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px 18px}
+  .mini .ic{width:34px; height:34px; border-radius:9px; background:var(--green-l); color:var(--green-d); display:grid; place-items:center; margin-bottom:8px}
+  .mini .ic svg{width:20px; height:20px}
+
+  /* ---------- figures / screenshots ---------- */
+  .shot{margin:22px 0}
+  .shot figure{margin:0; text-align:center}
+  .shot img{
+    max-width:100%; width:auto; max-height:640px; height:auto;
+    border-radius:14px; border:1px solid var(--line); box-shadow:var(--shadow); background:#fff;
+  }
+  .shot figcaption{margin:12px auto 0; max-width:600px; color:var(--muted); font-size:.98rem}
+  .shot .step{display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; font-weight:700; font-size:.85rem; margin-right:8px; vertical-align:middle}
+
+  /* annotated start-screen svg */
+  .uitleg{width:100%; height:auto; display:block; margin:6px auto 0; max-width:820px}
+  .uitleg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .uitleg .cap-box{fill:#ffffff; stroke:#cfe3d4; stroke-width:1.5; rx:9}
+  .uitleg .cap-t{fill:#22302a; font-size:15px; font-weight:600}
+  .uitleg .cap-s{fill:#5c6b62; font-size:12.5px}
+  .uitleg .lead-line{stroke:#2f8f4e; stroke-width:2; fill:none}
+  .uitleg .dot{fill:#2f8f4e; stroke:#fff; stroke-width:2}
+  .uitleg .newtag{fill:#2f8f4e; font-size:11px; font-weight:700}
+
+  /* pills / tech row */
+  .tech{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+  .tech span{background:var(--green-l); color:var(--green-d); border-radius:999px; padding:5px 12px; font-weight:600; font-size:.9rem}
+
+  footer{margin-top:46px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; text-align:center}
+  footer a{color:var(--green-d)}
+
+  /* language visibility */
+  [data-lang]{display:none}
+  body.lang-en [data-lang="en"], body.lang-nl [data-lang="nl"],
+  body.lang-de [data-lang="de"], body.lang-fr [data-lang="fr"]{display:block}
+  span[data-lang]{display:none}
+  body.lang-en span[data-lang="en"], body.lang-nl span[data-lang="nl"],
+  body.lang-de span[data-lang="de"], body.lang-fr span[data-lang="fr"]{display:inline}
+  /* svg text labels */
+  .uitleg [data-lang]{display:none}
+  body.lang-en .uitleg [data-lang="en"], body.lang-nl .uitleg [data-lang="nl"],
+  body.lang-de .uitleg [data-lang="de"], body.lang-fr .uitleg [data-lang="fr"]{display:inline}
+</style>
+</head>
+<body class="lang-en">
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.5 2V6L9 4m0 16l6-2m-6 2V4m6 14l5.5 2V4l-5.5 2m0 12V6m0 0L9 4"/><circle cx="12" cy="10" r="1.6" fill="currentColor" stroke="none"/></svg>
+      <span>PeeWeeTrails Basic</span>
+    </div>
+    <div class="lang-switch">
+      <button id="btn-en" onclick="setLang('en')" title="English" aria-label="English" class="active">
+        <svg class="flag" viewBox="0 0 60 30" aria-hidden="true">
+          <clipPath id="uk-s"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+          <clipPath id="uk-t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+          <g clip-path="url(#uk-s)">
+            <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#uk-t)" stroke="#C8102E" stroke-width="4"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+          </g>
+        </svg>
+      </button>
+      <button id="btn-nl" onclick="setLang('nl')" title="Nederlands" aria-label="Nederlands">
+        <svg class="flag" viewBox="0 0 9 6" aria-hidden="true">
+          <rect width="9" height="6" fill="#21468B"/><rect width="9" height="4" fill="#fff"/><rect width="9" height="2" fill="#AE1C28"/>
+        </svg>
+      </button>
+      <button id="btn-de" onclick="setLang('de')" title="Deutsch" aria-label="Deutsch">
+        <svg class="flag" viewBox="0 0 5 3" aria-hidden="true">
+          <rect width="5" height="3" fill="#000"/><rect width="5" height="2" y="1" fill="#D00"/><rect width="5" height="1" y="2" fill="#FFCE00"/>
+        </svg>
+      </button>
+      <button id="btn-fr" onclick="setLang('fr')" title="Français" aria-label="Français">
+        <svg class="flag" viewBox="0 0 3 2" aria-hidden="true">
+          <rect width="3" height="2" fill="#fff"/><rect width="1" height="2" fill="#0055A4"/><rect width="1" height="2" x="2" fill="#EF4135"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="eyebrow">
+      <span data-lang="en">For cycling &amp; walking</span><span data-lang="nl">Voor fietsen &amp; wandelen</span><span data-lang="de">Zum Radfahren &amp; Wandern</span><span data-lang="fr">Pour le vélo &amp; la marche</span>
+    </span>
+    <h1>PeeWeeTrails Basic</h1>
+    <p class="tagline">
+      <span data-lang="en">A lightweight map for recreational cycling and walking that runs entirely in your browser.</span>
+      <span data-lang="nl">Een lichte kaart voor recreatief fietsen en wandelen die volledig in je browser draait.</span>
+      <span data-lang="de">Eine schlanke Karte fürs Rad&shy;fahren und Wandern in der Freizeit — komplett im Browser.</span>
+      <span data-lang="fr">Une carte légère pour le vélo et la marche de loisir, entièrement dans votre navigateur.</span>
+    </p>
+  </div>
+
+  <!-- ================= POSITIONING ================= -->
+  <section class="card">
+    <div data-lang="en" class="lead">PeeWeeTrails Basic is not a full turn-by-turn navigation app like OsmAnd. There is nothing to install, no account and no sign-up — you just open a web page. It stays deliberately simple: look at the map, plan a route, follow your position and bring your own tracks. Made for a relaxed day out on the bike or on foot.</div>
+    <div data-lang="nl" class="lead">PeeWeeTrails Basic is geen volledige turn-by-turn navigatie-app zoals OsmAnd. Er is niets te installeren, geen account en geen aanmelding — je opent gewoon een webpagina. Het blijft bewust eenvoudig: kijk op de kaart, plan een route, volg je positie en neem je eigen tracks mee. Gemaakt voor een ontspannen dagje fietsen of wandelen.</div>
+    <div data-lang="de" class="lead">PeeWeeTrails Basic ist keine vollständige Turn-by-turn-Navigations-App wie OsmAnd. Es gibt nichts zu installieren, kein Konto und keine Anmeldung — Sie öffnen einfach eine Webseite. Es bleibt bewusst einfach: die Karte ansehen, eine Route planen, der eigenen Position folgen und eigene Tracks mitnehmen. Gemacht für einen entspannten Tag auf dem Rad oder zu Fuß.</div>
+    <div data-lang="fr" class="lead">PeeWeeTrails Basic n'est pas une application de navigation guidée complète comme OsmAnd. Rien à installer, pas de compte ni d'inscription — vous ouvrez simplement une page web. Cela reste volontairement simple : regarder la carte, planifier un itinéraire, suivre sa position et importer ses propres traces. Pensé pour une sortie tranquille à vélo ou à pied.</div>
+  </section>
+
+  <!-- ================= ANNOTATED START SCREEN ================= -->
+  <section>
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+      <span data-lang="en">The buttons at a glance</span><span data-lang="nl">De knoppen in één oogopslag</span><span data-lang="de">Die Schaltflächen auf einen Blick</span><span data-lang="fr">Les boutons en un coup d'œil</span>
+    </h2>
+    <svg class="uitleg" viewBox="0 0 820 872" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Annotated start screen">
+      <rect x="0" y="0" width="820" height="872" fill="#ffffff" rx="14"/>
+      <image href="images/Basic.png" x="205" y="12" width="410" height="845"/>
+      <rect x="205" y="12" width="410" height="845" fill="none" stroke="#e3e9df" stroke-width="1.5" rx="6"/>
+
+      <!-- ===== LEFT COLUMN ===== -->
+      <!-- Zoom -->
+      <line class="lead-line" x1="188" y1="64" x2="233" y2="63"/><circle class="dot" cx="233" cy="63" r="5"/>
+      <text class="cap-t" text-anchor="end" x="184" y="68" data-lang="en">Zoom in / out</text>
+      <text class="cap-t" text-anchor="end" x="184" y="68" data-lang="nl">In- / uitzoomen</text>
+      <text class="cap-t" text-anchor="end" x="184" y="68" data-lang="de">Vergrößern / Verkleinern</text>
+      <text class="cap-t" text-anchor="end" x="184" y="68" data-lang="fr">Zoom + / −</text>
+      <!-- Full screen (new) -->
+      <line class="lead-line" x1="188" y1="120" x2="231" y2="123"/><circle class="dot" cx="231" cy="123" r="5"/>
+      <text class="cap-t" text-anchor="end" x="184" y="118" data-lang="en">Full screen <tspan class="newtag">NEW</tspan></text>
+      <text class="cap-t" text-anchor="end" x="184" y="118" data-lang="nl">Volledig scherm <tspan class="newtag">NIEUW</tspan></text>
+      <text class="cap-t" text-anchor="end" x="184" y="118" data-lang="de">Vollbild <tspan class="newtag">NEU</tspan></text>
+      <text class="cap-t" text-anchor="end" x="184" y="118" data-lang="fr">Plein écran <tspan class="newtag">NOUVEAU</tspan></text>
+      <text class="cap-s" text-anchor="end" x="184" y="135" data-lang="en">tap again to exit</text>
+      <text class="cap-s" text-anchor="end" x="184" y="135" data-lang="nl">nogmaals = terug</text>
+      <text class="cap-s" text-anchor="end" x="184" y="135" data-lang="de">erneut = zurück</text>
+      <text class="cap-s" text-anchor="end" x="184" y="135" data-lang="fr">de nouveau = quitter</text>
+      <!-- Search -->
+      <line class="lead-line" x1="188" y1="168" x2="231" y2="162"/><circle class="dot" cx="231" cy="162" r="5"/>
+      <text class="cap-t" text-anchor="end" x="184" y="172" data-lang="en">Search a place or POI</text>
+      <text class="cap-t" text-anchor="end" x="184" y="172" data-lang="nl">Zoek plaats of POI</text>
+      <text class="cap-t" text-anchor="end" x="184" y="172" data-lang="de">Ort / POI suchen</text>
+      <text class="cap-t" text-anchor="end" x="184" y="172" data-lang="fr">Rechercher un lieu</text>
+      <!-- Location -->
+      <line class="lead-line" x1="188" y1="205" x2="231" y2="203"/><circle class="dot" cx="231" cy="203" r="5"/>
+      <text class="cap-t" text-anchor="end" x="184" y="205" data-lang="en">Your location &amp; heading</text>
+      <text class="cap-t" text-anchor="end" x="184" y="205" data-lang="nl">Je locatie &amp; richting</text>
+      <text class="cap-t" text-anchor="end" x="184" y="205" data-lang="de">Standort &amp; Richtung</text>
+      <text class="cap-t" text-anchor="end" x="184" y="205" data-lang="fr">Position &amp; cap</text>
+      <text class="cap-s" text-anchor="end" x="184" y="222" data-lang="en">double-tap = back to you</text>
+      <text class="cap-s" text-anchor="end" x="184" y="222" data-lang="nl">dubbeltik = terug naar jou</text>
+      <text class="cap-s" text-anchor="end" x="184" y="222" data-lang="de">Doppeltipp = zurück zu Ihnen</text>
+      <text class="cap-s" text-anchor="end" x="184" y="222" data-lang="fr">double-tap = retour sur vous</text>
+      <!-- Settings -->
+      <line class="lead-line" x1="188" y1="248" x2="231" y2="241"/><circle class="dot" cx="231" cy="241" r="5"/>
+      <text class="cap-t" text-anchor="end" x="184" y="252" data-lang="en">Trail style &amp; settings</text>
+      <text class="cap-t" text-anchor="end" x="184" y="252" data-lang="nl">Trailstijl &amp; instellingen</text>
+      <text class="cap-t" text-anchor="end" x="184" y="252" data-lang="de">Trail-Stil &amp; Einstellungen</text>
+      <text class="cap-t" text-anchor="end" x="184" y="252" data-lang="fr">Style &amp; réglages</text>
+
+      <!-- ===== RIGHT COLUMN ===== -->
+      <!-- Info -->
+      <line class="lead-line" x1="632" y1="47" x2="596" y2="43"/><circle class="dot" cx="593" cy="43" r="5"/>
+      <text class="cap-t" text-anchor="start" x="636" y="47" data-lang="en">Info / about</text>
+      <text class="cap-t" text-anchor="start" x="636" y="47" data-lang="nl">Info / over</text>
+      <text class="cap-t" text-anchor="start" x="636" y="47" data-lang="de">Info / Über</text>
+      <text class="cap-t" text-anchor="start" x="636" y="47" data-lang="fr">Infos / à propos</text>
+      <!-- Zoom level -->
+      <line class="lead-line" x1="632" y1="92" x2="590" y2="88"/><circle class="dot" cx="588" cy="88" r="5"/>
+      <text class="cap-t" text-anchor="start" x="636" y="92" data-lang="en">Zoom level</text>
+      <text class="cap-t" text-anchor="start" x="636" y="92" data-lang="nl">Zoomniveau</text>
+      <text class="cap-t" text-anchor="start" x="636" y="92" data-lang="de">Zoomstufe</text>
+      <text class="cap-t" text-anchor="start" x="636" y="92" data-lang="fr">Niveau de zoom</text>
+      <!-- Layers -->
+      <line class="lead-line" x1="632" y1="140" x2="597" y2="136"/><circle class="dot" cx="595" cy="136" r="5"/>
+      <text class="cap-t" text-anchor="start" x="636" y="140" data-lang="en">Map layers</text>
+      <text class="cap-t" text-anchor="start" x="636" y="140" data-lang="nl">Kaartlagen</text>
+      <text class="cap-t" text-anchor="start" x="636" y="140" data-lang="de">Kartenebenen</text>
+      <text class="cap-t" text-anchor="start" x="636" y="140" data-lang="fr">Couches de carte</text>
+      <!-- Import -->
+      <line class="lead-line" x1="632" y1="184" x2="597" y2="180"/><circle class="dot" cx="595" cy="180" r="5"/>
+      <text class="cap-t" text-anchor="start" x="636" y="184" data-lang="en">Import GPX / GeoJSON</text>
+      <text class="cap-t" text-anchor="start" x="636" y="184" data-lang="nl">GPX / GeoJSON importeren</text>
+      <text class="cap-t" text-anchor="start" x="636" y="184" data-lang="de">GPX / GeoJSON laden</text>
+      <text class="cap-t" text-anchor="start" x="636" y="184" data-lang="fr">Importer GPX / GeoJSON</text>
+    </svg>
+  </section>
+
+  <!-- ================= WALKTHROUGH ================= -->
+  <section>
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+      <span data-lang="en">What you can do</span><span data-lang="nl">Wat je kunt doen</span><span data-lang="de">Was Sie tun können</span><span data-lang="fr">Ce que vous pouvez faire</span>
+    </h2>
+    <div class="shot"><figure>
+      <img src="images/Search.png" alt="Search results on the map">
+      <figcaption>
+        <span data-lang="en"><span class="step">1</span>Tap the search button, type what you are looking for — a place name, "restaurant", "supermarket" — and the matches inside the current map view are numbered on the map and in the list.</span>
+        <span data-lang="nl"><span class="step">1</span>Tik op de zoekknop, typ wat je zoekt — een plaatsnaam, "restaurant", "supermarkt" — en de treffers binnen het huidige kaartbeeld verschijnen genummerd op de kaart en in de lijst.</span>
+        <span data-lang="de"><span class="step">1</span>Tippen Sie auf die Suche, geben Sie ein, was Sie suchen — einen Ortsnamen, "Restaurant", "Supermarkt" — und die Treffer im aktuellen Kartenausschnitt erscheinen nummeriert auf der Karte und in der Liste.</span>
+        <span data-lang="fr"><span class="step">1</span>Appuyez sur la loupe, saisissez ce que vous cherchez — un nom de lieu, « restaurant », « supermarché » — et les résultats visibles dans la carte sont numérotés sur la carte et dans la liste.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Layers.png" alt="Map layers panel">
+      <figcaption>
+        <span data-lang="en"><span class="step">2</span>The layers menu switches the base map (OpenStreetMap, OSM France, OpenTopoMap) and turns on extra overlays: signed cycle, hiking and mountain-bike routes, and Dutch or worldwide satellite imagery.</span>
+        <span data-lang="nl"><span class="step">2</span>Het lagen-menu wisselt de basiskaart (OpenStreetMap, OSM France, OpenTopoMap) en zet extra overlays aan: bewegwijzerde fiets-, wandel- en mountainbikeroutes, en Nederlands of wereldwijd satellietbeeld.</span>
+        <span data-lang="de"><span class="step">2</span>Das Ebenen-Menü wechselt die Grundkarte (OpenStreetMap, OSM France, OpenTopoMap) und schaltet Zusatz-Overlays ein: ausgeschilderte Rad-, Wander- und Mountainbike-Routen sowie niederländische oder weltweite Satellitenbilder.</span>
+        <span data-lang="fr"><span class="step">2</span>Le menu des couches change le fond de carte (OpenStreetMap, OSM France, OpenTopoMap) et active des surcouches : itinéraires cyclables, de randonnée et VTT balisés, et imagerie satellite néerlandaise ou mondiale.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Rotation.png" alt="Location modes menu">
+      <figcaption>
+        <span data-lang="en"><span class="step">3</span>The location button offers three modes: <b>Movement direction</b> (the map turns with you as you ride or walk), <b>North up</b>, and <b>Location off</b>.</span>
+        <span data-lang="nl"><span class="step">3</span>De locatieknop heeft drie standen: <b>Bewegingsrichting</b> (de kaart draait met je mee tijdens fietsen of wandelen), <b>Noord boven</b>, en <b>Locatie uit</b>.</span>
+        <span data-lang="de"><span class="step">3</span>Die Standort-Taste bietet drei Modi: <b>Bewegungsrichtung</b> (die Karte dreht sich beim Fahren oder Gehen mit), <b>Norden oben</b> und <b>Standort aus</b>.</span>
+        <span data-lang="fr"><span class="step">3</span>Le bouton de position propose trois modes : <b>Sens de déplacement</b> (la carte tourne avec vous à vélo ou à pied), <b>Nord en haut</b> et <b>Position désactivée</b>.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Settings.png" alt="Settings panel">
+      <figcaption>
+        <span data-lang="en"><span class="step">4</span>Settings let you pick the trail colour and width, when the map re-centres, the zoom level, whether two-finger rotation is on, and save the trail you followed as a GPX file.</span>
+        <span data-lang="nl"><span class="step">4</span>Bij de instellingen kies je de trailkleur en -breedte, wanneer de kaart hercentreert, het zoomniveau, of draaien met twee vingers aanstaat, en bewaar je de gevolgde trail als GPX-bestand.</span>
+        <span data-lang="de"><span class="step">4</span>In den Einstellungen wählen Sie Farbe und Breite des Trails, wann die Karte neu zentriert, die Zoomstufe, ob die Zwei-Finger-Drehung aktiv ist, und speichern den gefahrenen Trail als GPX-Datei.</span>
+        <span data-lang="fr"><span class="step">4</span>Les réglages permettent de choisir la couleur et l'épaisseur du tracé, le moment du recentrage, le niveau de zoom, l'activation de la rotation à deux doigts, et d'enregistrer la trace suivie au format GPX.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Track_import.png" alt="Imported track with elevation profile">
+      <figcaption>
+        <span data-lang="en"><span class="step">5</span>Load your own GPX or GeoJSON and it appears on the map with an elevation profile and its own colour, width and label options.</span>
+        <span data-lang="nl"><span class="step">5</span>Laad je eigen GPX of GeoJSON en die verschijnt op de kaart met een hoogteprofiel en eigen kleur-, breedte- en labelopties.</span>
+        <span data-lang="de"><span class="step">5</span>Laden Sie Ihre eigene GPX- oder GeoJSON-Datei — sie erscheint auf der Karte mit Höhenprofil und eigenen Farb-, Breiten- und Beschriftungsoptionen.</span>
+        <span data-lang="fr"><span class="step">5</span>Importez votre propre GPX ou GeoJSON : il s'affiche sur la carte avec un profil altimétrique et ses propres options de couleur, d'épaisseur et d'étiquette.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Longpress.png" alt="Press-and-hold action menu">
+      <figcaption>
+        <span data-lang="en"><span class="step">6</span>Press and hold anywhere on the map for actions: share this spot, save it, route from or to here, jump to it, or open it in OpenStreetMap.</span>
+        <span data-lang="nl"><span class="step">6</span>Houd ergens op de kaart ingedrukt voor acties: deel deze plek, bewaar 'm, route vanaf of naartoe hier, spring ernaartoe, of open 'm in OpenStreetMap.</span>
+        <span data-lang="de"><span class="step">6</span>Halten Sie eine beliebige Stelle der Karte gedrückt für Aktionen: diesen Ort teilen, speichern, von hier oder hierher routen, dorthin springen oder in OpenStreetMap öffnen.</span>
+        <span data-lang="fr"><span class="step">6</span>Appuyez longuement n'importe où sur la carte pour agir : partager ce point, l'enregistrer, calculer un itinéraire depuis ou vers ici, y aller, ou l'ouvrir dans OpenStreetMap.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Route_to.png" alt="Route to a point via BRouter">
+      <figcaption>
+        <span data-lang="en"><span class="step">7</span><b>Route to</b> calculates a route from your current location to the point you picked, using BRouter — on foot, by bike or gravel.</span>
+        <span data-lang="nl"><span class="step">7</span><b>Route naar</b> berekent een route van je huidige locatie naar het gekozen punt, met BRouter — te voet, per fiets of gravel.</span>
+        <span data-lang="de"><span class="step">7</span><b>Route hierher</b> berechnet mit BRouter eine Route von Ihrem aktuellen Standort zum gewählten Punkt — zu Fuß, per Rad oder Gravel.</span>
+        <span data-lang="fr"><span class="step">7</span><b>Itinéraire vers</b> calcule, avec BRouter, un trajet de votre position au point choisi — à pied, à vélo ou en gravel.</span>
+      </figcaption>
+    </figure></div>
+
+    <div class="shot"><figure>
+      <img src="images/Route_from.png" alt="Building a route with via-points">
+      <figcaption>
+        <span data-lang="en"><span class="step">8</span><b>Route from here</b> lets you build a route by adding via-points; the length, time and elevation profile update live as you go.</span>
+        <span data-lang="nl"><span class="step">8</span><b>Route vanaf hier</b> laat je een route bouwen door via-punten toe te voegen; lengte, tijd en hoogteprofiel werken live bij terwijl je bezig bent.</span>
+        <span data-lang="de"><span class="step">8</span><b>Route von hier</b> lässt Sie eine Route über Zwischenpunkte aufbauen; Länge, Zeit und Höhenprofil aktualisieren sich live.</span>
+        <span data-lang="fr"><span class="step">8</span><b>Itinéraire depuis ici</b> permet de construire un parcours en ajoutant des points de passage ; la distance, la durée et le profil altimétrique se mettent à jour en direct.</span>
+      </figcaption>
+    </figure></div>
+  </section>
+
+  <!-- ================= FRAMING PROSE ================= -->
+  <section class="note">
+    <h3>
+      <span data-lang="en">Good to know: it mostly needs to be online</span><span data-lang="nl">Goed om te weten: meestal is internet nodig</span><span data-lang="de">Gut zu wissen: meist ist Internet nötig</span><span data-lang="fr">Bon à savoir : une connexion est le plus souvent nécessaire</span>
+    </h3>
+    <div data-lang="en">The map tiles, routing, search and satellite imagery are all fetched live from the internet, so most of the app needs a connection. Your own imported files and following your GPS position keep working offline — but the map itself will not load without internet.</div>
+    <div data-lang="nl">De kaarttegels, routing, zoeken en satellietbeeld worden allemaal live van internet gehaald, dus het meeste heeft verbinding nodig. Je eigen geïmporteerde bestanden en het volgen van je GPS-positie blijven offline werken — maar de kaart zelf laadt niet zonder internet.</div>
+    <div data-lang="de">Kartenkacheln, Routing, Suche und Satellitenbilder werden live aus dem Internet geladen, daher braucht das Meiste eine Verbindung. Ihre importierten Dateien und das Verfolgen der GPS-Position funktionieren offline weiter — die Karte selbst lädt aber nicht ohne Internet.</div>
+    <div data-lang="fr">Les tuiles de carte, le calcul d'itinéraire, la recherche et l'imagerie satellite sont récupérés en direct sur internet : l'essentiel nécessite donc une connexion. Vos fichiers importés et le suivi de votre position GPS continuent hors ligne — mais la carte elle-même ne se charge pas sans internet.</div>
+  </section>
+
+  <section class="card">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6.5L12 15.5 6 19l1.5-6.5L3 8.5 9 8z"/></svg>
+      <span data-lang="en">Built on the best of OpenStreetMap</span><span data-lang="nl">Gebouwd op het beste van OpenStreetMap</span><span data-lang="de">Aus dem Besten von OpenStreetMap</span><span data-lang="fr">Bâti sur le meilleur d'OpenStreetMap</span>
+    </h2>
+    <div data-lang="en">Rather than reinventing anything, this map combines some of the best that the OpenStreetMap world has to offer — the familiar Carto map style, BRouter for routing, Waymarked Trails for signed cycle and hiking route overlays, and Nominatim for search.</div>
+    <div data-lang="nl">In plaats van zelf iets uit te vinden, combineert deze kaart het beste dat de OpenStreetMap-wereld te bieden heeft — het vertrouwde Carto-kaartbeeld, BRouter voor routing, Waymarked Trails voor bewegwijzerde fiets- en wandelroutes, en Nominatim voor zoeken.</div>
+    <div data-lang="de">Statt das Rad neu zu erfinden, verbindet diese Karte das Beste aus der OpenStreetMap-Welt — den vertrauten Carto-Kartenstil, BRouter fürs Routing, Waymarked Trails für ausgeschilderte Rad- und Wanderrouten und Nominatim für die Suche.</div>
+    <div data-lang="fr">Plutôt que de tout réinventer, cette carte réunit le meilleur du monde OpenStreetMap — le style cartographique Carto bien connu, BRouter pour les itinéraires, Waymarked Trails pour les tracés cyclables et de randonnée balisés, et Nominatim pour la recherche.</div>
+    <div class="tech"><span>Carto</span><span>BRouter</span><span>Waymarked Trails</span><span>Nominatim</span></div>
+  </section>
+
+  <section class="card">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c3-1 4-9 8-9s5 8 8 7"/><circle cx="4" cy="19" r="1.5" fill="currentColor"/><circle cx="20" cy="17" r="1.5" fill="currentColor"/></svg>
+      <span data-lang="en">More paths than the big maps</span><span data-lang="nl">Meer paadjes dan de grote kaarten</span><span data-lang="de">Mehr Wege als die großen Karten</span><span data-lang="fr">Plus de chemins que les grandes cartes</span>
+    </h2>
+    <div data-lang="en">OpenStreetMap knows far more small footpaths, cycle paths and signed cycle routes than the big commercial maps such as Google — including complete node ("knooppunt") networks for cycling and walking. For a recreational day out, that richness is exactly the point. Some maps even come with cycling and walking routes already built in, so you can just open one and follow it.</div>
+    <div data-lang="nl">OpenStreetMap kent veel meer kleine wandelpaadjes, fietspaden en bewegwijzerde fietsroutes dan de grote commerciële kaarten zoals Google — inclusief complete knooppuntnetwerken voor fietsen en wandelen. Voor een recreatief dagje uit is juist die rijkdom het punt. Sommige kaarten hebben fiets- en wandelroutes zelfs al ingebakken, zodat je er gewoon één opent en volgt.</div>
+    <div data-lang="de">OpenStreetMap kennt weit mehr kleine Fußwege, Radwege und ausgeschilderte Radrouten als große kommerzielle Karten wie Google — inklusive kompletter Knotenpunkt-Netze fürs Rad und zu Fuß. Für einen Ausflug in der Freizeit ist genau dieser Reichtum entscheidend. Manche Karten haben Rad- und Wanderrouten sogar schon eingebaut, sodass Sie einfach eine öffnen und folgen.</div>
+    <div data-lang="fr">OpenStreetMap connaît bien plus de petits sentiers, pistes cyclables et itinéraires cyclables balisés que les grandes cartes commerciales comme Google — y compris des réseaux complets de points-nœuds pour le vélo et la marche. Pour une sortie de loisir, c'est précisément cette richesse qui compte. Certaines cartes intègrent même déjà des itinéraires vélo et marche : il suffit d'en ouvrir une et de la suivre.</div>
+  </section>
+
+  <div class="grid">
+    <div class="mini">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
+      <h3><span data-lang="en">Worldwide satellite too</span><span data-lang="nl">Ook wereldwijd satellietbeeld</span><span data-lang="de">Auch weltweite Satellitenbilder</span><span data-lang="fr">Satellite mondial aussi</span></h3>
+      <p>
+        <span data-lang="en">Next to the Dutch high-resolution aerial imagery there is a worldwide satellite layer, one tap away.</span>
+        <span data-lang="nl">Naast het Nederlandse hoge-resolutie luchtbeeld is er een wereldwijde satellietlaag, met één tik aan te zetten.</span>
+        <span data-lang="de">Neben den hochauflösenden niederländischen Luftbildern gibt es eine weltweite Satellitenebene — nur einen Tipp entfernt.</span>
+        <span data-lang="fr">À côté de l'imagerie aérienne néerlandaise haute résolution, une couche satellite mondiale s'active d'un simple appui.</span>
+      </p>
+    </div>
+    <div class="mini">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <h3><span data-lang="en">Nothing follows you</span><span data-lang="nl">Niets volgt je</span><span data-lang="de">Nichts verfolgt Sie</span><span data-lang="fr">Rien ne vous suit</span></h3>
+      <p>
+        <span data-lang="en">No trackers, no cookies, no ads and no account. Nothing leaves your device except the map, routing and search requests you trigger yourself.</span>
+        <span data-lang="nl">Geen trackers, geen cookies, geen advertenties en geen account. Niets verlaat je apparaat behalve de kaart-, routing- en zoekverzoeken die je zelf doet.</span>
+        <span data-lang="de">Keine Tracker, keine Cookies, keine Werbung, kein Konto. Nichts verlässt Ihr Gerät außer den Karten-, Routing- und Suchanfragen, die Sie selbst auslösen.</span>
+        <span data-lang="fr">Pas de traqueurs, pas de cookies, pas de publicité, pas de compte. Rien ne quitte votre appareil, hormis les requêtes de carte, d'itinéraire et de recherche que vous lancez vous-même.</span>
+      </p>
+    </div>
+  </div>
+
+
+  <footer>
+    <div data-lang="en">PeeWeeTrails Basic &middot; &copy; PeeWeeOSM &middot; app code under <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</a>. Map data &copy; OpenStreetMap contributors (ODbL); routing &copy; BRouter; route overlays &copy; Sarah Hoffmann / Waymarked Trails (CC-BY-SA).</div>
+    <div data-lang="nl">PeeWeeTrails Basic &middot; &copy; PeeWeeOSM &middot; appcode onder <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</a>. Kaartdata &copy; OpenStreetMap-bijdragers (ODbL); routing &copy; BRouter; route-overlays &copy; Sarah Hoffmann / Waymarked Trails (CC-BY-SA).</div>
+    <div data-lang="de">PeeWeeTrails Basic &middot; &copy; PeeWeeOSM &middot; App-Code unter <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</a>. Kartendaten &copy; OpenStreetMap-Mitwirkende (ODbL); Routing &copy; BRouter; Routen-Overlays &copy; Sarah Hoffmann / Waymarked Trails (CC-BY-SA).</div>
+    <div data-lang="fr">PeeWeeTrails Basic &middot; &copy; PeeWeeOSM &middot; code de l'application sous <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</a>. Données cartographiques &copy; contributeurs OpenStreetMap (ODbL) ; calcul d'itinéraire &copy; BRouter ; tracés &copy; Sarah Hoffmann / Waymarked Trails (CC-BY-SA).</div>
+  </footer>
+
+</div>
+
+<script>
+  var LANGS=['en','nl','de','fr'];
+  function setLang(lang){
+    if(LANGS.indexOf(lang)<0) lang='en';
+    document.body.className='lang-'+lang;
+    document.documentElement.lang=lang;
+    LANGS.forEach(function(l){
+      var b=document.getElementById('btn-'+l);
+      if(b) b.classList.toggle('active', l===lang);
+    });
+    try{ localStorage.setItem('pwt-lang', lang); }catch(e){}
+  }
+  (function(){
+    var saved=null;
+    try{ saved=localStorage.getItem('pwt-lang'); }catch(e){}
+    if(!saved){
+      var b=(navigator.language||'').toLowerCase();
+      saved = b.indexOf('nl')===0?'nl' : b.indexOf('de')===0?'de' : b.indexOf('fr')===0?'fr' : 'en';
+    }
+    setLang(saved);
+  })();
+</script>
+</body>
+</html>
