@@ -98,9 +98,9 @@ input:checked+.slider:before{transform:translateX(14px)}
   <div class="section-label">Files</div>
   <div class="dropzone" id="dropzone" onclick="document.getElementById('fileinput').click()">
     <i class="ti ti-map-2" aria-hidden="true"></i>
-    Drag GPX or GeoJSON files here, or click to browse
+    Drag GPX, GeoJSON or FIT files here, or click to browse
   </div>
-  <input type="file" id="fileinput" accept=".gpx,.geojson,.json" multiple style="display:none" onchange="handleFiles(this.files)">
+  <input type="file" id="fileinput" accept=".gpx,.geojson,.json,.fit" multiple style="display:none" onchange="handleFiles(this.files)">
   <div id="file-list"></div>
   <button class="btn" id="creategeombtn" style="margin-top:8px;width:100%" onclick="startGeometryTypePicker()">
     <i class="ti ti-pencil-plus" aria-hidden="true"></i> Create geometry
@@ -151,6 +151,10 @@ input:checked+.slider:before{transform:translateX(14px)}
     <div>
       <label for="title">Page title</label>
       <input type="text" id="title" placeholder="My ride" id="title">
+    </div>
+    <div>
+      <label for="pwa-short">PWA short name <span style="font-weight:normal;color:#000;font-size:12px">&mdash; shown under the icon when the map is added to a home screen</span></label>
+      <input type="text" id="pwa-short" placeholder="PWTrails" value="PWTrails" maxlength="24">
     </div>
     <div>
       <label for="search-cats-input">Search categories (the "Looking for?" list in the exported map)</label>
@@ -248,7 +252,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <div class="card">
   <div class="section-label">Map actions</div>
-  <p style="font-size:12px;color:#000;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. For turn-by-turn navigation links, <code>{fromlat}</code>/<code>{fromlon}</code> give the visitor's own current location (the browser will ask permission first) — e.g. for an OpenStreetMap walking route: <code>https://www.openstreetmap.org/directions?engine=graphhopper_foot&amp;route={fromlat}%2C{fromlon}%3B{lat}%2C{lon}</code>, or a BRouter-web trekking route: <code>https://brouter.de/brouter-web/#zoom={zoom}&amp;lat={lat}&amp;lon={lon}&amp;layer=OpenStreetMap&amp;lonlats={fromlon},{fromlat}|{lon},{lat}&amp;nogos=&amp;alternativeidx=0&amp;format=geojson&amp;profile=trekking</code>. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. One extra item — "Share this map here" (a link back to this same map with a marker at the tapped spot) — is always shown too and doesn't need to be added here.</p>
+  <p style="font-size:12px;color:#000;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. For turn-by-turn navigation links, <code>{fromlat}</code>/<code>{fromlon}</code> give the visitor's own current location (the browser will ask permission first) — e.g. for an OpenStreetMap walking route: <code>https://www.openstreetmap.org/directions?engine=graphhopper_foot&amp;route={fromlat}%2C{fromlon}%3B{lat}%2C{lon}</code>, or a BRouter-web trekking route: <code>https://brouter.de/brouter-web/#zoom={zoom}&amp;lat={lat}&amp;lon={lon}&amp;layer=OpenStreetMap&amp;lonlats={fromlon},{fromlat}|{lon},{lat}&amp;nogos=&amp;alternativeidx=0&amp;format=geojson&amp;profile=trekking</code>. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. The built-in items &mdash; &quot;Share this map here&quot;, &quot;Save this location&quot; and &quot;Route from here&quot; &mdash; live in the &quot;Action categories&quot; section above, where you can show/hide them and drag their position in the menu.</p>
   <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add action
@@ -335,21 +339,29 @@ const DEFAULT_MAP_ACTIONS=[
   {group:'Route to',iconSvg:BIKE_SVG,iconSvgRaw:BIKE_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Trekking)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=trekking&format=geojson'},
   {group:'Route to',iconSvg:BIKEFAST_SVG,iconSvgRaw:BIKEFAST_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Fast)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=fastbike&format=geojson'},
   {group:'Route to',iconSvg:GRAVEL_SVG,iconSvgRaw:GRAVEL_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Bicycle (Gravel)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=gravel&format=geojson'},
-  {group:'Route to',iconSvg:CAR_SVG,iconSvgRaw:CAR_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Car (Fast)',urlTemplate:'https://brouter.de/brouter?lonlats={fromlon},{fromlat}|{lon},{lat}&profile=car-fast&format=geojson'},
+  {group:'Route to',iconSvg:CAR_SVG,iconSvgRaw:CAR_SVG,iconRecolor:true,iconColor:'#2e7d32',name:'Car (Fast)',urlTemplate:'https://routing.openstreetmap.de/routed-car/route/v1/driving/{fromlon},{fromlat};{lon},{lat}?overview=full&geometries=geojson'},
   // ---- "Go to" : open the tapped point in an external map / app / website. ----
-  {group:'Go to',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
+  {group:'Link to…',iconSvg:ANDROID_SVG,iconSvgRaw:ANDROID_SVG,iconRecolor:true,iconColor:'#3ddc84',name:'Choose app (Android)',urlTemplate:'geo:{lat},{lon}?z={zoom}'},
+  {group:'Link to…',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#ea4335',name:'Google Maps',urlTemplate:'https://www.google.com/maps/search/?api=1&query={lat},{lon}'},
   {group:'OSM',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#2c7fb8',name:'OpenStreetMap',urlTemplate:'https://www.openstreetmap.org/?mlat={lat}&mlon={lon}#map={zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd Online',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
-  {group:'Go to',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#555555',name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}'},
+  {group:'Link to…',iconSvg:OSMAND_SVG,iconSvgRaw:OSMAND_SVG,iconRecolor:false,iconColor:'#ff8800',name:'OsmAnd Online',urlTemplate:'https://osmand.net/map/configure/#{zoom}/{lat}/{lon}'},
+  {group:'Link to…',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#555555',name:'Apple Maps',urlTemplate:'https://maps.apple.com/?ll={lat},{lon}&q={lat},{lon}&z={zoom}'},
   {group:'OSM',iconSvg:PIN_SVG,iconSvgRaw:PIN_SVG,iconRecolor:true,iconColor:'#589632',name:'QGIS Cloud',urlTemplate:'https://qgiscloud.com/PeeWee32/brouter_layers/?&bl=mapnik&t=brouter_layers&e={xmin},{ymin},{xmax},{ymax}'},
   {group:'OSM',iconSvg:TRAIL_SVG,iconSvgRaw:TRAIL_SVG,iconRecolor:true,iconColor:'#b5651d',name:'Find/download trails (WMT)',urlTemplate:'https://hiking.waymarkedtrails.org/#?map={zoom}/{lat}/{lon}'},
   {group:'OSM',iconSvg:ALERT_SVG,iconSvgRaw:ALERT_SVG,iconRecolor:false,iconColor:'#e8590c',name:'Report error',urlTemplate:'https://www.openstreetmap.org/note/new#map={zoom}/{lat}/{lon}&layers=N'}
 ];
 const DEFAULT_CATEGORIES=[
-  {name:'Route to', iconSvg:ROUTE_CAT_SVG, iconSvgRaw:ROUTE_CAT_SVG, iconRecolor:true, iconColor:'#2e7d32', iconImgSrc:null},
-  {name:'Go to',    iconSvg:GOTO_CAT_SVG,  iconSvgRaw:GOTO_CAT_SVG,  iconRecolor:true, iconColor:'#1565c0', iconImgSrc:null},
-  {name:'OSM',      iconSvg:OSM_CAT_SVG,   iconSvgRaw:OSM_CAT_SVG,   iconRecolor:true, iconColor:'#7ebc6f', iconImgSrc:null}
+  {name:'Share this map here', builtin:'share',     hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
+  {name:'Save this location',  builtin:'save',      hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
+  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
+  {name:'Route to', hidden:false, iconSvg:ROUTE_CAT_SVG, iconSvgRaw:ROUTE_CAT_SVG, iconRecolor:true, iconColor:'#2e7d32', iconImgSrc:null},
+  {name:'Link to…', hidden:false,   iconSvg:GOTO_CAT_SVG,  iconSvgRaw:GOTO_CAT_SVG,  iconRecolor:true, iconColor:'#1565c0', iconImgSrc:null},
+  {name:'OSM',      hidden:false,   iconSvg:OSM_CAT_SVG,   iconSvgRaw:OSM_CAT_SVG,   iconRecolor:true, iconColor:'#7ebc6f', iconImgSrc:null}
+];
+const BUILTIN_CATEGORIES=[
+  {name:'Share this map here', builtin:'share',     hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
+  {name:'Save this location',  builtin:'save',      hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
+  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null}
 ];
 let categories=[];
 let mapActions=[];
@@ -374,8 +386,9 @@ function saveLayersToStorage(){
         attribution:l.attribution||''
       })),
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
-      categories:categories.map(c=>({name:c.name||'',iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
+      categories:categories.map(c=>({name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
       title:document.getElementById('title').value,
+      pwaShort:(document.getElementById('pwa-short')||{}).value,
       osmOpacity:document.getElementById('osmopacity').value,
       outputInfoUrl:document.getElementById('output-info-url').value
     };
@@ -407,17 +420,34 @@ function loadLayersFromStorage(){
     const catsToLoad=state&&state.categories;
     const catsSource=catsToLoad&&catsToLoad.length>0?catsToLoad:DEFAULT_CATEGORIES;
     categories.length=0;
-    catsSource.forEach(c=>categories.push({name:c.name||'',iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null}));
+    catsSource.forEach(c=>categories.push({name:(c.name==='Go to'?'Link to…':(c.name||'')),builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null}));
+    // Ensure the built-in menu items (share / save / route-from) exist as rows so they
+    // can be shown/hidden and reordered. Older saved states won't have them — prepend
+    // any that are missing, in their default order.
+    (function(){
+      var have={}; categories.forEach(function(c){ if(c.builtin) have[c.builtin]=true; });
+      var missing=BUILTIN_CATEGORIES.filter(function(b){ return !have[b.builtin]; });
+      if(missing.length) categories.splice.apply(categories,[0,0].concat(missing.map(function(b){ return {...b}; })));
+    })();
     renderCategoriesList();
 
     const actionsToLoad=state&&state.mapActions;
     const actionsSource=actionsToLoad&&actionsToLoad.length>0?actionsToLoad:DEFAULT_MAP_ACTIONS;
     mapActions.length=0;
-    actionsSource.forEach(a=>mapActions.push({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''}));
+    actionsSource.forEach(a=>{
+      let tpl=a.urlTemplate||'';
+      // One-time migration: the old car action pointed at BRouter (profile=car-*);
+      // car now routes via OSRM, so rewrite it to the clean OSRM endpoint.
+      if(tpl.indexOf('brouter')>=0 && tpl.indexOf('profile=car')>=0){
+        tpl='https://routing.openstreetmap.de/routed-car/route/v1/driving/{fromlon},{fromlat};{lon},{lat}?overview=full&geometries=geojson';
+      }
+      mapActions.push({group:(a.group==='Go to'?'Link to…':(a.group||'')),iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:tpl});
+    });
     renderMapActionsList();
 
     _restoring=false;
     if(state&&state.title) document.getElementById('title').value=state.title;
+    if(state&&state.pwaShort!=null&&document.getElementById('pwa-short')) document.getElementById('pwa-short').value=state.pwaShort;
     if(state&&state.outputInfoUrl) document.getElementById('output-info-url').value=state.outputInfoUrl;
     if(state&&state.osmOpacity!=null){
       const sl=document.getElementById('osmopacity');
@@ -440,6 +470,7 @@ if(document.readyState==='loading'){
 
 // Save title changes
 document.getElementById('title').addEventListener('input',saveLayersToStorage);
+var _pwaShortEl=document.getElementById('pwa-short'); if(_pwaShortEl) _pwaShortEl.addEventListener('input',saveLayersToStorage);
 document.getElementById('output-info-url').addEventListener('input',saveLayersToStorage);
 
 // Small notice under the export button
@@ -501,7 +532,7 @@ function moveLayer(i, dir){
 
 // --- Map actions: long-press / right-click menu on the exported map ---
 function addMapAction(preset){
-  mapActions.push(preset||{group:'Go to',iconSvg:null,iconSvgRaw:null,iconRecolor:false,iconColor:'#555555',iconImgSrc:null,name:'',urlTemplate:''});
+  mapActions.push(preset||{group:'Link to…',iconSvg:null,iconSvgRaw:null,iconRecolor:false,iconColor:'#555555',iconImgSrc:null,name:'',urlTemplate:''});
   renderMapActionsList();
   saveLayersToStorage();
 }
@@ -634,7 +665,7 @@ function renderLayerList(){
 }
 
 function maGroupOptions(current){
-  const names=categories.map(c=>(c.name||'').trim()).filter(Boolean);
+  const names=categories.filter(c=>!c.builtin).map(c=>(c.name||'').trim()).filter(Boolean);
   if(current && !names.includes(current)) names.unshift(current);
   if(names.length===0) names.push(current||'');
   return names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}" ${n===current?'selected':''}>${n||'(none)'}</option>`).join('');
@@ -648,11 +679,22 @@ function renderCategoriesList(){
   categories.forEach((c,i)=>{
     const row=document.createElement('div');
     row.className='layer-row';
-    row.innerHTML=`
+    const isBuiltin=!!c.builtin;
+    const hideToggle=`<label class="toggle" title="Show this item in the exported menu"><input type="checkbox" class="cat-visible" data-idx="${i}" ${c.hidden?'':'checked'}><span class="slider"></span></label><span class="toggle-label" style="color:#000">show</span>`;
+    const moveBtns=`<button class="cat-move-btn" data-idx="${i}" data-dir="up" title="Move up" ${i===0?'disabled':''}>&#8593;</button><button class="cat-move-btn" data-idx="${i}" data-dir="down" title="Move down" ${i===categories.length-1?'disabled':''}>&#8595;</button>`;
+    if(isBuiltin){
+      row.innerHTML=`
+      <div class="layer-row-top">
+        <span style="flex:1;color:#000;font-size:13px" title="Built-in menu item — show/hide it and change its position">${(c.name||'').replace(/</g,'&lt;')} <span style="color:#888;font-size:11px">(built-in)</span></span>
+        ${hideToggle}
+        ${moveBtns}
+      </div>`;
+    } else {
+      row.innerHTML=`
       <div class="layer-row-top">
         <input class="cat-name" type="text" placeholder="Category name" value="${(c.name||'').replace(/"/g,'&quot;')}" data-idx="${i}" title="Category name — actions are grouped by this" style="flex:1">
-        <button class="cat-move-btn" data-idx="${i}" data-dir="up" title="Move up" ${i===0?'disabled':''}>&#8593;</button>
-        <button class="cat-move-btn" data-idx="${i}" data-dir="down" title="Move down" ${i===categories.length-1?'disabled':''}>&#8595;</button>
+        ${hideToggle}
+        ${moveBtns}
         <button class="cat-delbtn" data-idx="${i}" title="Remove" style="font-size:18px">&times;</button>
       </div>
       <div class="layer-row-top">
@@ -669,7 +711,11 @@ function renderCategoriesList(){
         <span class="toggle-label">recolor</span>
         ${c.iconRecolor?`<input type="color" value="${c.iconColor||'#555555'}" data-idx="${i}" class="caticon-color" style="width:30px;height:26px;padding:1px;border:1px solid #ccc;border-radius:4px">`:''}`:''}
       </div>`;
+    }
     el.appendChild(row);
+  });
+  el.querySelectorAll('.cat-visible').forEach(inp=>{
+    inp.addEventListener('change',e=>{ categories[parseInt(e.target.dataset.idx)].hidden=!e.target.checked; saveLayersToStorage(); });
   });
   el.querySelectorAll('.cat-name').forEach(inp=>{
     inp.addEventListener('input',e=>{ categories[parseInt(e.target.dataset.idx)].name=e.target.value; renderMapActionsList(); saveLayersToStorage(); });
@@ -831,18 +877,88 @@ dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')})
 dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleFiles(e.dataTransfer.files)});
 
+// --- Minimal, self-contained FIT reader (our own code, GPL-3.0) --------------
+// Same parser as in the exported map: reads Garmin/ANT .FIT files and returns
+// the track points [{lat, lon, ele, time}]. Only "record" messages (global #20)
+// are decoded; other messages are skipped by size.
+function pwParseFit(buffer){
+  var dv=new DataView(buffer), len=dv.byteLength;
+  if(len<12) throw new Error('Not a FIT file');
+  if(!(dv.getUint8(8)===46 && dv.getUint8(9)===70 && dv.getUint8(10)===73 && dv.getUint8(11)===84)) throw new Error('Not a FIT file (.FIT signature missing)');
+  var headerSize=dv.getUint8(0);
+  var dataSize=dv.getUint32(4,true);
+  var pos=headerSize, end=Math.min(len, headerSize+dataSize);
+  var defs={}, pts=[];
+  var EPOCH=631065600, SC=180/2147483648;
+  function readRec(p, def){
+    var lat=null, lon=null, ele=null, time=null, i, f;
+    for(i=0;i<def.fields.length;i++){
+      f=def.fields[i];
+      if(def.global===20 && !f.dev){
+        if(f.num===0 && f.size===4){ var v=dv.getInt32(p,def.le); if(v!==2147483647) lat=v*SC; }
+        else if(f.num===1 && f.size===4){ var v2=dv.getInt32(p,def.le); if(v2!==2147483647) lon=v2*SC; }
+        else if(f.num===2 && f.size===2){ var a=dv.getUint16(p,def.le); if(a!==65535) ele=a/5-500; }
+        else if(f.num===78 && f.size===4){ var a2=dv.getUint32(p,def.le); if(a2!==4294967295) ele=a2/5-500; }
+        else if(f.num===253 && f.size===4){ var t=dv.getUint32(p,def.le); if(t!==4294967295) time=(t+EPOCH)*1000; }
+      }
+      p+=f.size;
+    }
+    if(lat===null||lon===null) return null;
+    return {lat:lat, lon:lon, ele:ele, time:time};
+  }
+  while(pos<end){
+    var rh=dv.getUint8(pos); pos++;
+    if(rh & 128){
+      var lt=(rh>>5)&3, cdef=defs[lt];
+      if(!cdef) break;
+      var cr=readRec(pos, cdef); pos+=cdef.msgSize;
+      if(cdef.global===20 && cr) pts.push(cr);
+    } else {
+      var localType=rh & 15, isDef=(rh&64)!==0, hasDev=(rh&32)!==0, i;
+      if(isDef){
+        var le=(dv.getUint8(pos+1)===0);
+        var global=dv.getUint16(pos+2, le);
+        var numFields=dv.getUint8(pos+4);
+        var fp=pos+5, fields=[], msgSize=0;
+        for(i=0;i<numFields;i++){ fields.push({num:dv.getUint8(fp),size:dv.getUint8(fp+1),base:dv.getUint8(fp+2)}); msgSize+=dv.getUint8(fp+1); fp+=3; }
+        if(hasDev){ var nd=dv.getUint8(fp); fp++; for(i=0;i<nd;i++){ var dsz=dv.getUint8(fp+1); fields.push({num:-1,size:dsz,dev:true}); msgSize+=dsz; fp+=3; } }
+        defs[localType]={le:le, global:global, fields:fields, msgSize:msgSize};
+        pos=fp;
+      } else {
+        var d=defs[localType];
+        if(!d) break;
+        var r=readRec(pos, d); pos+=d.msgSize;
+        if(d.global===20 && r) pts.push(r);
+      }
+    }
+  }
+  return pts;
+}
+
 function handleFiles(fl){
   Array.from(fl).forEach(f=>{
     const nameLow=f.name.toLowerCase();
     const isGpx=nameLow.endsWith('.gpx');
     const isGeojson=nameLow.endsWith('.geojson')||nameLow.endsWith('.json');
-    if(!isGpx&&!isGeojson)return;
+    const isFit=nameLow.endsWith('.fit');
+    if(!isGpx&&!isGeojson&&!isFit)return;
     const reader=new FileReader();
     reader.onload=ev=>{
-      const parsed=isGpx ? parseGPX(ev.target.result) : parseGeoJSON(ev.target.result);
-      if(!parsed){alert('Could not read '+f.name+' as '+(isGpx?'GPX':'GeoJSON')+'.');return;}
+      let parsed;
+      if(isFit){
+        try{
+          const pts=pwParseFit(ev.target.result);
+          const coords=pts.map(p=>[p.lat,p.lon]);
+          const ele=pts.map(p=>p.ele);
+          const anyEle=ele.some(e=>e!=null);
+          parsed={tracks: coords.length?[{name:'', coords:coords, ele:anyEle?ele:null}]:[], waypoints:[], polygons:[]};
+        }catch(err){ alert('Could not read '+f.name+' as a FIT file: '+((err&&err.message)?err.message:err)); return; }
+      } else {
+        parsed=isGpx ? parseGPX(ev.target.result) : parseGeoJSON(ev.target.result);
+        if(!parsed){alert('Could not read '+f.name+' as '+(isGpx?'GPX':'GeoJSON')+'.');return;}
+      }
       if(!parsed.tracks.length&&!parsed.waypoints.length&&!(parsed.polygons&&parsed.polygons.length)){alert('No routes or waypoints found in '+f.name+'.');return;}
-      const baseName=f.name.replace(/\.(gpx|geojson|json)$/i,'');
+      const baseName=f.name.replace(/\.(gpx|geojson|json|fit)$/i,'');
 
       // --- SPLIT: one row per track ---
       const trkDefaults={showLabel:true,labelMode:'nametag',labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,useElementName:true,labelZoomMin:14,labelZoomMax:22,labelFontSize:24,lineWidth:5,mapZoomMin:1,mapZoomMax:22};
@@ -924,7 +1040,7 @@ function handleFiles(fl){
       updatePreview();
       document.getElementById('exportbtn').disabled=false;
     };
-    reader.readAsText(f);
+    if(isFit){ reader.readAsArrayBuffer(f); } else { reader.readAsText(f); }
   });
 }
 
@@ -1869,7 +1985,7 @@ function exportMap(){
   const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
-  const exportCategories=categories.map(c=>({name:(c.name&&c.name.trim())||'',iconSvg:c.iconSvg||null,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})).filter(c=>c.name);
+  const exportCategories=categories.map(c=>({name:(c.name&&c.name.trim())||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})).filter(c=>c.name||c.builtin);
   const data=files.map(f=>({
     filename:f.displayName,
     color:f.color,
@@ -1903,6 +2019,8 @@ function exportMap(){
   const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
   const safeTitle=title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const safeInfoUrl=JSON.stringify(outputInfoUrl);
+  const pwaShort=((document.getElementById('pwa-short')||{}).value||'').trim().slice(0,24)||'PWTrails';
+  const safePwaShort=JSON.stringify(pwaShort);
 
   // Carry over whatever view (center + zoom) the live preview is currently
   // showing, so the exported map opens exactly where you left it (e.g. zoomed
@@ -2026,9 +2144,14 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #search-cat{width:100%;margin-top:7px;padding:7px 8px;border:1px solid #bbb;border-radius:5px;font-size:14px;background:#fff;color:#222}
 .user-route-row .ur-prof{flex:none;width:17px;height:17px;display:flex;align-items:center;justify-content:center;margin-right:1px}
 .user-route-row .ur-prof svg{width:17px;height:17px;display:block}
-#controls-overlay,#layers-overlay,#route-overlay,#zoom-indicator,#info-btn{transition:opacity .25s}
-#map-wrap.ui-hidden #controls-overlay,#map-wrap.ui-hidden #layers-overlay,#map-wrap.ui-hidden #route-overlay,
+#controls-overlay,#layers-overlay,#route-overlay,#zoom-indicator,#info-btn,#controls-overlay>.zoom-group,#controls-overlay>#fullscreen-btn,#controls-overlay>#search-overlay,#controls-overlay>#loc-overlay,#controls-overlay>#trail-overlay{transition:opacity .25s}
+#map-wrap.ui-hidden #controls-overlay>.zoom-group,#map-wrap.ui-hidden #controls-overlay>#fullscreen-btn,#map-wrap.ui-hidden #controls-overlay>#search-overlay,#map-wrap.ui-hidden #controls-overlay>#trail-overlay,#map-wrap.ui-hidden #loc-overlay,#map-wrap.ui-hidden #layers-overlay,#map-wrap.ui-hidden #route-overlay,
 #map-wrap.ui-hidden #zoom-indicator,#map-wrap.ui-hidden #info-btn{opacity:0;pointer-events:none}
+/* In "movement direction" the map turns with you, so keep the compass/heading
+   button visible (pinned top-left) even when the rest of the UI is hidden — a
+   clean screen that still shows which way is north. North-up / off never rotate,
+   so there the button hides with everything else. */
+#map-wrap.ui-hidden.mode-movement #loc-overlay{opacity:1;pointer-events:auto;position:absolute;top:0;left:0;z-index:1001}
 #rf-panel{position:fixed;top:8px;left:52px;width:320px;max-width:calc(100vw - 100px);background:#fff;border:2px solid rgba(0,0,0,0.25);border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.35);padding:10px;z-index:2100;display:none}
 #rf-panel.open{display:block}
 #rf-title{font-size:12px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px}
@@ -2189,6 +2312,11 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
             <button id="rf-ok" disabled>Route is OK</button>
             <button id="rf-cancel" title="Cancel">&times;</button>
           </div>
+          <div class="rf-row" style="margin-top:4px;align-items:center;gap:8px">
+            <label for="rf-color" style="font-size:12.5px;color:#444">Line colour</label>
+            <input type="color" id="rf-color" value="#e60000" title="Colour of the route line — change it if it clashes with a coloured overlay" style="width:36px;height:24px;padding:0;border:1px solid #ccc;border-radius:5px;cursor:pointer">
+            <button id="rf-eye" type="button" title="Show / hide the route line to see the map underneath" style="margin-left:auto;background:none;border:1px solid #ccc;border-radius:5px;padding:3px 7px;cursor:pointer;color:#444;line-height:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
           <div id="rf-stat"></div>
           <button id="rf-elev-toggle" style="display:none">&#9662; Elevation profile</button>
           <div id="rf-elev" style="display:none"></div>
@@ -2297,10 +2425,10 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
   <div id="route-overlay">
-    <div id="route-panel"><h3>Files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON</button></div></div>
+    <div id="route-panel"><h3>Files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON / FIT</button></div></div>
     <button class="ctrl-btn" id="route-btn" title="GPX files"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" fill="#333"/></svg></button>
   </div>
-  <input type="file" id="route-file-input" accept=".gpx,.geojson,.json" style="display:none">
+  <input type="file" id="route-file-input" accept=".gpx,.geojson,.json,.fit" style="display:none">
   <div id="map-actions-menu" class="map-actions-menu"></div>
   <button id="info-btn" title="About this map" style="display:none">i</button>
 </div>
@@ -2571,8 +2699,9 @@ const wmsLayerObjs=new Array(EX.length);
       lyr=L.tileLayer(el.url,{opacity:el.opacity,attribution:el.attribution||'',minZoom:el.zoomMin,maxZoom:el.zoomMax});
     }
     attachAutoNativeZoom(lyr);
-    // default on/off: from URL state if present, otherwise from layer setting
-    const defaultOn=(SAVED_LAYER_STATE&&SAVED_LAYER_STATE[i]!=null)?!!SAVED_LAYER_STATE[i]:(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(el.defaultOn===true);
+    // default on/off priority: an explicit "layers=" in the URL (a shared link) wins,
+    // then this visitor's own saved state, then the layer's baked default.
+    const defaultOn=(urlState&&urlState.layerVis&&urlState.layerVis[i]!=null)?urlState.layerVis[i]:(SAVED_LAYER_STATE&&SAVED_LAYER_STATE[i]!=null)?!!SAVED_LAYER_STATE[i]:(el.defaultOn===true);
     if(defaultOn) lyr.addTo(map);
   }catch(e){}
   wmsLayerObjs[i]={layer:lyr,name:el.displayName||('Layer '+(i+1)),visible:true};
@@ -2887,9 +3016,16 @@ if(urlState&&urlState.marker){
     iconSize:[30,40],
     iconAnchor:[15,40]
   });
-  L.marker([mLat,mLon],{icon:sharedPinIcon,zIndexOffset:2000})
-    .addTo(map)
-    .bindPopup('Shared location<br>'+mLat.toFixed(5)+', '+mLon.toFixed(5));
+  const sharedMarker=L.marker([mLat,mLon],{icon:sharedPinIcon,zIndexOffset:2000}).addTo(map);
+  sharedMarker.bindTooltip('Tap here for options', {permanent:true, direction:'top', offset:[0,-38]});
+  // Clicking the shared pin opens the same long-press / right-click menu as tapping
+  // the map at that spot, so the recipient can route to it, open it in another app, etc.
+  sharedMarker.on('click', function(e){
+    // Stop the click from bubbling to the document-level "close on outside click"
+    // handler — otherwise the same click that opens the menu would immediately close it.
+    if(e.originalEvent){ e.originalEvent.stopPropagation(); if(e.originalEvent.stopImmediatePropagation) e.originalEvent.stopImmediatePropagation(); }
+    map.fire('contextmenu', {latlng: sharedMarker.getLatLng(), originalEvent: e.originalEvent});
+  });
 }
 
 // Update URL on every pan/zoom so the address bar always reflects the current map state (shareable)
@@ -2944,13 +3080,8 @@ function updateLabels(){
 map.on('zoomend',updateLabels);
 map.whenReady(updateLabels);
 
-// Warn before closing/refreshing if GPS trail is active
-window.addEventListener('beforeunload',function(e){
-  if(locHistory.length>0&&wid!==null){
-    e.preventDefault();
-    e.returnValue='Your GPS trail will be lost if you close this page.';
-  }
-});
+// Note: the "warn before closing" prompt lives further down, gated to Full-route
+// recordings longer than ~1 km so it does not nag for short or rolling trails.
 
 // Zoom level indicator (top right corner)
 const zoomValEl=document.getElementById('zoom-val');
@@ -2970,6 +3101,9 @@ let followZoom=null;
 let lastGeoHeading=0;
 let RECENTER_ZOOM=${recenterZoom};
 let locHistory=[]; // GPS points preserved until page/tab is closed
+let locAltByTime={}; // altitude (m) per fix, keyed by timestamp — kept out of the
+                     // coordinate arrays because Leaflet's L.latLng() only accepts
+                     // arrays of length 2 or 3 (a 4-element point becomes null).
 let TRAIL_MODE=${JSON.stringify(trailMode)};
 let TRAIL_METERS=${trailMeters};
 let FOLLOW_DELAY=${centerDelay}; // 0=never, else ms of idle time before re-centering
@@ -3022,6 +3156,8 @@ function scheduleUiHide(){
   }, HIDE_UI_DELAY);
 }
 let smoothedHeading=null;
+let isMoving=false; // true only while actually moving; the map rotates to heading only then
+let northHold=false; // set by a double-tap on the arrow: north-up AND centred, held until you move again
 function angleDeltaDeg(a,b){ return ((b-a+540)%360)-180; }
 function metersPerPixel(lat,zoom){ return 156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom); }
 function destPoint(lat,lng,distanceM,brngDeg){
@@ -3075,7 +3211,7 @@ function pwBuildGpx(name, segments, waypoints){
         var lng=(c.lng!=null)?c.lng:c[1];
         if(lat==null||lng==null) return;
         out+='      <trkpt lat="'+(+lat).toFixed(6)+'" lon="'+(+lng).toFixed(6)+'">';
-        var ev=(seg.ele&&seg.ele[ci]!=null)?seg.ele[ci]:null;
+        var ev=(seg.ele&&seg.ele[ci]!=null)?seg.ele[ci]:((c[3]!=null&&!isNaN(c[3]))?c[3]:null);
         if(ev!=null) out+='<ele>'+(+ev).toFixed(1)+'</ele>';
         if(c[2]) out+='<time>'+new Date(c[2]).toISOString()+'</time>';
         out+='</trkpt>'+NL;
@@ -3092,10 +3228,25 @@ function pwBuildGpx(name, segments, waypoints){
 function saveTrailGpx(){
   if(!locHistory || locHistory.length<2){ showToast('No recorded trail yet.'); return; }
   var seg=splitTrail(locHistory);
+  var segs=seg.solid.map(function(s){
+    return { coords:s, ele:s.map(function(pt){ var a=locAltByTime[pt[2]]; return (a!=null)?a:null; }) };
+  });
   var name='PeeWeeTrails_trail_'+pwStamp();
-  if(pwDownloadText(pwBuildGpx(name, seg.solid, []), name+'.gpx')) showToast('Saved as '+name+'.gpx', 4000);
+  if(pwDownloadText(pwBuildGpx(name, segs, []), name+'.gpx')) showToast('Saved as '+name+'.gpx', 4000);
   else showToast('Could not save the file.');
 }
+
+// Warn before leaving when a full-route recording of real length (> 1 km) would
+// otherwise be lost. Browsers only permit a generic "Leave site?" confirmation
+// here (no custom text and no "Save" button), so this gives the visitor a chance
+// to stay and then use "Save trail as GPX" before closing.
+window.addEventListener('beforeunload', function(e){
+  try{
+    if(TRAIL_MODE!=='full' || !locHistory || locHistory.length<2) return;
+    var d=0; for(var i=1;i<locHistory.length;i++) d+=haversineMeters(locHistory[i-1],locHistory[i]);
+    if(d>1000){ e.preventDefault(); e.returnValue=''; return ''; }
+  }catch(err){}
+});
 
 // Direction arrows (km markers and route arrows) are drawn at a geographic bearing,
 // but markers themselves do not rotate with the map. Correct their on-screen angle
@@ -3120,11 +3271,13 @@ function zoomBtn(delta){
   var nz=Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), cur+delta));
   if(nz===cur) return;
   if(following && locMode!=='off' && lastKnownLatLng){
-    RECENTER_ZOOM=nz;
-    var zi=document.getElementById('trail-zoom-input'); if(zi) zi.value=nz;
+    // Zoom around your location, but treat it as a temporary manual change: it
+    // lasts until the next auto-center ("Center map"), which returns to the
+    // "Zoom level" setting. The setting stays authoritative.
     programmaticMove=true;
     map.once('zoomend', function(){ programmaticMove=false; });
     map.setZoomAround(lastKnownLatLng, nz);
+    following=false; lastUserInteraction=Date.now();
   } else {
     map.setZoom(nz);
   }
@@ -3203,6 +3356,24 @@ function redrawTrail(){
   const metersRow=document.getElementById('trail-meters-row');
   const centerInput=document.getElementById('trail-center-input');
 
+  // --- Persist the visitor's Settings choices per map (localStorage) ---
+  // A saved choice overrides the Creator's baked-in default; with nothing saved,
+  // the baked default stays in effect. Keyed per page so different maps are
+  // independent. Gesture rotation is handled separately below.
+  function psKey(n){ return 'PeeWeeTrails_set_'+n+'__'+location.pathname; }
+  function psGet(n){ try{ return localStorage.getItem(psKey(n)); }catch(e){ return null; } }
+  function psSet(n,v){ try{ localStorage.setItem(psKey(n), String(v)); }catch(e){} }
+  (function(){
+    var v;
+    v=psGet('color');  if(v!=null) TRAIL_COLOR=v;
+    v=psGet('width');  if(v!=null) TRAIL_WIDTH=parseInt(v)||TRAIL_WIDTH;
+    v=psGet('mode');   if(v!=null) TRAIL_MODE=v;
+    v=psGet('meters'); if(v!=null) TRAIL_METERS=parseInt(v)||TRAIL_METERS;
+    v=psGet('zoom');   if(v!=null) RECENTER_ZOOM=parseInt(v)||RECENTER_ZOOM;
+    v=psGet('follow'); if(v!=null){ var f=parseInt(v); if(!isNaN(f)) FOLLOW_DELAY=f; }
+    v=psGet('hide');   if(v!=null){ var h=parseInt(v); if(!isNaN(h)) HIDE_UI_DELAY=h; }
+  })();
+
   colorInput.value=TRAIL_COLOR;
   widthInput.value=TRAIL_WIDTH;
   modeInput.value=TRAIL_MODE;
@@ -3212,7 +3383,7 @@ function redrawTrail(){
   if(trailGpxBtn) trailGpxBtn.addEventListener('click',function(e){ e.stopPropagation(); saveTrailGpx(); });
   const zoomInput=document.getElementById('trail-zoom-input');
   zoomInput.value=RECENTER_ZOOM;
-  zoomInput.addEventListener('change',function(){ RECENTER_ZOOM=Math.max(1,Math.min(22,parseInt(zoomInput.value)||17)); zoomInput.value=RECENTER_ZOOM; });
+  zoomInput.addEventListener('change',function(){ RECENTER_ZOOM=Math.max(1,Math.min(22,parseInt(zoomInput.value)||17)); zoomInput.value=RECENTER_ZOOM; psSet('zoom',RECENTER_ZOOM); });
 
   // Two-finger gesture rotation. Off by default: it's almost always triggered by
   // accident during a pinch-zoom, and the compass modes rotate the map on their
@@ -3265,23 +3436,27 @@ trailBtn.onclick=function(e){
   colorInput.addEventListener('input',function(){
     TRAIL_COLOR=colorInput.value;
     applyTrailAppearance();
+    psSet('color',TRAIL_COLOR);
   });
   widthInput.addEventListener('change',function(){
     TRAIL_WIDTH=Math.max(1,Math.min(15,parseInt(widthInput.value)||5));
     widthInput.value=TRAIL_WIDTH;
     applyTrailAppearance();
+    psSet('width',TRAIL_WIDTH);
   });
   modeInput.addEventListener('change',function(){
     TRAIL_MODE=modeInput.value;
     metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
     locHistory=trimTrail(locHistory);
     redrawTrail();
+    psSet('mode',TRAIL_MODE);
   });
   metersInput.addEventListener('change',function(){
     TRAIL_METERS=Math.max(5,Math.min(5000,parseInt(metersInput.value)||50));
     metersInput.value=TRAIL_METERS;
     locHistory=trimTrail(locHistory);
     redrawTrail();
+    psSet('meters',TRAIL_METERS);
   });
   function applyCenterSetting(){
     FOLLOW_DELAY=parseInt(centerInput.value)||0;
@@ -3290,14 +3465,14 @@ trailBtn.onclick=function(e){
   centerInput.value=(FOLLOW_DELAY>0)?String(FOLLOW_DELAY):'0';
   if(!centerInput.value) centerInput.value='10000';
   applyCenterSetting();
-  centerInput.addEventListener('change',applyCenterSetting);
+  centerInput.addEventListener('change',function(){ applyCenterSetting(); psSet('follow',FOLLOW_DELAY); });
 
   const hideInput=document.getElementById('hide-ui-input');
   if(hideInput){
     hideInput.value=String(HIDE_UI_DELAY);
     if(!hideInput.value) hideInput.value='0';
     scheduleUiHide();
-    hideInput.addEventListener('change',function(){ HIDE_UI_DELAY=parseInt(hideInput.value)||0; showUi(); });
+    hideInput.addEventListener('change',function(){ HIDE_UI_DELAY=parseInt(hideInput.value)||0; showUi(); psSet('hide',HIDE_UI_DELAY); });
   }
 }
 
@@ -3344,7 +3519,7 @@ trailBtn.onclick=function(e){
     const iconHref=iconEl?iconEl.href:'';
     const manifest={
       name:document.title||'PeeWeeTrails map',
-      short_name:(document.title||'Map').slice(0,24),
+      short_name:${safePwaShort},
       start_url:location.href,
       scope:location.href,
       display:'fullscreen',
@@ -3399,7 +3574,15 @@ function releaseWakeLock(){
   try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){ wakeLock=null; }
 }
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible' && locMode!=='off') requestWakeLock();
+  if(document.visibilityState==='visible' && locMode!=='off'){
+    requestWakeLock();
+    // The browser freezes timers and often pauses GPS while the page is hidden,
+    // which can leave the map in an odd state on return (stale position, a frozen
+    // follow timer, a burst of catch-up events). Reset the idle baseline and, if we
+    // were following, re-center cleanly so we resume from a known-good position.
+    lastUserInteraction=Date.now();
+    if(following && lastKnownLatLng){ try{ orient(); }catch(e){} }
+  }
 });
 
 function stopLoc(){
@@ -3435,11 +3618,27 @@ function orient(){
     setBearingProg(0);
     programmaticMove=true; map.setView(lastKnownLatLng, zoom, {animate:false}); programmaticMove=false;
   } else if(locMode==='movement'){
-    const hdg=(smoothedHeading==null?0:smoothedHeading);
-    const H=map.getContainer().clientHeight;
-    const dest=destPoint(lastKnownLatLng[0], lastKnownLatLng[1], H*0.25*metersPerPixel(lastKnownLatLng[0], zoom), hdg);
-    setBearingProg(-hdg);
-    programmaticMove=true; map.setView(dest, zoom, {animate:false}); programmaticMove=false;
+    if(isMoving && smoothedHeading!=null){
+      northHold=false;   // moving again: leave north-hold and resume heading-up framing
+      const hdg=smoothedHeading;
+      const H=map.getContainer().clientHeight;
+      const dest=destPoint(lastKnownLatLng[0], lastKnownLatLng[1], H*0.25*metersPerPixel(lastKnownLatLng[0], zoom), hdg);
+      setBearingProg(-hdg);
+      programmaticMove=true; map.setView(dest, zoom, {animate:false}); programmaticMove=false;
+    } else if(northHold){
+      // Double-tapped the arrow while stopped: show north-up AND centre the user,
+      // exactly like "north up" mode, and hold it there until movement resumes.
+      setBearingProg(0);
+      programmaticMove=true; map.setView(lastKnownLatLng, zoom, {animate:false}); programmaticMove=false;
+    } else {
+      // Just stopped moving (no double-tap): keep the current orientation and the
+      // below-centre framing, like when moving. Only "north up" mode / a double-tap
+      // centres the user. So don't rotate, but still offset ahead in the current facing.
+      const hdgCur=-map.getBearing();
+      const H=map.getContainer().clientHeight;
+      const dest=destPoint(lastKnownLatLng[0], lastKnownLatLng[1], H*0.25*metersPerPixel(lastKnownLatLng[0], zoom), hdgCur);
+      programmaticMove=true; map.setView(dest, zoom, {animate:false}); programmaticMove=false;
+    }
   }
 }
 
@@ -3448,7 +3647,9 @@ function startGPS(){
   if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
 
   wid=navigator.geolocation.watchPosition(function(p){
+    var _alt=p.coords.altitude;
     const ll=[p.coords.latitude,p.coords.longitude,Date.now()];
+    if(_alt!=null && !isNaN(_alt)) locAltByTime[ll[2]]=_alt;
     lastKnownLatLng=ll;
     locHistory.push(ll);
     locHistory=trimTrail(locHistory);
@@ -3461,10 +3662,29 @@ function startGPS(){
       deg=bearing(locHistory[0],locHistory[locHistory.length-1]);
     }
     if(locMode==='movement'){
-      const rel=(p.coords.heading!=null && !isNaN(p.coords.heading)) && (p.coords.speed==null||p.coords.speed>1);
-      if(smoothedHeading==null) smoothedHeading=deg;
-      else if(rel){ const dd=angleDeltaDeg(smoothedHeading,deg); smoothedHeading+=dd*(Math.abs(dd)>20?0.6:0.25); }
-    }
+      // Only treat this as "moving" (and let the map rotate to a heading) when there
+      // is real motion — from GPS speed, or otherwise from how far we moved since the
+      // last fix. Standing still keeps the current orientation (so a double-tap to
+      // north stays north until you actually move again).
+      var movingNow;
+      if(p.coords.speed!=null && !isNaN(p.coords.speed)) movingNow = p.coords.speed>0.7;
+      else if(locHistory.length>=2) movingNow = haversineMeters(locHistory[locHistory.length-2], ll) > 3;
+      else movingNow = false;
+      var wasMoving=isMoving;
+      isMoving = movingNow;
+      // If you start moving again during a held-north view (e.g. after panning to
+      // orient yourself), start the auto-return countdown from now — so the map
+      // returns to movement direction FOLLOW_DELAY after you start moving.
+      if(movingNow && !wasMoving && northHold){ lastUserInteraction=Date.now(); }
+      if(movingNow){
+        if(p.coords.heading!=null && !isNaN(p.coords.heading)){
+          if(smoothedHeading==null) smoothedHeading=deg;
+          else { const dd=angleDeltaDeg(smoothedHeading,deg); smoothedHeading+=dd*(Math.abs(dd)>20?0.6:0.25); }
+        } else if(smoothedHeading==null && locHistory.length>=2){
+          smoothedHeading=deg;
+        }
+      }
+    } else { isMoving=false; }
     lastGeoHeading=deg;
 
     if(locTrail){
@@ -3512,19 +3732,24 @@ function startGPS(){
 // --- Compass modes menu + auto-return timer ---
 const compassMenu=document.getElementById('compass-menu');
 function setLocMode(m){
-  locMode=m; following=true; lastUserInteraction=Date.now();
+  locMode=m; following=true; lastUserInteraction=Date.now(); northHold=false;
+  var _mw=document.getElementById('map-wrap'); if(_mw) _mw.classList.toggle('mode-movement', m==='movement');
   compassMenu.classList.add('hidden');
   document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode===m); });
   if(m==='off'){ stopLoc(); locBtn.classList.remove('tracking'); setBearingProg(0); }
   else { locBtn.classList.add('tracking'); startGPS(); orient(); requestWakeLock(); }
 }
 locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('hidden'); };
-locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); following=false; lastUserInteraction=Date.now(); setBearingProg(0); });
+locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); northHold=true; following=true; lastUserInteraction=Date.now(); if(locMode!=='off' && lastKnownLatLng){ orient(); } else { setBearingProg(0); } });
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
 setInterval(function(){
   if(searchActive || routeEditing) return;
   if(FOLLOW_DELAY<=0) return;
+  // Held-north view while standing still (e.g. after a double-tap, then panning to
+  // look around): stay where the user left it. Only once they move again does the
+  // countdown to movement direction start (reset above on movement start).
+  if(northHold && !isMoving) return;
   if(!following && (Date.now()-lastUserInteraction)>=FOLLOW_DELAY){
     following=true;
     if(locMode==='off') setBearingProg(0); else orient();
@@ -3534,7 +3759,9 @@ map.on('rotate zoomend moveend', updateArrowRotations);
 document.getElementById('map-wrap').addEventListener('pointerdown',function(){ showUi(); },true);
 setLocMode('off');
 
-// If user manually zooms while following is active, remember new zoom level instead of snapping back
+// A manual zoom (pinch or +/-) is temporary: it does NOT change the "Zoom level"
+// setting, so the next auto-center returns to that level. (followZoom is kept for
+// completeness but the active centering path, orient(), uses the setting.)
 map.on('zoomend',function(){
   if(FOLLOW_DELAY>0 && wid!==null) followZoom=map.getZoom();
 });
@@ -3668,6 +3895,73 @@ map.on('zoomend',function(){
   const USER_COLORS=['#e74c3c','#8e44ad','#16a085','#d35400','#2471a3','#1e8449','#b7950b','#717d7e'];
   let userRoutes=[]; // {name, visible, opacity, color, lineWidth, showArrows, showLabel, layers:[], bounds}
   let colorIdx=0;
+
+  // --- Minimal, self-contained FIT reader (our own code, GPL-3.0) ------------
+  // Reads Garmin/ANT .FIT files and returns the track points we need:
+  // [{lat, lon, ele, time}]. Position is stored in semicircles, altitude as
+  // (value/5 - 500) metres, timestamp as seconds since the FIT epoch
+  // (1989-12-31). Only "record" messages (global #20) are decoded; any other
+  // message is skipped by its size, so we do not need the full FIT profile.
+  function pwParseFit(buffer){
+    var dv=new DataView(buffer), len=dv.byteLength;
+    if(len<12) throw new Error('Not a FIT file');
+    if(!(dv.getUint8(8)===46 && dv.getUint8(9)===70 && dv.getUint8(10)===73 && dv.getUint8(11)===84)) throw new Error('Not a FIT file (.FIT signature missing)');
+    var headerSize=dv.getUint8(0);
+    var dataSize=dv.getUint32(4,true);
+    var pos=headerSize, end=Math.min(len, headerSize+dataSize);
+    var defs={}, pts=[];
+    var EPOCH=631065600, SC=180/2147483648;
+    function readRec(p, def){
+      var lat=null, lon=null, ele=null, time=null, i, f;
+      for(i=0;i<def.fields.length;i++){
+        f=def.fields[i];
+        if(def.global===20 && !f.dev){
+          if(f.num===0 && f.size===4){ var v=dv.getInt32(p,def.le); if(v!==2147483647) lat=v*SC; }
+          else if(f.num===1 && f.size===4){ var v2=dv.getInt32(p,def.le); if(v2!==2147483647) lon=v2*SC; }
+          else if(f.num===2 && f.size===2){ var a=dv.getUint16(p,def.le); if(a!==65535) ele=a/5-500; }
+          else if(f.num===78 && f.size===4){ var a2=dv.getUint32(p,def.le); if(a2!==4294967295) ele=a2/5-500; }
+          else if(f.num===253 && f.size===4){ var t=dv.getUint32(p,def.le); if(t!==4294967295) time=(t+EPOCH)*1000; }
+        }
+        p+=f.size;
+      }
+      if(lat===null||lon===null) return null;
+      return {lat:lat, lon:lon, ele:ele, time:time};
+    }
+    while(pos<end){
+      var rh=dv.getUint8(pos); pos++;
+      if(rh & 128){
+        var lt=(rh>>5)&3, cdef=defs[lt];
+        if(!cdef) break;
+        var cr=readRec(pos, cdef); pos+=cdef.msgSize;
+        if(cdef.global===20 && cr) pts.push(cr);
+      } else {
+        var localType=rh & 15, isDef=(rh&64)!==0, hasDev=(rh&32)!==0, i;
+        if(isDef){
+          var le=(dv.getUint8(pos+1)===0);
+          var global=dv.getUint16(pos+2, le);
+          var numFields=dv.getUint8(pos+4);
+          var fp=pos+5, fields=[], msgSize=0;
+          for(i=0;i<numFields;i++){ fields.push({num:dv.getUint8(fp),size:dv.getUint8(fp+1),base:dv.getUint8(fp+2)}); msgSize+=dv.getUint8(fp+1); fp+=3; }
+          if(hasDev){ var nd=dv.getUint8(fp); fp++; for(i=0;i<nd;i++){ var dsz=dv.getUint8(fp+1); fields.push({num:-1,size:dsz,dev:true}); msgSize+=dsz; fp+=3; } }
+          defs[localType]={le:le, global:global, fields:fields, msgSize:msgSize};
+          pos=fp;
+        } else {
+          var d=defs[localType];
+          if(!d) break;
+          var r=readRec(pos, d); pos+=d.msgSize;
+          if(d.global===20 && r) pts.push(r);
+        }
+      }
+    }
+    return pts;
+  }
+  function parseUserFit(buffer){
+    var pts=pwParseFit(buffer);
+    var coords=[], ele=[], anyEle=false, i;
+    for(i=0;i<pts.length;i++){ coords.push([pts[i].lat, pts[i].lon]); var e=pts[i].ele; ele.push(e!=null?e:null); if(e!=null) anyEle=true; }
+    if(!coords.length) return { tracks:[], waypoints:[], polygons:[] };
+    return { tracks: mergeUserTracksIntoOne([{name:'', coords:coords, ele:anyEle?ele:null}]), waypoints:[], polygons:[] };
+  }
 
   function parseUserGPX(text){
     try{
@@ -4412,15 +4706,24 @@ map.on('zoomend',function(){
     const nameLow=file.name.toLowerCase();
     const isGpx=nameLow.endsWith('.gpx');
     const isGj=nameLow.endsWith('.geojson')||nameLow.endsWith('.json');
-    if(!isGpx&&!isGj){alert('Please choose a .gpx or .geojson file.');return;}
+    const isFit=nameLow.endsWith('.fit');
+    if(!isGpx&&!isGj&&!isFit){alert('Please choose a .gpx, .geojson or .fit file.');return;}
     if(accept==='gpx'&&!isGpx){alert('Please choose a .gpx file.');return;}
     if(accept==='geojson'&&!isGj){alert('Please choose a .geojson or .json file.');return;}
     const reader=new FileReader();
     reader.onload=ev=>{
-      const parsed=isGpx?parseUserGPX(ev.target.result):parseUserGeoJSON(ev.target.result);
+      let parsed;
+      try{
+        parsed = isFit ? parseUserFit(ev.target.result)
+               : isGpx ? parseUserGPX(ev.target.result)
+               : parseUserGeoJSON(ev.target.result);
+      }catch(err){
+        alert('Could not read this file'+(isFit?' as a FIT file':'')+': '+((err&&err.message)?err.message:err));
+        return;
+      }
       const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
-      if(!hasContent){alert('No features found in this file.');return;}
-      const baseName=file.name.replace(/\\.(gpx|geojson|json)$/i,'');
+      if(!hasContent){alert('No usable track was found in this file.');return;}
+      const baseName=file.name.replace(/\\.(gpx|geojson|json|fit)$/i,'');
 
       // SPLIT: one route entry per track
       parsed.tracks.forEach((trk,tIdx)=>{
@@ -4469,7 +4772,7 @@ map.on('zoomend',function(){
         addUserRoute(g.name,{tracks:[],waypoints:[],polygons:g.polygons},color,2);
       });
     };
-    reader.readAsText(file);
+    if(isFit){ reader.readAsArrayBuffer(file); } else { reader.readAsText(file); }
   }
 
   // Panel open/close — stop propagation on the whole overlay so clicks inside don't close it
@@ -4478,7 +4781,6 @@ map.on('zoomend',function(){
   const routeOverlay=document.getElementById('route-overlay');
   routeBtn.onclick=function(e){e.stopPropagation(); if(!routePanel.classList.contains('open')) closePanelsExcept('route-panel'); routePanel.classList.toggle('open');};
   routeOverlay.addEventListener('click',function(e){e.stopPropagation();});
-  document.addEventListener('click',function(){routePanel.classList.remove('open');});
   document.getElementById('route-panel-close').addEventListener('click',function(e){
     e.stopPropagation();
     routePanel.classList.remove('open');
@@ -4494,7 +4796,7 @@ map.on('zoomend',function(){
 
   function triggerFilePick(accept){
     pendingAccept=accept;
-    fileInput.accept=accept==='gpx'?'.gpx':accept==='geojson'?'.geojson,.json':'.gpx,.geojson,.json';
+    fileInput.accept=accept==='gpx'?'.gpx':accept==='geojson'?'.geojson,.json':'.gpx,.geojson,.json,.fit';
     // Reset so the same filename can be picked again
     fileInput.value='';
     // Small delay so the panel-close click-outside doesn't steal focus
@@ -4572,6 +4874,16 @@ map.on('zoomend',function(){
       const s=String(tpl).toLowerCase();
       return s.indexOf('brouter.de/brouter')!==-1 || s.indexOf('/brouter?')!==-1;
     }
+    // OSRM (FOSSGIS) car actions use a clean path-based URL; recognise them and pull
+    // the lon,lat;lon,lat coordinate list out of the /driving/... path.
+    function isOsrmUrl(tpl){ return String(tpl).toLowerCase().indexOf('routing.openstreetmap.de')!==-1; }
+    function extractOsrmLonlats(filledUrl){
+      var s=String(filledUrl), d=s.indexOf('/driving/');
+      if(d<0) return '';
+      var rest=s.substring(d+9), q=rest.indexOf('?');
+      if(q>=0) rest=rest.substring(0,q);
+      return rest.split(';').join('|');
+    }
 
     // Pull lonlats / profile / nogos out of a filled BRouter URL, whether the
     // parameters live in the query string (?a=b&c=d) or after the # (brouter-web
@@ -4616,28 +4928,63 @@ map.on('zoomend',function(){
       return s||'BRouter route';
     }
 
-    async function showBrouterRoute(lonlats,profile,nogos,defaultName,server,icon){
-      if(!lonlats){ alert('No route coordinates found for this action.'); return; }
+    async function showBrouterRoute(lonlats,profile,nogos,defaultName,server,icon,lineColor){
+      if(!lonlats){ alert('No route coordinates found for this action.'); return false; }
       const endpoint=server||'https://brouter.de/brouter';
-      showToast('Calculating route…');
+      var prof=String(profile||'').toLowerCase();
+      // Car routing goes to OSRM (FOSSGIS) instead of BRouter: OSRM is purpose-built
+      // for cars, far faster, and handles long routes that BRouter's public server
+      // often kills. Bike/foot profiles stay on BRouter (its strength).
+      var isOsrm=(prof.indexOf('car')===0);
+      showToast('Calculating route\u2026');
       try{
-        let apiUrl=endpoint+'?lonlats='+encodeURIComponent(lonlats)
-          +'&profile='+encodeURIComponent(profile)+'&alternativeidx=0&format=geojson';
-        if(nogos) apiUrl+='&nogos='+encodeURIComponent(nogos);
-        const resp=await fetch(apiUrl);
-        if(!resp.ok){
-          const txt=await resp.text();
-          throw new Error('HTTP '+resp.status+' '+txt.slice(0,200));
+        let apiUrl;
+        if(isOsrm){
+          apiUrl='https://routing.openstreetmap.de/routed-car/route/v1/driving/'+lonlats.split('|').join(';')+'?overview=full&geometries=geojson';
+        } else {
+          apiUrl=endpoint+'?lonlats='+encodeURIComponent(lonlats)
+            +'&profile='+encodeURIComponent(profile)+'&alternativeidx=0&format=geojson';
+          if(nogos) apiUrl+='&nogos='+encodeURIComponent(nogos);
         }
-        const geojson=await resp.json();
-        console.log('BRouter response for "'+defaultName+'":',geojson);
+        // The public BRouter server can transiently kill a request ("operation
+        // killed by thread priority watchdog") when it is busy. Retry a couple of
+        // times with a short pause before giving up, so a heavy moment does not
+        // throw the route away.
+        let resp=null, lastMsg='';
+        for(let attempt=0; attempt<3; attempt++){
+          try{
+            const r=await fetch(apiUrl);
+            if(r.ok){ resp=r; break; }
+            const txt=await r.text();
+            lastMsg='HTTP '+r.status+' '+txt.slice(0,200);
+            var transient=(r.status>=500) || (txt.indexOf('watchdog')>=0) || (txt.indexOf('killed')>=0) || (txt.indexOf('thread priority')>=0);
+            if(attempt<2 && transient){ showToast('Routing server is busy, retrying\u2026'); await new Promise(function(res){ setTimeout(res, 800*(attempt+1)); }); continue; }
+            throw new Error(lastMsg);
+          }catch(e){
+            lastMsg=(e&&e.message)?e.message:String(e);
+            if(attempt<2){ await new Promise(function(res){ setTimeout(res, 800*(attempt+1)); }); continue; }
+            throw new Error(lastMsg);
+          }
+        }
+        if(!resp) throw new Error(lastMsg||'no response');
+        const data=await resp.json();
+        let geojson;
+        if(isOsrm){
+          if(!data || data.code!=='Ok' || !data.routes || !data.routes.length || !data.routes[0].geometry){
+            throw new Error('OSRM did not return a route ('+((data&&data.code)||'no route')+').');
+          }
+          geojson={type:'FeatureCollection',features:[{type:'Feature',properties:{},geometry:data.routes[0].geometry}]};
+        } else {
+          geojson=data;
+        }
+        console.log('Routing response for "'+defaultName+'":',geojson);
         // Reuse the same GeoJSON parser and route-adding logic as the
         // "+ GeoJSON" import button, so the result behaves identically:
         // its own row (with km arrows) in the Imported files panel, and a
         // "remove" option there.
         const parsed=parseUserGeoJSON(JSON.stringify(geojson));
         const hasContent=parsed&&(parsed.tracks.length||parsed.waypoints.length||(parsed.polygons&&parsed.polygons.length));
-        if(!hasContent){ console.warn('parseUserGeoJSON found no usable geometry in the BRouter response above.'); alert('BRouter did not return any route geometry for this location.'); return; }
+        if(!hasContent){ console.warn('parseUserGeoJSON found no usable geometry in the routing response above.'); alert('The routing server did not return any route geometry for this location.'); return false; }
 
         parsed.tracks.forEach((trk,tIdx)=>{
           pendingRouteIcon=icon||null;   // gives the row its profile icon (routes only, not imports)
@@ -4646,7 +4993,7 @@ map.on('zoomend',function(){
           // Overwrite trk.name too so the on-map label matches the list entry.
           const name=(parsed.tracks.length===1?defaultName:defaultName+' ('+(tIdx+1)+')');
           trk.name=name;
-          const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
+          let color; if(lineColor){ color=lineColor; } else { color=USER_COLORS[colorIdx%USER_COLORS.length]; colorIdx++; }
           addUserRoute(name,{tracks:[trk],waypoints:[],polygons:[]},color,5);
         });
         if(parsed.waypoints.length){
@@ -4657,11 +5004,24 @@ map.on('zoomend',function(){
           const color=USER_COLORS[colorIdx%USER_COLORS.length];colorIdx++;
           addUserRoute(pol.name&&pol.name.trim()?pol.name.trim():defaultName,{tracks:[],waypoints:[],polygons:[pol]},color,2);
         });
-        // Credit the routing engine — added once, the first time a route is actually calculated
-        if(!window.__brouterAttr){ map.attributionControl.addAttribution('Routing &copy; <a href="https://brouter.de" target="_blank" rel="noopener">BRouter</a>'); window.__brouterAttr=true; }
+        // Credit the routing engine — added once, the first time a route is calculated
+        if(isOsrm){
+          if(!window.__osrmAttr){ map.attributionControl.addAttribution('Routing &copy; <a href="https://routing.openstreetmap.de" target="_blank" rel="noopener">OSRM (FOSSGIS)</a>'); window.__osrmAttr=true; }
+        } else {
+          if(!window.__brouterAttr){ map.attributionControl.addAttribution('Routing &copy; <a href="https://brouter.de" target="_blank" rel="noopener">BRouter</a>'); window.__brouterAttr=true; }
+        }
+        return true;
       }catch(err){
-        console.error('BRouter route calculation failed:',err);
-        alert('Could not calculate the BRouter route: '+(err&&err.message?err.message:err));
+        console.error('Route calculation failed:',err);
+        var msg=(err&&err.message?err.message:String(err));
+        if(isOsrm){
+          alert('Could not calculate the car route (OSRM): '+msg);
+        } else if(msg.indexOf('watchdog')>=0 || msg.indexOf('killed')>=0 || msg.indexOf('thread priority')>=0){
+          alert('The public BRouter server was too busy to finish this route (killed by its watchdog). Your points are still here \u2014 tap "Route is OK" again in a moment, or add a via-point to split a long leg.');
+        } else {
+          alert('Could not calculate the BRouter route: '+msg);
+        }
+        return false;
       }
     }
 
@@ -4705,9 +5065,12 @@ map.on('zoomend',function(){
       const latlng=currentLatLng; // capture before closeMenu() clears currentLatLng
       const needsCurrentLocation=/{fromlat}|{fromlon}/.test(a.urlTemplate);
       const isBrouter=isBrouterWebUrl(a.urlTemplate);
+      const isOsrm=isOsrmUrl(a.urlTemplate);
 
       function finish(filledUrl){
-        if(isBrouter){
+        if(isOsrm){
+          showBrouterRoute(extractOsrmLonlats(filledUrl),'car',null,defaultBrouterName(a.name),null,{svg:a.iconSvg,color:a.iconColor});
+        } else if(isBrouter){
           const {lonlats,profile,nogos,server}=extractBrouterParams(filledUrl);
           showBrouterRoute(lonlats,profile,nogos,defaultBrouterName(a.name),server,{svg:a.iconSvg,color:a.iconColor});
         } else {
@@ -4905,7 +5268,32 @@ function showToast(msg,duration){
     const rfCancel=document.getElementById('rf-cancel');
     const rfElevToggle=document.getElementById('rf-elev-toggle');
     const rfElevBox=document.getElementById('rf-elev');
+    const rfColorInput=document.getElementById('rf-color');
+    const rfEyeBtn=document.getElementById('rf-eye');
+    var RF_COLOR_KEY='PeeWeeTrails_set_rfcolor__'+location.pathname;
+    let rfColor=(rfColorInput&&rfColorInput.value)||'#e60000';
+    // Remember the visitor's chosen route-line colour on this device, so a
+    // preference for another colour survives closing and reopening the map.
+    try{ var _rfSaved=localStorage.getItem(RF_COLOR_KEY); if(_rfSaved){ rfColor=_rfSaved; if(rfColorInput) rfColorInput.value=_rfSaved; } }catch(e){}
+    let rfVisible=true;
     let rfWps=[], rfLine=null, rfHit=null, rfGhost=null, rfCoords=[], rfEle=[], rfElevOpen=false, rfSeq=0;
+    var RF_EYE_OPEN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var RF_EYE_OFF='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21"/></svg>';
+    if(rfColorInput){
+      rfColorInput.addEventListener('input',function(){
+        rfColor=rfColorInput.value||'#e60000';
+        if(rfLine) rfLine.setStyle({color:rfColor});
+        try{ localStorage.setItem(RF_COLOR_KEY, rfColor); }catch(e){}
+      });
+    }
+    if(rfEyeBtn){
+      rfEyeBtn.addEventListener('click',function(e){
+        e.stopPropagation();
+        rfVisible=!rfVisible;
+        rfEyeBtn.innerHTML=rfVisible?RF_EYE_OPEN:RF_EYE_OFF;
+        if(rfCoords&&rfCoords.length) rfDrawLine();
+      });
+    }
     if(rfElevToggle){
       rfElevToggle.addEventListener('click',function(e){
         e.stopPropagation();
@@ -4917,6 +5305,9 @@ function showToast(msg,duration){
     let rfProfile='', rfProfileName='', rfServer='', rfSuppressClick=0, rfIconSvg=null, rfIconColor=null;
 
     function rfProfileFromTpl(t){
+      if(t.indexOf('routing.openstreetmap.de')>=0){
+        return t.indexOf('routed-bike')>=0?'bike':(t.indexOf('routed-foot')>=0?'foot':'car');
+      }
       const i=t.indexOf('profile=');
       if(i<0) return '';
       const rest=t.substring(i+8), amp=rest.indexOf('&');
@@ -4927,7 +5318,7 @@ function showToast(msg,duration){
       const out=[];
       (typeof MAP_ACTIONS!=='undefined'?MAP_ACTIONS:[]).forEach(function(a){
         const t=a.urlTemplate||'';
-        if(t.indexOf('brouter')<0) return;
+        if(t.indexOf('brouter')<0 && t.indexOf('routing.openstreetmap.de')<0) return;
         const p=rfProfileFromTpl(t);
         if(p) out.push({name:a.name, profile:p, server:rfServerFromTpl(t), iconSvg:a.iconSvg, iconColor:a.iconColor, iconImgSrc:a.iconImgSrc});
       });
@@ -4966,8 +5357,11 @@ function showToast(msg,duration){
     function rfClearLine(){ rfRemoveLineLayers(); rfCoords=[]; rfEle=[]; if(rfElevToggle){rfElevToggle.style.display='none';} if(rfElevBox){rfElevBox.style.display='none';} }
     function rfDrawLine(){
       rfRemoveLineLayers();
-      rfLine=L.polyline(rfCoords,{color:'#1565c0',weight:5,opacity:.9}).addTo(map);
-      rfHit=L.polyline(rfCoords,{color:'#000',weight:22,opacity:0.01,lineCap:'round'}).addTo(map);
+      rfLine=L.polyline(rfCoords,{color:rfColor,weight:7,opacity: rfVisible?0.9:0 }).addTo(map);
+      if(rfVisible && rfCoords.length>1 && rfLine.setText){
+        try{ rfLine.setText('  \u25B6  ', {repeat:true, offset:4, attributes:{fill:'#ffffff','font-size':'12','font-weight':'bold'}}); }catch(e){}
+      }
+      rfHit=L.polyline(rfCoords,{color:'#000',weight:24,opacity:0.01,lineCap:'round'}).addTo(map);
       rfEnableDrag();
     }
     function rfNearestIdx(latlng){
@@ -5021,13 +5415,25 @@ function showToast(msg,duration){
       if(rfWps.length<2){ rfClearLine(); rfOk.disabled=true; rfStat.textContent='Start point set. Tap the map to add points.'; return; }
       const seq=++rfSeq;
       rfStat.textContent='Calculating\u2026';
-      const url=(rfServer||'https://brouter.de/brouter')+'?lonlats='+encodeURIComponent(rfLonlats())
-        +'&profile='+encodeURIComponent(rfProfile)+'&alternativeidx=0&format=geojson';
+      var isOsrm=(String(rfProfile).toLowerCase().indexOf('car')===0);
+      var url;
+      if(isOsrm){
+        url='https://routing.openstreetmap.de/routed-car/route/v1/driving/'+rfLonlats().split('|').join(';')+'?overview=full&geometries=geojson';
+      } else {
+        url=(rfServer||'https://brouter.de/brouter')+'?lonlats='+encodeURIComponent(rfLonlats())
+          +'&profile='+encodeURIComponent(rfProfile)+'&alternativeidx=0&format=geojson';
+      }
       fetch(url).then(function(r){ return r.text(); }).then(function(txt){
         if(seq!==rfSeq) return;   // a newer edit superseded this calculation
         let js=null;
-        try{ js=JSON.parse(txt); }catch(e){ rfStat.textContent='BRouter: '+txt.slice(0,80); return; }
-        const f=js&&js.features&&js.features[0];
+        try{ js=JSON.parse(txt); }catch(e){ rfStat.textContent=(isOsrm?'OSRM: ':'BRouter: ')+txt.slice(0,80); return; }
+        let f;
+        if(isOsrm){
+          if(!js || js.code!=='Ok' || !js.routes || !js.routes.length || !js.routes[0].geometry){ rfStat.textContent='No route found.'; return; }
+          f={geometry:js.routes[0].geometry, properties:{'track-length':(js.routes[0].distance||0), 'total-time':(js.routes[0].duration||0)}};
+        } else {
+          f=js&&js.features&&js.features[0];
+        }
         if(!f){ rfStat.textContent='No route found.'; return; }
         rfCoords=f.geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
         rfEle=f.geometry.coordinates.map(function(c){ return (c.length>2&&c[2]!=null&&!isNaN(c[2]))?c[2]:null; });
@@ -5078,6 +5484,7 @@ function showToast(msg,duration){
     }
     function rfCleanup(){
       routeEditing=false;
+      rfVisible=true; if(rfEyeBtn) rfEyeBtn.innerHTML=RF_EYE_OPEN;
       rfWps.forEach(function(w){ if(w.marker) map.removeLayer(w.marker); });
       rfWps=[];
       if(rfGhost){ map.removeLayer(rfGhost); rfGhost=null; }
@@ -5091,32 +5498,52 @@ function showToast(msg,duration){
       if(Date.now()<rfSuppressClick) return;   // tail of a line drag, not a real tap
       rfAdd(e.latlng);
     });
-    rfOk.addEventListener('click',function(e){
+    rfOk.addEventListener('click',async function(e){
       e.stopPropagation();
       if(rfWps.length<2) return;
       const lonlats=rfLonlats(), prof=rfProfile, srv=rfServer, nm=rfProfileName;
-      const rfIcoSvg=rfIconSvg, rfIcoCol=rfIconColor;
-      rfCleanup();
-      searchActive=false;   // route made: the map may follow your location again
-      // Hand the finished route to the same code path as a "Route to" action: it gets its
-      // own row in "Imported files" (colour, width, label, GPX) and is stored locally.
-      showBrouterRoute(lonlats, prof, null, nm, srv||undefined, {svg:rfIcoSvg, color:rfIcoCol});
+      const rfIcoSvg=rfIconSvg, rfIcoCol=rfIconColor, col=rfColor;
+      rfOk.disabled=true; var _okTxt=rfOk.textContent; rfOk.textContent='Calculating\u2026';
+      // Hand the finished route to the same code path as a "Route to" action. Only
+      // tear down the builder once the route is actually added — so a transient
+      // BRouter failure keeps your points on the map and you can just try again.
+      const okDone=await showBrouterRoute(lonlats, prof, null, nm, srv||undefined, {svg:rfIcoSvg, color:rfIcoCol}, col);
+      rfOk.disabled=false; rfOk.textContent=_okTxt;
+      if(okDone){ rfCleanup(); searchActive=false; }
     });
     rfCancel.addEventListener('click',function(e){ e.stopPropagation(); rfCleanup(); showToast('Cancelled'); });
     rfPanel.addEventListener('click',function(e){ e.stopPropagation(); });
 
+    function catBtnHtml(g,c){
+      const catIcon=(c&&c.iconSvg)?('<span class="mam-icon mam-icon-chip" style="color:'+esc(c.iconColor||'#555555')+'">'+c.iconSvg+'</span>')
+        :(c&&c.iconImgSrc)?('<span class="mam-icon mam-icon-chip"><img src="'+esc(c.iconImgSrc)+'" alt=""></span>')
+        :'<span class="mam-icon">&#128205;</span>';
+      return '<button class="mam-item" data-group="'+esc(g)+'">'+catIcon+esc(g)+'</button>';
+    }
     function renderGroupLevel(){
       let html='<div class="mam-header">Choose an action</div>';
-      html+='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
-      html+='<button class="mam-item" data-save-point="1"><span class="mam-icon">&#128204;</span>Save this location</button>';
-      html+='<button class="mam-item" data-route-from="1"><span class="mam-icon">&#9873;</span>Route from here</button>';
-      groupOrder.forEach(g=>{
-        const c=catMap[g];
-        const catIcon=(c&&c.iconSvg)?('<span class="mam-icon mam-icon-chip" style="color:'+esc(c.iconColor||'#555555')+'">'+c.iconSvg+'</span>')
-          :(c&&c.iconImgSrc)?('<span class="mam-icon mam-icon-chip"><img src="'+esc(c.iconImgSrc)+'" alt=""></span>')
-          :'<span class="mam-icon">&#128205;</span>';
-        html+='<button class="mam-item" data-group="'+esc(g)+'">'+catIcon+esc(g)+'</button>';
-      });
+      const cats=(typeof MAP_CATEGORIES!=='undefined'?MAP_CATEGORIES:[]);
+      const shareBtn='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
+      const saveBtn='<button class="mam-item" data-save-point="1"><span class="mam-icon">&#128204;</span>Save this location</button>';
+      const routeFromBtnHtml='<button class="mam-item" data-route-from="1"><span class="mam-icon">&#9873;</span>Route from here</button>';
+      const shown={};
+      if(cats.some(c=>c.builtin)){
+        // Menu order follows the category order set in the Creator; built-in items and
+        // groups can each be hidden there too.
+        cats.forEach(c=>{
+          if(c.hidden) return;
+          if(c.builtin==='share'){ html+=shareBtn; }
+          else if(c.builtin==='save'){ html+=saveBtn; }
+          else if(c.builtin==='routefrom'){ html+=routeFromBtnHtml; }
+          else if(c.name && groupMap[c.name] && groupMap[c.name].length){ html+=catBtnHtml(c.name,c); shown[c.name]=1; }
+        });
+        // Any groups without a matching category row appear at the end.
+        groupOrder.forEach(g=>{ if(!shown[g] && !catMap[g] && groupMap[g] && groupMap[g].length){ html+=catBtnHtml(g,null); } });
+      } else {
+        // Fallback for exports made before categories carried the built-ins.
+        html+=shareBtn+saveBtn+routeFromBtnHtml;
+        groupOrder.forEach(g=>{ html+=catBtnHtml(g,catMap[g]); });
+      }
       menuEl.innerHTML=html;
       const shareMapBtn=menuEl.querySelector('[data-share-map]');
       if(shareMapBtn) shareMapBtn.addEventListener('click',shareThisMap);
