@@ -254,6 +254,10 @@ input:checked+.slider:before{transform:translateX(14px)}
   <div class="section-label">Map actions</div>
   <p style="font-size:12px;color:#000;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. For turn-by-turn navigation links, <code>{fromlat}</code>/<code>{fromlon}</code> give the visitor's own current location (the browser will ask permission first) — e.g. for an OpenStreetMap walking route: <code>https://www.openstreetmap.org/directions?engine=graphhopper_foot&amp;route={fromlat}%2C{fromlon}%3B{lat}%2C{lon}</code>, or a BRouter-web trekking route: <code>https://brouter.de/brouter-web/#zoom={zoom}&amp;lat={lat}&amp;lon={lon}&amp;layer=OpenStreetMap&amp;lonlats={fromlon},{fromlat}|{lon},{lat}&amp;nogos=&amp;alternativeidx=0&amp;format=geojson&amp;profile=trekking</code>. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. The built-in items &mdash; &quot;Share this map here&quot;, &quot;Save this location&quot; and &quot;Route from here&quot; &mdash; live in the &quot;Action categories&quot; section above, where you can show/hide them and drag their position in the menu.</p>
   <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+
+  <div class="section-label">OSM Notes layer</div>
+  <p style="font-size:12px;color:#000;margin:-4px 0 8px">Adds a live &quot;OSM Notes&quot; toggle to the exported map's layer panel. Notes are fetched live from OpenStreetMap for the current view (from the chosen zoom level), shown as coloured markers with the note text and a link to OpenStreetMap. Needs an internet connection.</p>
+  <div id="notes-settings" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
   <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add action
   </button>
@@ -387,6 +391,7 @@ function saveLayersToStorage(){
       })),
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       categories:categories.map(c=>({name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
+      notesConfig:Object.assign({}, notesConfig),
       title:document.getElementById('title').value,
       pwaShort:(document.getElementById('pwa-short')||{}).value,
       osmOpacity:document.getElementById('osmopacity').value,
@@ -416,6 +421,7 @@ function loadLayersFromStorage(){
       attribution:l.attribution||''
     }));
     renderLayerList();
+    notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG, (state&&state.notesConfig)||{});
 
     const catsToLoad=state&&state.categories;
     const catsSource=catsToLoad&&catsToLoad.length>0?catsToLoad:DEFAULT_CATEGORIES;
@@ -444,6 +450,7 @@ function loadLayersFromStorage(){
       mapActions.push({group:(a.group==='Go to'?'Link to…':(a.group||'')),iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:tpl});
     });
     renderMapActionsList();
+    renderNotesSettings();
 
     _restoring=false;
     if(state&&state.title) document.getElementById('title').value=state.title;
@@ -491,6 +498,8 @@ let files=[];
 let map=null;
 let layers=[];
 let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
+const DEFAULT_NOTES_CONFIG={enabled:false, defaultOn:false, minZoom:12, colorOpen:'#e8590c', icon:'!'};
+let notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG);
 let previewExtraLayers=[];
 let osmTileLayer=null;
 
@@ -672,6 +681,24 @@ function maGroupOptions(current){
 }
 function addCategory(){ categories.push({name:'',iconSvg:null,iconSvgRaw:null,iconRecolor:false,iconColor:'#555555',iconImgSrc:null}); renderCategoriesList(); renderMapActionsList(); }
 function resetCategoriesToDefault(){ if(!confirm('This discards your current categories and restores the built-in defaults. This cannot be undone. Continue?'))return; categories.length=0; DEFAULT_CATEGORIES.forEach(c=>categories.push({...c})); renderCategoriesList(); renderMapActionsList(); }
+function renderNotesSettings(){
+  const el=document.getElementById('notes-settings'); if(!el) return;
+  const c=notesConfig;
+  el.innerHTML=`
+    <label class="layer-toggle-row"><input type="checkbox" id="nc-enabled" ${c.enabled?'checked':''}><span>Include the OSM Notes layer in the exported map</span></label>
+    <div id="nc-details" style="display:${c.enabled?'flex':'none'};flex-direction:column;gap:8px;padding-left:8px;border-left:3px solid #e6e6e6">
+      <label class="layer-toggle-row"><input type="checkbox" id="nc-defaulton" ${c.defaultOn?'checked':''}><span>On by default</span></label>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#000;min-width:130px">Fetch from zoom level</span><input type="number" id="nc-minzoom" min="1" max="19" value="${c.minZoom}" style="width:60px"></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#000;min-width:130px">Marker colour</span><input type="color" id="nc-coloropen" value="${c.colorOpen}"></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#000;min-width:130px">Marker symbol</span><input type="text" id="nc-icon" maxlength="2" value="${(c.icon||'').replace(/"/g,'&quot;')}" style="width:48px;text-align:center" title="A single character or emoji shown inside the marker"></div>
+    </div>`;
+  const on=(id)=>document.getElementById(id);
+  on('nc-enabled').addEventListener('change',e=>{ notesConfig.enabled=e.target.checked; on('nc-details').style.display=notesConfig.enabled?'flex':'none'; saveLayersToStorage(); });
+  on('nc-defaulton').addEventListener('change',e=>{ notesConfig.defaultOn=e.target.checked; saveLayersToStorage(); });
+  on('nc-minzoom').addEventListener('input',e=>{ var v=parseInt(e.target.value); if(!isNaN(v)) notesConfig.minZoom=Math.max(1,Math.min(19,v)); saveLayersToStorage(); });
+  on('nc-coloropen').addEventListener('input',e=>{ notesConfig.colorOpen=e.target.value; saveLayersToStorage(); });
+  on('nc-icon').addEventListener('input',e=>{ notesConfig.icon=e.target.value; saveLayersToStorage(); });
+}
 function renderCategoriesList(){
   const el=document.getElementById('categories-list');
   if(!el) return;
@@ -2662,6 +2689,7 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 const EX=${JSON.stringify(exportExtra)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const MAP_CATEGORIES=${JSON.stringify(exportCategories)};
+const NOTES_CONFIG=${JSON.stringify(notesConfig)};
 const SEARCH_CATS=${JSON.stringify(exportSearchCats)};
 const PREVIEW_VIEW=${JSON.stringify(previewView)};
 const INFO_URL=${safeInfoUrl};
@@ -2816,6 +2844,72 @@ const wmsLayerObjs=new Array(EX.length);
     if(!layersOverlay.contains(e.target))layersPanel.classList.remove('open');
   });
 }
+
+// --- OSM Notes overlay: live query of the OSM Notes API for the current view ------
+// Anonymous GET (no key, CORS-friendly). Only fetches from a configured zoom level so
+// the number of notes stays reasonable, and debounces on map move. Each marker shows
+// the note's opening text and a link to the note on openstreetmap.org.
+(function(){
+  if(typeof NOTES_CONFIG==='undefined' || !NOTES_CONFIG || !NOTES_CONFIG.enabled) return;
+  var cfg=NOTES_CONFIG;
+  var minZoom=cfg.minZoom||12;
+  var colorOpen=cfg.colorOpen||'#e8590c';
+  var icon=(cfg.icon!=null&&cfg.icon!=='')?cfg.icon:'!';
+  var notesGroup=L.layerGroup();
+  var notesOn=false, seq=0, debTimer=null;
+  function nEsc(s){ return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;'); }
+  function noteIcon(color){
+    return L.divIcon({className:'osm-note-icon', html:'<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:'+color+';border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);color:#fff;font-size:13px;line-height:1;font-weight:700">'+nEsc(icon)+'</span></div>', iconSize:[26,26], iconAnchor:[13,25], popupAnchor:[0,-24]});
+  }
+  function render(features){
+    notesGroup.clearLayers();
+    (features||[]).forEach(function(f){
+      try{
+        var g=f.geometry, p=f.properties||{};
+        if(!g||!g.coordinates) return;
+        var lon=g.coordinates[0], lat=g.coordinates[1];
+        if(p.status==='closed') return;   // open notes only
+        var comments=p.comments||[];
+        var first=comments.length?(comments[0].text||''):'';
+        var txt=nEsc(first);
+        if(txt.length>400) txt=txt.slice(0,400)+'\u2026';
+        var html='<div style="max-width:240px;font-size:13px"><b>OSM note</b><br>'+(txt||'<i>(no text)</i>')+'<br><a href="https://www.openstreetmap.org/note/'+encodeURIComponent(p.id)+'" target="_blank" rel="noopener">Open on OSM</a></div>';
+        var m=L.marker([lat,lon],{icon:noteIcon(colorOpen)});
+        m.bindPopup(html);
+        notesGroup.addLayer(m);
+      }catch(e){}
+    });
+  }
+  function fetchNotes(){
+    if(!notesOn) return;
+    var z, b;
+    try{ z=map.getZoom(); b=map.getBounds(); }catch(e){ return; }   // map not positioned yet
+    if(z<minZoom){ notesGroup.clearLayers(); return; }
+    var bbox=b.getWest().toFixed(5)+','+b.getSouth().toFixed(5)+','+b.getEast().toFixed(5)+','+b.getNorth().toFixed(5);
+    var url='https://api.openstreetmap.org/api/0.6/notes.json?bbox='+bbox+'&limit=100&closed=0';
+    var mySeq=++seq;
+    fetch(url).then(function(r){ return r.json(); }).then(function(js){
+      if(mySeq!==seq || !notesOn) return;
+      render(js&&js.features);
+    }).catch(function(){});
+  }
+  function schedule(){ if(!notesOn) return; clearTimeout(debTimer); debTimer=setTimeout(fetchNotes, 600); }
+  map.on('moveend zoomend', schedule);
+  var panelContent=document.getElementById('layers-panel-content');
+  if(panelContent){
+    var sec=document.createElement('div'); sec.className='layer-section-label'; sec.style.marginTop='6px'; sec.textContent='OSM Notes'; panelContent.appendChild(sec);
+    var row=document.createElement('label'); row.className='layer-toggle-row';
+    row.innerHTML='<input type="checkbox" '+(cfg.defaultOn?'checked':'')+'><span>Show OSM notes</span>';
+    panelContent.appendChild(row);
+    var hint=document.createElement('div'); hint.style.cssText='font-size:11px;color:#666;margin:-2px 0 4px'; hint.textContent='Live from OSM \u00b7 zoom '+minZoom+'+'; panelContent.appendChild(hint);
+    row.querySelector('input').addEventListener('change',function(e){
+      notesOn=e.target.checked;
+      if(notesOn){ map.addLayer(notesGroup); fetchNotes(); }
+      else { map.removeLayer(notesGroup); notesGroup.clearLayers(); }
+    });
+  }
+  if(cfg.defaultOn){ notesOn=true; map.addLayer(notesGroup); map.whenReady(fetchNotes); }
+})();
 
 const labelLayers=[];
 const trackLineLayers=[];   // L.Polyline track lines only
