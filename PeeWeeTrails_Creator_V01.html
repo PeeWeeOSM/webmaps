@@ -92,7 +92,6 @@ input:checked+.slider:before{transform:translateX(14px)}
 </head>
 <body>
 <h1>PeeWeeTrails</h1>
-<p class="sub">Drag GPX or GeoJSON files here. Each track, waypoint group and polygon is split into a separate row automatically.</p>
 
 <div class="card">
   <!-- Settings: map title, PWA name, default zoom / orientation, welcome popup, OSM Notes and gradient tuning -- all baked into the exported map. -->
@@ -192,6 +191,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 <div class="card">
   <!-- Files: import GPX / GeoJSON / FIT tracks. Each becomes a styleable route drawn on the map (colour, width, labels, arrows, gradient). -->
   <div class="section-label">Files</div>
+  <p class="sub" style="margin-top:0">Each track, waypoint group and polygon is split into a separate row automatically.</p>
   <div class="dropzone" id="dropzone" onclick="document.getElementById('fileinput').click()">
     <i class="ti ti-map-2" aria-hidden="true"></i>
     Drag GPX, GeoJSON or FIT files here, or click to browse
