@@ -92,10 +92,106 @@ input:checked+.slider:before{transform:translateX(14px)}
 </head>
 <body>
 <h1>PeeWeeTrails</h1>
-<p class="sub">Drag GPX or GeoJSON files here. Each track, waypoint group and polygon is split into a separate row automatically.</p>
 
 <div class="card">
+  <!-- Settings: map title, PWA name, default zoom / orientation, welcome popup, OSM Notes and gradient tuning -- all baked into the exported map. -->
+  <div class="section-label">Settings</div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div>
+      <label for="title">Page title</label>
+      <input type="text" id="title" placeholder="My ride" id="title">
+    </div>
+    <div>
+      <label for="pwa-short">PWA short name <span style="font-weight:normal;color:#000;font-size:12px">&mdash; shown under the icon when the map is added to a home screen</span></label>
+      <input type="text" id="pwa-short" placeholder="PWTrails" value="PWTrails" maxlength="24">
+    </div>
+    <div>
+      <label for="search-cats-input">Search categories (the "Looking for?" list in the exported map)</label>
+      <p style="font-size:12px;color:#000;margin:-2px 0 6px">One per line: <code>icon | label | term1, term2</code> &mdash; several terms act as OR (each is searched and the results are merged). Terms are Nominatim <a href="https://wiki.openstreetmap.org/wiki/Nominatim/Special_Phrases" target="_blank" rel="noopener">special phrases</a>, so only main tags work (e.g. <code>bird hide</code> = leisure=bird_hide); secondary tags such as viewpoint=birdwatching are not searchable.</p>
+      <textarea id="search-cats-input" rows="8" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:5px">&#129681; | Bench | bench,picnic site, picnic table
+&#128703; | Drinking water | drinking water
+&#128701; | Toilets | toilets
+&#127857; | Picnic site | picnic site, picnic table
+&#127957; | Shelter | shelter
+&#128064; | Viewpoint | viewpoint
+&#9978; | Camp site | camp site
+&#128690; | Bicycle shop | bicycle shop
+&#129360; | Bakery | bakery
+&#9749; | Caf&eacute; | cafe
+&#127866; | Pub | pub
+&#127869; | Restaurant | restaurant
+&#128722; | Supermarket | supermarket</textarea>
+    </div>
+    <div>
+      <label>Settings defaults (the "Settings" panel in the exported map)</label>
+      <div class="row" style="gap:10px;margin-top:4px">
+        <input type="color" id="gpstrail-color" value="#9b30d9" title="GPS trail color">
+        <span class="toggle-label" style="color:#000">width</span>
+        <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
+        <span class="toggle-label" style="color:#000">px</span>
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        <span class="toggle-label" style="color:#000">center map</span>
+        <select id="opt-center-delay" class="posselect" title="Return to your own location after this idle time">
+          <option value="0">never</option>
+          <option value="5000">after 5 s</option>
+          <option value="10000" selected>after 10 s</option>
+          <option value="20000">after 20 s</option>
+        </select>
+        <span class="toggle-label" style="color:#000">zoom level</span>
+        <input type="number" id="opt-zoom-level" value="17" min="1" max="22" class="zoominput" style="width:56px" title="Zoom level used when centering on your own location">
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        <span class="toggle-label" style="color:#000">hide buttons</span>
+        <select id="opt-hide-ui" class="posselect" title="Hide all buttons while navigating; a tap on the map brings them back">
+          <option value="0" selected>never</option>
+          <option value="5000">after 5 s</option>
+          <option value="10000">after 10 s</option>
+        </select>
+        <span class="toggle-label" style="color:#000">rotate by gesture</span>
+        <select id="opt-rotate-gesture" class="posselect" title="Default for two-finger rotation in the exported map. 'off' prevents the map rotating by accident while pinch-zooming; the compass modes still rotate the map on their own. Visitors can override this in the map's own settings.">
+          <option value="0" selected>off</option>
+          <option value="1">on</option>
+        </select>
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        <span class="toggle-label" style="color:#000">start orientation</span>
+        <select id="opt-start-locmode" class="posselect" title="Which location mode the exported map opens in. North up and Movement direction start GPS tracking right away (and ask for location permission).">
+          <option value="off" selected>location off</option>
+          <option value="north">north up</option>
+          <option value="movement">movement direction</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label>Background map opacity (OSM)</label>
+      <div class="row">
+        <input type="range" min="0" max="1" step="0.05" value="1" id="osmopacity" oninput="document.getElementById('osmopacityval').textContent=Math.round(this.value*100)+'%';updatePreview()">
+        <span class="range-val" id="osmopacityval">100%</span>
+      </div>
+    </div>
+    <div>
+      <label for="output-info-url">URL output information</label>
+      <input type="text" id="output-info-url" placeholder="https://example.com/about-this-map" value="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html">
+      <p style="font-size:12px;color:#000;margin:4px 0 0">If filled in, an info ("i") button appears top-right on the exported map. Clicking it opens this URL in a new tab. Leave empty to not show the button at all.</p>
+    </div>
+    <div>
+      <label class="layer-toggle-row" style="margin-bottom:4px"><input type="checkbox" id="opt-welcome-enabled"><span>Show a welcome popup when the map first opens</span></label>
+      <textarea id="opt-welcome-text" rows="4" style="width:100%;font-size:13px;box-sizing:border-box" placeholder="Welcome text&#8230;">Tip: add this map to your phone's home screen for quick, app-like access. Open your browser menu and choose "Add to Home screen" (Android) or Share &#8594; "Add to Home Screen" (iPhone). On a computer you can bookmark this page instead. This map needs an internet connection.</textarea>
+      <p style="font-size:12px;color:#000;margin:4px 0 0">Shown once per device, with a "Got it" button; the visitor won't see it again after closing. Untick to show nothing. You can edit or translate the text.</p>
+    </div>
+    <div style="margin-top:8px">
+      <span style="font-size:13px;color:#000;font-weight:600">Gradient colouring</span>
+      <p style="font-size:12px;color:#000;margin:2px 0 6px">For the "colour by gradient" option on tracks with elevation. Elevation data (SRTM) is about 90 m resolution, so a longer baseline gives cleaner, longer segments; a larger minimum length absorbs tiny slivers.</p>
+      <div id="grade-settings" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <!-- Files: import GPX / GeoJSON / FIT tracks. Each becomes a styleable route drawn on the map (colour, width, labels, arrows, gradient). -->
   <div class="section-label">Files</div>
+  <p class="sub" style="margin-top:0">Each track, waypoint group and polygon is split into a separate row automatically.</p>
   <div class="dropzone" id="dropzone" onclick="document.getElementById('fileinput').click()">
     <i class="ti ti-map-2" aria-hidden="true"></i>
     Drag GPX, GeoJSON or FIT files here, or click to browse
@@ -111,6 +207,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </div>
 
 <div class="card">
+  <!-- Preview: a live mini-map of the exported result. It updates as you change settings and toggle layers, so you can check before exporting. -->
   <div class="section-label">Preview</div>
   <div id="preview-empty" class="empty-map">Add GPX files to see a preview</div>
   <div id="preview-wrap" style="position:relative">
@@ -146,91 +243,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 
 <div class="card">
-  <div class="section-label">Settings</div>
-  <div style="display:flex;flex-direction:column;gap:14px">
-    <div>
-      <label for="title">Page title</label>
-      <input type="text" id="title" placeholder="My ride" id="title">
-    </div>
-    <div>
-      <label for="pwa-short">PWA short name <span style="font-weight:normal;color:#000;font-size:12px">&mdash; shown under the icon when the map is added to a home screen</span></label>
-      <input type="text" id="pwa-short" placeholder="PWTrails" value="PWTrails" maxlength="24">
-    </div>
-    <div>
-      <label for="search-cats-input">Search categories (the "Looking for?" list in the exported map)</label>
-      <p style="font-size:12px;color:#000;margin:-2px 0 6px">One per line: <code>icon | label | term1, term2</code> &mdash; several terms act as OR (each is searched and the results are merged). Terms are Nominatim <a href="https://wiki.openstreetmap.org/wiki/Nominatim/Special_Phrases" target="_blank" rel="noopener">special phrases</a>, so only main tags work (e.g. <code>bird hide</code> = leisure=bird_hide); secondary tags such as viewpoint=birdwatching are not searchable.</p>
-      <textarea id="search-cats-input" rows="8" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:5px">&#129681; | Bench | bench
-&#128703; | Drinking water | drinking water
-&#128701; | Toilets | toilets
-&#127857; | Picnic site | picnic site, picnic table
-&#127957; | Shelter | shelter
-&#128064; | Viewpoint | viewpoint
-&#9978; | Camp site | camp site
-&#128690; | Bicycle shop | bicycle shop
-&#129360; | Bakery | bakery
-&#9749; | Caf&eacute; | cafe
-&#127866; | Pub | pub
-&#127869; | Restaurant | restaurant
-&#128722; | Supermarket | supermarket</textarea>
-    </div>
-    <div>
-      <label>Settings defaults (the "Settings" panel in the exported map)</label>
-      <div class="row" style="gap:10px;margin-top:4px">
-        <input type="color" id="gpstrail-color" value="#9b30d9" title="GPS trail color">
-        <span class="toggle-label" style="color:#000">width</span>
-        <input type="number" id="gpstrail-width" value="5" min="1" max="15" class="zoominput" style="width:56px">
-        <span class="toggle-label" style="color:#000">px</span>
-      </div>
-      <div class="row" style="gap:10px;margin-top:8px">
-        <span class="toggle-label" style="color:#000">trail length</span>
-        <select id="gpstrail-mode" class="posselect" onchange="document.getElementById('gpstrail-meters').style.display=this.value==='full'?'none':'';document.getElementById('gpstrail-meters-label').style.display=this.value==='full'?'none':''">
-          <option value="distance">last</option>
-          <option value="full" selected>whole ride (no limit)</option>
-        </select>
-        <input type="number" id="gpstrail-meters" value="50" min="5" max="5000" class="zoominput" style="width:64px;display:none">
-        <span class="toggle-label" style="color:#000;display:none" id="gpstrail-meters-label">meters</span>
-      </div>
-      <div class="row" style="gap:10px;margin-top:8px">
-        <span class="toggle-label" style="color:#000">center map</span>
-        <select id="opt-center-delay" class="posselect" title="Return to your own location after this idle time">
-          <option value="0">never</option>
-          <option value="5000">after 5 s</option>
-          <option value="10000" selected>after 10 s</option>
-          <option value="20000">after 20 s</option>
-        </select>
-        <span class="toggle-label" style="color:#000">zoom level</span>
-        <input type="number" id="opt-zoom-level" value="17" min="1" max="22" class="zoominput" style="width:56px" title="Zoom level used when centering on your own location">
-      </div>
-      <div class="row" style="gap:10px;margin-top:8px">
-        <span class="toggle-label" style="color:#000">hide buttons</span>
-        <select id="opt-hide-ui" class="posselect" title="Hide all buttons while navigating; a tap on the map brings them back">
-          <option value="0" selected>never</option>
-          <option value="5000">after 5 s</option>
-          <option value="10000">after 10 s</option>
-        </select>
-        <span class="toggle-label" style="color:#000">rotate by gesture</span>
-        <select id="opt-rotate-gesture" class="posselect" title="Default for two-finger rotation in the exported map. 'off' prevents the map rotating by accident while pinch-zooming; the compass modes still rotate the map on their own. Visitors can override this in the map's own settings.">
-          <option value="0" selected>off</option>
-          <option value="1">on</option>
-        </select>
-      </div>
-    </div>
-    <div>
-      <label>Background map opacity (OSM)</label>
-      <div class="row">
-        <input type="range" min="0" max="1" step="0.05" value="1" id="osmopacity" oninput="document.getElementById('osmopacityval').textContent=Math.round(this.value*100)+'%';updatePreview()">
-        <span class="range-val" id="osmopacityval">100%</span>
-      </div>
-    </div>
-    <div>
-      <label for="output-info-url">URL output information</label>
-      <input type="text" id="output-info-url" placeholder="https://example.com/about-this-map" value="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html">
-      <p style="font-size:12px;color:#000;margin:4px 0 0">If filled in, an info ("i") button appears top-right on the exported map. Clicking it opens this URL in a new tab. Leave empty to not show the button at all.</p>
-    </div>
-  </div>
-</div>
-
-<div class="card">
+  <!-- Extra map layers: additional XYZ / WMTS / WMS overlays and base maps the visitor can switch on/off in the exported map's layer panel. -->
   <div class="section-label">Extra map layers</div>
   <p style="font-size:12px;color:#000;margin:-4px 0 8px">Top layer in list renders on top of the map. To change order use the arrows.</p>
   <div id="layer-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
@@ -243,6 +256,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </div>
 
 <div class="card">
+  <!-- Action categories: the groups shown in the exported map's long-press menu, including the built-in Share / Save / Route-from items. Reorder or hide them here; order here is the order in the menu. -->
   <div class="section-label">Action categories</div>
   <p style="font-size:12px;color:#000;margin:-4px 0 8px">Categories group the map actions in the long-press menu; each shows its own icon as the category button. Assign an action to a category in "Map actions" below.</p>
   <div id="categories-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
@@ -251,13 +265,16 @@ input:checked+.slider:before{transform:translateX(14px)}
 </div>
 
 <div class="card">
+  <!-- Map actions: the individual link / route actions inside each category (e.g. open this spot in another app, or calculate a route to here). -->
   <div class="section-label">Map actions</div>
   <p style="font-size:12px;color:#000;margin:-4px 0 8px">On the exported map, a long-press (phone/tablet) or right-click (desktop) on the map opens a menu built from this list, grouped by the "Group" column. Use <code>{lat}</code>, <code>{lon}</code> and <code>{zoom}</code> as placeholders in the URL — they're filled in with the tapped location and current zoom level when a visitor picks an item. For services that need projected coordinates instead, <code>{x}</code>/<code>{y}</code> give the same point in EPSG:3857 (Web Mercator) metres, and <code>{xmin}</code>/<code>{ymin}</code>/<code>{xmax}</code>/<code>{ymax}</code> give a 500m×500m square centered on that point. For turn-by-turn navigation links, <code>{fromlat}</code>/<code>{fromlon}</code> give the visitor's own current location (the browser will ask permission first) — e.g. for an OpenStreetMap walking route: <code>https://www.openstreetmap.org/directions?engine=graphhopper_foot&amp;route={fromlat}%2C{fromlon}%3B{lat}%2C{lon}</code>, or a BRouter-web trekking route: <code>https://brouter.de/brouter-web/#zoom={zoom}&amp;lat={lat}&amp;lon={lon}&amp;layer=OpenStreetMap&amp;lonlats={fromlon},{fromlat}|{lon},{lat}&amp;nogos=&amp;alternativeidx=0&amp;format=geojson&amp;profile=trekking</code>. Each row can optionally have its own icon (shown instead of the default pin in the menu, on a neutral background so light or transparent icons stay visible) — click "Choose icon" to upload an SVG, ICO, PNG, or other image. The built-in items &mdash; &quot;Share this map here&quot;, &quot;Save this location&quot; and &quot;Route from here&quot; &mdash; live in the &quot;Action categories&quot; section above, where you can show/hide them and drag their position in the menu.</p>
   <div id="mapactions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
 
+  <!-- OSM Notes layer: an optional live overlay in the exported map that fetches open OpenStreetMap notes for the current view (anonymous, no key). -->
   <div class="section-label">OSM Notes layer</div>
   <p style="font-size:12px;color:#000;margin:-4px 0 8px">Adds a live &quot;OSM Notes&quot; toggle to the exported map's layer panel. Notes are fetched live from OpenStreetMap for the current view (from the chosen zoom level), shown as coloured markers with the note text and a link to OpenStreetMap. Needs an internet connection.</p>
   <div id="notes-settings" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+
   <button class="btn" onclick="addMapAction()" style="font-size:13px;padding:6px 12px">
     <i class="ti ti-plus" aria-hidden="true"></i> Add action
   </button>
@@ -274,10 +291,22 @@ input:checked+.slider:before{transform:translateX(14px)}
 
 <script>
 // =============================================================================
-// TRAILCRAFT — INPUT HTML (editor / builder)
-// This page lets the map-maker upload GPX and GeoJSON files, style tracks,
-// configure extra tile layers (XYZ/WMTS/WMS), and export a self-contained
-// OUTPUT HTML map page that end-users can open in any browser.
+// PeeWeeTrails Creator — builder / editor page (this file)
+//
+// PeeWeeTrails is a GPL-3.0, single-file, no-build mapping suite. This page is
+// the "Creator": the map-maker uses it to
+//   * import GPX / GeoJSON / FIT tracks and style them (colour, width, labels,
+//     arrows, and optional gradient colouring for tracks that have elevation),
+//   * add extra tile layers (XYZ / WMTS / WMS) and choose a base map,
+//   * configure the long-press action menu (categories + link/route actions),
+//   * set map defaults (start zoom, orientation, welcome popup, OSM Notes, ...),
+// and then EXPORT one self-contained map page (see the OUTPUT block further down)
+// that anyone can open in a browser -- no server, no accounts, works offline once
+// the tiles are cached by the browser.
+//
+// The file has two halves: this Creator UI + logic, and a large template literal
+// (`const html = ` ... ``) lower down that contains the OUTPUT page. At export the
+// Creator bakes the map-maker's choices into that template as JSON constants.
 // =============================================================================
 
 const COLORS=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#42d4f4","#c07000","#888888","#a9a9a9","#000075"];
@@ -297,8 +326,12 @@ const DEFAULT_LAYERS=[
   {type:'xyz',url:'https://wmts.satellietdataportaal.nl/wmts/mosaics/service?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=20260201_20260407_30cm_RD_8bit_RGBMosaic_Nederland&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'Satelite NL April 2026',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
   {type:'xyz',url:'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',wmsLayer:'',displayName:'Satelite World (EOX Sentinel-2)',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Sentinel-2 cloudless <a href="https://s2maps.eu" target="_blank" rel="noopener">s2maps.eu</a> by <a href="https://eox.at" target="_blank" rel="noopener">EOX</a> (Contains modified Copernicus Sentinel data 2024)'},
   {type:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',wmsLayer:'',displayName:'Satelite World (Esri)',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false,attribution:'Imagery &copy; <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community'},
-  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'gravelbiker',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
-  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'dijkfietser',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false}
+  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=gravelbike&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'OSMNL_gravelbike',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=osm_maxspeed&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'OSMNL_maxspeed',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=surface2&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'OSMNL_surface',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fietstoegankelijkheid_simpel&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'OSMNL_bicycle_access',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+  {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=naturereserve_cycling&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'OSMNL_naturereserve_cycling',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false},
+ {type:'xyz',url:'https://wms.prod.qgiscloud.com/PeeWee32/brouter_layers//?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=dijkfietser&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',wmsLayer:'',displayName:'dijkfietser',opacity:0.8,zoomMin:1,zoomMax:22,defaultOn:false,previewOn:false}
 ];
 // --- Default map actions (long-press / right-click menu in the output map) ---
 // {lat}, {lon} and {zoom} are placeholders filled in with the tapped location and
@@ -355,10 +388,11 @@ const DEFAULT_MAP_ACTIONS=[
   {group:'OSM',iconSvg:ALERT_SVG,iconSvgRaw:ALERT_SVG,iconRecolor:false,iconColor:'#e8590c',name:'Report error',urlTemplate:'https://www.openstreetmap.org/note/new#map={zoom}/{lat}/{lon}&layers=N'}
 ];
 const DEFAULT_CATEGORIES=[
+
+  {name:'Route to', hidden:false, iconSvg:ROUTE_CAT_SVG, iconSvgRaw:ROUTE_CAT_SVG, iconRecolor:true, iconColor:'#2e7d32', iconImgSrc:null},
+  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Share this map here', builtin:'share',     hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Save this location',  builtin:'save',      hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
-  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
-  {name:'Route to', hidden:false, iconSvg:ROUTE_CAT_SVG, iconSvgRaw:ROUTE_CAT_SVG, iconRecolor:true, iconColor:'#2e7d32', iconImgSrc:null},
   {name:'Link to…', hidden:false,   iconSvg:GOTO_CAT_SVG,  iconSvgRaw:GOTO_CAT_SVG,  iconRecolor:true, iconColor:'#1565c0', iconImgSrc:null},
   {name:'OSM',      hidden:false,   iconSvg:OSM_CAT_SVG,   iconSvgRaw:OSM_CAT_SVG,   iconRecolor:true, iconColor:'#7ebc6f', iconImgSrc:null}
 ];
@@ -392,6 +426,7 @@ function saveLayersToStorage(){
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       categories:categories.map(c=>({name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
       notesConfig:Object.assign({}, notesConfig),
+      gradeConfig:Object.assign({}, gradeConfig),
       title:document.getElementById('title').value,
       pwaShort:(document.getElementById('pwa-short')||{}).value,
       osmOpacity:document.getElementById('osmopacity').value,
@@ -422,6 +457,7 @@ function loadLayersFromStorage(){
     }));
     renderLayerList();
     notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG, (state&&state.notesConfig)||{});
+    gradeConfig=Object.assign({}, DEFAULT_GRADE_CONFIG, (state&&state.gradeConfig)||{});
 
     const catsToLoad=state&&state.categories;
     const catsSource=catsToLoad&&catsToLoad.length>0?catsToLoad:DEFAULT_CATEGORIES;
@@ -451,6 +487,7 @@ function loadLayersFromStorage(){
     });
     renderMapActionsList();
     renderNotesSettings();
+    renderGradeSettings();
 
     _restoring=false;
     if(state&&state.title) document.getElementById('title').value=state.title;
@@ -500,6 +537,8 @@ let layers=[];
 let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
 const DEFAULT_NOTES_CONFIG={enabled:false, defaultOn:false, minZoom:12, colorOpen:'#e8590c', icon:'!'};
 let notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG);
+const DEFAULT_GRADE_CONFIG={baseline:90, minSeg:60};
+let gradeConfig=Object.assign({}, DEFAULT_GRADE_CONFIG);
 let previewExtraLayers=[];
 let osmTileLayer=null;
 
@@ -681,6 +720,16 @@ function maGroupOptions(current){
 }
 function addCategory(){ categories.push({name:'',iconSvg:null,iconSvgRaw:null,iconRecolor:false,iconColor:'#555555',iconImgSrc:null}); renderCategoriesList(); renderMapActionsList(); }
 function resetCategoriesToDefault(){ if(!confirm('This discards your current categories and restores the built-in defaults. This cannot be undone. Continue?'))return; categories.length=0; DEFAULT_CATEGORIES.forEach(c=>categories.push({...c})); renderCategoriesList(); renderMapActionsList(); }
+function renderGradeSettings(){
+  const el=document.getElementById('grade-settings'); if(!el) return;
+  const c=gradeConfig;
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#000;min-width:150px" title="Distance the gradient is measured over. ~90 m matches the elevation data resolution; higher = smoother/longer segments.">Baseline distance (m)</span><input type="number" id="gc-baseline" min="20" max="500" step="10" value="${c.baseline}" style="width:70px"></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#000;min-width:150px" title="Segments shorter than this are merged into their neighbour, removing tiny slivers.">Minimum segment (m)</span><input type="number" id="gc-minseg" min="0" max="500" step="10" value="${c.minSeg}" style="width:70px"></div>`;
+  const on=(id)=>document.getElementById(id);
+  on('gc-baseline').addEventListener('input',e=>{ var v=parseInt(e.target.value); if(!isNaN(v)) gradeConfig.baseline=Math.max(20,Math.min(500,v)); saveLayersToStorage(); });
+  on('gc-minseg').addEventListener('input',e=>{ var v=parseInt(e.target.value); if(!isNaN(v)) gradeConfig.minSeg=Math.max(0,Math.min(500,v)); saveLayersToStorage(); });
+}
 function renderNotesSettings(){
   const el=document.getElementById('notes-settings'); if(!el) return;
   const c=notesConfig;
@@ -1082,22 +1131,30 @@ function parseGPX(text){
       const segEls=el.querySelectorAll('trkseg');
       if(segEls.length){
         segEls.forEach(seg=>{
-          const pts=[];
+          const pts=[], eles=[]; let anyEle=false;
           seg.querySelectorAll('trkpt').forEach(pt=>{
             const lat=parseFloat(pt.getAttribute('lat'));
             const lon=parseFloat(pt.getAttribute('lon'));
-            if(!isNaN(lat)&&!isNaN(lon))pts.push([lat,lon]);
+            if(!isNaN(lat)&&!isNaN(lon)){
+              pts.push([lat,lon]);
+              const et=pt.querySelector('ele'); const ev=et?parseFloat(et.textContent):NaN;
+              if(!isNaN(ev)){ eles.push(ev); anyEle=true; } else { eles.push(null); }
+            }
           });
-          if(pts.length)tracks.push({name,coords:pts});
+          if(pts.length)tracks.push({name,coords:pts,ele:anyEle?eles:null});
         });
       } else {
-        const pts=[];
+        const pts=[], eles=[]; let anyEle=false;
         el.querySelectorAll('trkpt,rtept').forEach(pt=>{
           const lat=parseFloat(pt.getAttribute('lat'));
           const lon=parseFloat(pt.getAttribute('lon'));
-          if(!isNaN(lat)&&!isNaN(lon))pts.push([lat,lon]);
+          if(!isNaN(lat)&&!isNaN(lon)){
+            pts.push([lat,lon]);
+            const et=pt.querySelector('ele'); const ev=et?parseFloat(et.textContent):NaN;
+            if(!isNaN(ev)){ eles.push(ev); anyEle=true; } else { eles.push(null); }
+          }
         });
-        if(pts.length)tracks.push({name,coords:pts});
+        if(pts.length)tracks.push({name,coords:pts,ele:anyEle?eles:null});
       }
     });
     doc.querySelectorAll('wpt').forEach(wpt=>{
@@ -1128,10 +1185,10 @@ function mergeTracksIntoOne(tracks){
   for(var t=0;t<tracks.length;t++){
     var c=tracks[t].coords;
     if(!c||c.length===0) continue;
-    if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c}); continue; }
-    segs.push({name:tracks[t].name||'', pts:c});
+    if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c,ele:tracks[t].ele||null}); continue; }
+    segs.push({name:tracks[t].name||'', pts:c, ele:tracks[t].ele||null});
   }
-  if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts};}));
+  if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts,ele:s.ele||null};}));
   function key(pt){ return pt[0].toFixed(7)+','+pt[1].toFixed(7); }
   var endMap={};
   function addEnd(k,i,end){ (endMap[k]||(endMap[k]=[])).push({i:i,end:end}); }
@@ -1143,14 +1200,15 @@ function mergeTracksIntoOne(tracks){
   function build(i){
     used[i]=true;
     var pts=segs[i].pts.slice();
+    var eles=(segs[i].ele?segs[i].ele.slice():segs[i].pts.map(function(){return null;}));
     var names=segs[i].name?[segs[i].name]:[];
-    var openK=segs[i].k1, fromI=i, nx, s2, a, pre;
+    var openK=segs[i].k1, fromI=i, nx, s2, a, pre, preE;
     while(true){
       nx=step(openK,fromI);
       if(!nx||used[nx.i]) break;
       used[nx.i]=true; s2=segs[nx.i];
-      if(nx.end===0){ for(a=1;a<s2.pts.length;a++) pts.push(s2.pts[a]); openK=s2.k1; }
-      else { for(a=s2.pts.length-2;a>=0;a--) pts.push(s2.pts[a]); openK=s2.k0; }
+      if(nx.end===0){ for(a=1;a<s2.pts.length;a++){ pts.push(s2.pts[a]); eles.push(s2.ele?s2.ele[a]:null); } openK=s2.k1; }
+      else { for(a=s2.pts.length-2;a>=0;a--){ pts.push(s2.pts[a]); eles.push(s2.ele?s2.ele[a]:null); } openK=s2.k0; }
       if(s2.name) names.push(s2.name); fromI=nx.i;
     }
     openK=segs[i].k0; fromI=i;
@@ -1158,11 +1216,12 @@ function mergeTracksIntoOne(tracks){
       nx=step(openK,fromI);
       if(!nx||used[nx.i]) break;
       used[nx.i]=true; s2=segs[nx.i];
-      if(nx.end===1){ pre=s2.pts.slice(0,s2.pts.length-1); pts=pre.concat(pts); openK=s2.k0; }
-      else { pre=s2.pts.slice(1).reverse(); pts=pre.concat(pts); openK=s2.k1; }
+      if(nx.end===1){ pre=s2.pts.slice(0,s2.pts.length-1); preE=(s2.ele?s2.ele.slice(0,s2.pts.length-1):pre.map(function(){return null;})); pts=pre.concat(pts); eles=preE.concat(eles); openK=s2.k0; }
+      else { pre=s2.pts.slice(1).reverse(); preE=(s2.ele?s2.ele.slice(1).reverse():pre.map(function(){return null;})); pts=pre.concat(pts); eles=preE.concat(eles); openK=s2.k1; }
       if(s2.name) names.unshift(s2.name); fromI=nx.i;
     }
-    result.push({name:names.length?names[0]:'', coords:pts});
+    var anyE=eles.some(function(x){return x!=null;});
+    result.push({name:names.length?names[0]:'', coords:pts, ele:anyE?eles:null});
   }
   segs.forEach(function(s,i){ if(used[i]) return; if(degree(s.k0)!==2||degree(s.k1)!==2) build(i); });
   segs.forEach(function(s,i){ if(!used[i]) build(i); });
@@ -1277,6 +1336,7 @@ function renderList(){
         <span class="slider"></span>
       </label>
       <span class="toggle-label">track distance</span>`:''}
+      ${(f._splitType==='trk'&&cFileHasEle(f))?`<label class="toggle" style="margin-left:4px" title="Colour this track by slope (needs elevation data). Baked into the exported map."><input type="checkbox" ${f.colorMode==='grade'?'checked':''} data-idx="${i}" class="gradetog"><span class="slider"></span></label><span class="toggle-label">gradient</span>`:''}
       <span class="toggle-label" style="color:#000;margin-left:4px">label zoom</span>
       <input type="number" value="${f.labelZoomMin}" min="1" max="22" data-idx="${i}" class="zoominput labelzoommin" title="Label zoom level from">
       <span class="toggle-label" style="color:#000">–</span>
@@ -1315,6 +1375,12 @@ function renderList(){
   el.querySelectorAll('.colorpick').forEach(inp=>{
     inp.addEventListener('input',e=>{
       files[parseInt(e.target.dataset.idx)].color=e.target.value;
+      updatePreview();
+    });
+  });
+  el.querySelectorAll('.gradetog').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      files[parseInt(e.target.dataset.idx)].colorMode=e.target.checked?'grade':'fixed';
       updatePreview();
     });
   });
@@ -1716,6 +1782,57 @@ function attachAutoNativeZoom(layer){
   });
 }
 
+// Gradient (slope) colouring for the live preview -- mirrors the exported map.
+var cGradeStops=[-12,-6,-2,2,6,12];
+var cGradeColors=['#08306b','#4292c6','#41ab5d','#9e9e9e','#f16913','#cb181d','#000000'];
+function cGradeClass(pct){ for(var i=0;i<cGradeStops.length;i++){ if(pct<cGradeStops[i]) return i; } return cGradeStops.length; }
+function cTrackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
+function cFileHasEle(f){ return !!(f && f.tracks && f.tracks.some(cTrackHasEle)); }
+function cBuildGradeRuns(coords, ele){
+  var n=coords.length; if(n<2) return [];
+  var cfg=(typeof gradeConfig!=='undefined'&&gradeConfig)?gradeConfig:{};
+  var baseline=Math.max(20, cfg.baseline||90);
+  var minSeg=Math.max(0, cfg.minSeg!=null?cfg.minSeg:60);
+  var HYST=0.5;
+  var d=[0]; for(var i=1;i<n;i++){ d[i]=d[i-1]+haversineMeters(coords[i-1],coords[i]); }
+  var half=baseline/2, grade=new Array(n);
+  for(i=0;i<n;i++){
+    var a=i, b=i;
+    while(a>0 && d[i]-d[a]<half) a--;
+    while(b<n-1 && d[b]-d[i]<half) b++;
+    var ea=ele[a], eb=ele[b], dd=d[b]-d[a];
+    grade[i]=(ea!=null && eb!=null && !isNaN(ea) && !isNaN(eb) && dd>0)?((eb-ea)/dd*100):0;
+  }
+  var cls=new Array(n), cur=cGradeClass(grade[0]); cls[0]=cur;
+  for(i=1;i<n;i++){
+    var lo=(cur>0)?cGradeStops[cur-1]:-Infinity, hi=(cur<cGradeStops.length)?cGradeStops[cur]:Infinity;
+    if(grade[i]>=hi+HYST || grade[i]<lo-HYST) cur=cGradeClass(grade[i]);
+    cls[i]=cur;
+  }
+  var pRuns=[], sIdx=0;
+  for(i=1;i<n;i++){ if(cls[i]!==cls[sIdx]){ pRuns.push({s:sIdx,e:i,c:cls[sIdx]}); sIdx=i; } }
+  pRuns.push({s:sIdx,e:n-1,c:cls[sIdx]});
+  function runLen(r){ return d[r.e]-d[r.s]; }
+  var changed=true, guard=0;
+  while(changed && guard++<200 && pRuns.length>1){
+    changed=false;
+    for(var k=0;k<pRuns.length && pRuns.length>1;k++){
+      if(runLen(pRuns[k])>=minSeg) continue;
+      var prev=k>0?pRuns[k-1]:null, next=k<pRuns.length-1?pRuns[k+1]:null;
+      var into=(prev&&next)?((runLen(prev)>=runLen(next))?prev:next):(prev||next);
+      if(!into) continue;
+      if(into===prev) prev.e=pRuns[k].e; else next.s=pRuns[k].s;
+      pRuns.splice(k,1); changed=true; break;
+    }
+  }
+  var runs=[];
+  pRuns.forEach(function(r){
+    var last=runs.length?runs[runs.length-1]:null;
+    if(last && last._c===r.c){ last.coords=coords.slice(last._s, r.e+1); last._e=r.e; }
+    else runs.push({coords:coords.slice(r.s, r.e+1), color:cGradeColors[r.c], _c:r.c, _s:r.s, _e:r.e});
+  });
+  return runs;
+}
 function updatePreview(){
   const empty=document.getElementById('preview-empty');
   const wrap=document.getElementById('preview-wrap');
@@ -1758,13 +1875,23 @@ function updatePreview(){
     const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
     const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
     f.tracks.forEach(t=>{
-      const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
-      poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
-      poly._gpxFile=f;
-      poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
-      poly._trackZoomMin=fZMin;
-      poly._trackZoomMax=fZMax;
-      layers.push(poly);allCoords.push(...t.coords);
+      if(f.colorMode==='grade' && cTrackHasEle(t)){
+        const casing=L.polyline(t.coords,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
+        casing._gpxFile=f; casing._gpxTrack=true; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; layers.push(casing);
+        cBuildGradeRuns(t.coords,t.ele).forEach(run=>{
+          const seg=L.polyline(run.coords,{color:run.color,weight:fLw,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
+          seg._gpxFile=f; seg._gpxTrack=true; seg._trackZoomMin=fZMin; seg._trackZoomMax=fZMax; layers.push(seg);
+        });
+        allCoords.push(...t.coords);
+      } else {
+        const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
+        poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
+        poly._gpxFile=f;
+        poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
+        poly._trackZoomMin=fZMin;
+        poly._trackZoomMax=fZMax;
+        layers.push(poly);allCoords.push(...t.coords);
+      }
     });
     // start marker: tonen op basis van showStart toggle, binnen kaartzoom-bereik van deze GPX
     if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
@@ -2008,8 +2135,8 @@ function exportMap(){
   const osmOpacity=parseFloat(document.getElementById('osmopacity').value);
   const trailColor=document.getElementById('gpstrail-color').value;
   const trailWidth=parseInt(document.getElementById('gpstrail-width').value)||5;
-  const trailMode=document.getElementById('gpstrail-mode').value;
-  const trailMeters=parseInt(document.getElementById('gpstrail-meters').value)||50;
+  const trailMode='full';   // trail-length option removed: always record the whole ride
+  const trailMeters=50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const exportCategories=categories.map(c=>({name:(c.name&&c.name.trim())||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})).filter(c=>c.name||c.builtin);
@@ -2032,6 +2159,7 @@ function exportMap(){
     showTrackDist:f.tracks.length>0&&f.showTrackDist!==false,
     wptIconSvg:f.wptIconSvg||null,
     wptIconSize:f.wptIconSize||28,
+    colorMode:f.colorMode||'fixed',
     tracks:f.tracks,
     waypoints:f.waypoints,
     polygons:f.polygons||[]
@@ -2048,6 +2176,8 @@ function exportMap(){
   const safeInfoUrl=JSON.stringify(outputInfoUrl);
   const pwaShort=((document.getElementById('pwa-short')||{}).value||'').trim().slice(0,24)||'PWTrails';
   const safePwaShort=JSON.stringify(pwaShort);
+  const startLocMode=((document.getElementById('opt-start-locmode')||{}).value)||'off';
+  const welcomeConfig={enabled:!!((document.getElementById('opt-welcome-enabled')||{}).checked), text:(((document.getElementById('opt-welcome-text')||{}).value)||'')};
 
   // Carry over whatever view (center + zoom) the live preview is currently
   // showing, so the exported map opens exactly where you left it (e.g. zoomed
@@ -2371,18 +2501,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
           <input type="number" id="trail-width-input" min="1" max="15" style="width:56px">
           <span>px</span>
         </div>
-        <div class="trail-row">
-          <label for="trail-mode-input">Length</label>
-          <select id="trail-mode-input">
-            <option value="full">Full route</option>
-            <option value="distance">Last ... meters</option>
-          </select>
-        </div>
-        <div class="trail-row" id="trail-meters-row">
-          <label for="trail-meters-input">&nbsp;</label>
-          <input type="number" id="trail-meters-input" min="5" max="5000" style="width:72px">
-          <span>meters</span>
-        </div>
         <div class="trail-row" style="border-top:1px solid #f0f0f0;margin-top:4px;padding-top:8px">
           <label for="trail-center-input">Center map</label>
           <select id="trail-center-input">
@@ -2411,8 +2529,8 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
             <option value="10000">After 10 s</option>
           </select>
         </div>
-        <div class="trail-row">
-          <button id="trail-gpx-btn" title="Save the recorded trail as a GPX file on this device" style="padding:6px 10px;border:1px solid #1565c0;background:#1565c0;color:#fff;border-radius:5px;font-size:13px;cursor:pointer">&#8681; Save trail as GPX</button>
+        <div class="trail-row" style="margin-top:6px;border-top:1px solid #eee;padding-top:10px">
+          <button id="reset-data-btn" title="Clear everything this map has saved on this device (settings, saved locations, imported routes, layer choices, welcome message)" style="padding:6px 10px;border:1px solid #c0392b;background:#fff;color:#c0392b;border-radius:5px;font-size:13px;cursor:pointer">&#8635; Reset saved data</button>
         </div>
       </div>
     </div>
@@ -2463,10 +2581,15 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.js"><\/script>
 <script>
 // =============================================================================
-// TRAILCRAFT — OUTPUT HTML (exported map page)
-// This self-contained page is generated by the PeeWeeTrails INPUT HTML editor.
-// It requires no server: all map data is embedded as JSON constants below.
-// Libraries loaded: Leaflet 1.9.4 (map engine) + leaflet-textpath (route labels)
+// PeeWeeTrails exported map -- OUTPUT page (generated by the Creator above)
+//
+// Fully self-contained: every map setting and imported track is embedded below
+// as JSON constants (MAP_CATEGORIES, MAP_ACTIONS, WMS_LAYERS, NOTES_CONFIG,
+// GRADE_CONFIG, START_LOCMODE, WELCOME_CONFIG, ...). No server or build step.
+//
+// Libraries (from CDN): Leaflet 1.9.4 (map engine, BSD), leaflet-rotate 0.2.8
+// (map rotation / compass modes, GPL -- which is why the whole suite is GPL-3.0),
+// and leaflet-textpath 1.2.3 (direction arrows + labels along routes, MIT).
 // =============================================================================
 
 // --- Embedded map data baked in at export time ---
@@ -2690,6 +2813,9 @@ const EX=${JSON.stringify(exportExtra)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const MAP_CATEGORIES=${JSON.stringify(exportCategories)};
 const NOTES_CONFIG=${JSON.stringify(notesConfig)};
+const GRADE_CONFIG=${JSON.stringify(gradeConfig)};
+const START_LOCMODE=${JSON.stringify(startLocMode)};
+const WELCOME_CONFIG=${JSON.stringify(welcomeConfig)};
 const SEARCH_CATS=${JSON.stringify(exportSearchCats)};
 const PREVIEW_VIEW=${JSON.stringify(previewView)};
 const INFO_URL=${safeInfoUrl};
@@ -2919,6 +3045,67 @@ const polygonLayers=[];     // L.Polygon filled areas only
 // zoomLayers built after D.forEach (see below)
 
 
+// Baked-track gradient colouring: draw Creator-exported grade tracks by slope.
+var BGRADE_STOPS=[-12,-6,-2,2,6,12];
+var BGRADE_COLORS=['#08306b','#4292c6','#41ab5d','#9e9e9e','#f16913','#cb181d','#000000'];
+var BGRADE_LABELS=['< -12%','-12..-6%','-6..-2%','flat (-2..2%)','2..6%','6..12%','> 12%'];
+function bGradeClass(pct){ for(var i=0;i<BGRADE_STOPS.length;i++){ if(pct<BGRADE_STOPS[i]) return i; } return BGRADE_STOPS.length; }
+function bTrackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
+function bBuildGradeRuns(coords, ele){
+  var n=coords.length; if(n<2) return [];
+  var cfg=(typeof GRADE_CONFIG!=='undefined'&&GRADE_CONFIG)?GRADE_CONFIG:{};
+  var baseline=Math.max(20, cfg.baseline||90);
+  var minSeg=Math.max(0, cfg.minSeg!=null?cfg.minSeg:60);
+  var HYST=0.5;
+  var d=[0]; for(var i=1;i<n;i++){ d[i]=d[i-1]+haversineMeters(coords[i-1],coords[i]); }
+  var half=baseline/2, grade=new Array(n);
+  for(i=0;i<n;i++){
+    var a=i, b=i;
+    while(a>0 && d[i]-d[a]<half) a--;
+    while(b<n-1 && d[b]-d[i]<half) b++;
+    var ea=ele[a], eb=ele[b], dd=d[b]-d[a];
+    grade[i]=(ea!=null && eb!=null && !isNaN(ea) && !isNaN(eb) && dd>0)?((eb-ea)/dd*100):0;
+  }
+  var cls=new Array(n), cur=bGradeClass(grade[0]); cls[0]=cur;
+  for(i=1;i<n;i++){
+    var lo=(cur>0)?BGRADE_STOPS[cur-1]:-Infinity, hi=(cur<BGRADE_STOPS.length)?BGRADE_STOPS[cur]:Infinity;
+    if(grade[i]>=hi+HYST || grade[i]<lo-HYST) cur=bGradeClass(grade[i]);
+    cls[i]=cur;
+  }
+  var pRuns=[], sIdx=0;
+  for(i=1;i<n;i++){ if(cls[i]!==cls[sIdx]){ pRuns.push({s:sIdx,e:i,c:cls[sIdx]}); sIdx=i; } }
+  pRuns.push({s:sIdx,e:n-1,c:cls[sIdx]});
+  function runLen(r){ return d[r.e]-d[r.s]; }
+  var changed=true, guard=0;
+  while(changed && guard++<200 && pRuns.length>1){
+    changed=false;
+    for(var k=0;k<pRuns.length && pRuns.length>1;k++){
+      if(runLen(pRuns[k])>=minSeg) continue;
+      var prev=k>0?pRuns[k-1]:null, next=k<pRuns.length-1?pRuns[k+1]:null;
+      var into=(prev&&next)?((runLen(prev)>=runLen(next))?prev:next):(prev||next);
+      if(!into) continue;
+      if(into===prev) prev.e=pRuns[k].e; else next.s=pRuns[k].s;
+      pRuns.splice(k,1); changed=true; break;
+    }
+  }
+  var runs=[];
+  pRuns.forEach(function(r){
+    var last=runs.length?runs[runs.length-1]:null;
+    if(last && last._c===r.c){ last.coords=coords.slice(last._s, r.e+1); last._e=r.e; }
+    else runs.push({coords:coords.slice(r.s, r.e+1), color:BGRADE_COLORS[r.c], _c:r.c, _s:r.s, _e:r.e});
+  });
+  return runs;
+}
+var __bakedGrade=false;
+function bShowGradeLegend(){
+  if(document.getElementById('grade-legend')) return;
+  var box=document.createElement('div'); box.id='grade-legend';
+  box.style.cssText='position:absolute;left:8px;bottom:26px;z-index:800;background:rgba(255,255,255,.92);border-radius:8px;padding:6px 8px;box-shadow:0 1px 4px rgba(0,0,0,.3);font-size:11px;line-height:1.35;color:#222';
+  var html='<b>Gradient</b>';
+  for(var i=BGRADE_COLORS.length-1;i>=0;i--){ html+='<div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:8px;background:'+BGRADE_COLORS[i]+';display:inline-block;border-radius:1px;flex:0 0 auto"></span>'+BGRADE_LABELS[i]+'</div>'; }
+  box.innerHTML=html;
+  (document.getElementById('map')||document.body).appendChild(box);
+}
   // Helper: render polygon as Leaflet layer — MultiPolygon via L.geoJSON, plain via L.polygon
 D.forEach(f=>{
   const filePolys=[];
@@ -2940,13 +3127,23 @@ D.forEach(f=>{
 
   // --- Render line tracks ---
   f.tracks.forEach(t=>{
-    const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
-    poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
-    poly._gpxFile=f;
-    poly._trackZoomMin=fZMin;
-    poly._trackZoomMax=fZMax;
-    trackLineLayers.push(poly);
-    filePolys.push(poly);
+    if(f.colorMode==='grade' && bTrackHasEle(t)){
+      __bakedGrade=true;
+      const casing=L.polyline(t.coords,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
+      casing._gpxFile=f; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; trackLineLayers.push(casing); filePolys.push(casing);
+      bBuildGradeRuns(t.coords,t.ele).forEach(run=>{
+        const seg=L.polyline(run.coords,{color:run.color,weight:fLw,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
+        seg._gpxFile=f; seg._trackZoomMin=fZMin; seg._trackZoomMax=fZMax; trackLineLayers.push(seg); filePolys.push(seg);
+      });
+    } else {
+      const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
+      poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
+      poly._gpxFile=f;
+      poly._trackZoomMin=fZMin;
+      poly._trackZoomMax=fZMax;
+      trackLineLayers.push(poly);
+      filePolys.push(poly);
+    }
   });
 
   // --- Start marker (belongs to tracks, not waypoints) ---
@@ -3089,6 +3286,7 @@ D.forEach(f=>{
 // trackLineLayers/trackDotLayers/polygonLayers: no getElement(), use addLayer/removeLayer.
 // wptMarkerLayers: L.Marker objects, use getElement() for zoom-visibility.
 const zoomLayers=[...trackLineLayers,...trackDotLayers,...polygonLayers];
+if(__bakedGrade) bShowGradeLegend();
 
 if(urlState&&urlState.z!=null){
   map.setView([urlState.lat,urlState.lng],urlState.z);
@@ -3332,8 +3530,8 @@ function saveTrailGpx(){
 
 // Warn before leaving when a full-route recording of real length (> 1 km) would
 // otherwise be lost. Browsers only permit a generic "Leave site?" confirmation
-// here (no custom text and no "Save" button), so this gives the visitor a chance
-// to stay and then use "Save trail as GPX" before closing.
+// here (no custom text), so this simply gives the visitor a chance to stay.
+// Note: mobile browsers largely ignore beforeunload, so this mainly helps on desktop.
 window.addEventListener('beforeunload', function(e){
   try{
     if(TRAIL_MODE!=='full' || !locHistory || locHistory.length<2) return;
@@ -3445,9 +3643,6 @@ function redrawTrail(){
   const trailPanel=document.getElementById('trail-panel');
   const colorInput=document.getElementById('trail-color-input');
   const widthInput=document.getElementById('trail-width-input');
-  const modeInput=document.getElementById('trail-mode-input');
-  const metersInput=document.getElementById('trail-meters-input');
-  const metersRow=document.getElementById('trail-meters-row');
   const centerInput=document.getElementById('trail-center-input');
 
   // --- Persist the visitor's Settings choices per map (localStorage) ---
@@ -3461,8 +3656,6 @@ function redrawTrail(){
     var v;
     v=psGet('color');  if(v!=null) TRAIL_COLOR=v;
     v=psGet('width');  if(v!=null) TRAIL_WIDTH=parseInt(v)||TRAIL_WIDTH;
-    v=psGet('mode');   if(v!=null) TRAIL_MODE=v;
-    v=psGet('meters'); if(v!=null) TRAIL_METERS=parseInt(v)||TRAIL_METERS;
     v=psGet('zoom');   if(v!=null) RECENTER_ZOOM=parseInt(v)||RECENTER_ZOOM;
     v=psGet('follow'); if(v!=null){ var f=parseInt(v); if(!isNaN(f)) FOLLOW_DELAY=f; }
     v=psGet('hide');   if(v!=null){ var h=parseInt(v); if(!isNaN(h)) HIDE_UI_DELAY=h; }
@@ -3470,11 +3663,6 @@ function redrawTrail(){
 
   colorInput.value=TRAIL_COLOR;
   widthInput.value=TRAIL_WIDTH;
-  modeInput.value=TRAIL_MODE;
-  metersInput.value=TRAIL_METERS;
-  metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
-  const trailGpxBtn=document.getElementById('trail-gpx-btn');
-  if(trailGpxBtn) trailGpxBtn.addEventListener('click',function(e){ e.stopPropagation(); saveTrailGpx(); });
   const zoomInput=document.getElementById('trail-zoom-input');
   zoomInput.value=RECENTER_ZOOM;
   zoomInput.addEventListener('change',function(){ RECENTER_ZOOM=Math.max(1,Math.min(22,parseInt(zoomInput.value)||17)); zoomInput.value=RECENTER_ZOOM; psSet('zoom',RECENTER_ZOOM); });
@@ -3538,19 +3726,16 @@ trailBtn.onclick=function(e){
     applyTrailAppearance();
     psSet('width',TRAIL_WIDTH);
   });
-  modeInput.addEventListener('change',function(){
-    TRAIL_MODE=modeInput.value;
-    metersRow.style.display=(TRAIL_MODE==='full')?'none':'';
-    locHistory=trimTrail(locHistory);
-    redrawTrail();
-    psSet('mode',TRAIL_MODE);
-  });
-  metersInput.addEventListener('change',function(){
-    TRAIL_METERS=Math.max(5,Math.min(5000,parseInt(metersInput.value)||50));
-    metersInput.value=TRAIL_METERS;
-    locHistory=trimTrail(locHistory);
-    redrawTrail();
-    psSet('meters',TRAIL_METERS);
+  var resetBtn=document.getElementById('reset-data-btn');
+  if(resetBtn) resetBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    if(!confirm('Clear the data this map saved on this device? This removes your settings, saved locations, imported routes, layer choices and the welcome message. The map itself is not affected.')) return;
+    try{
+      var path=location.pathname, kill=[];
+      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && k.indexOf('PeeWeeTrails_')===0 && k.indexOf(path)!==-1) kill.push(k); }
+      kill.forEach(function(k){ try{ localStorage.removeItem(k); }catch(err){} });
+    }catch(err){}
+    location.reload();
   });
   function applyCenterSetting(){
     FOLLOW_DELAY=parseInt(centerInput.value)||0;
@@ -3851,7 +4036,30 @@ setInterval(function(){
 },1000);
 map.on('rotate zoomend moveend', updateArrowRotations);
 document.getElementById('map-wrap').addEventListener('pointerdown',function(){ showUi(); },true);
-setLocMode('off');
+setLocMode((typeof START_LOCMODE!=='undefined' && START_LOCMODE) ? START_LOCMODE : 'off');
+
+// --- Welcome popup (once per device): how to pin / bookmark the map ---------------
+(function(){
+  if(typeof WELCOME_CONFIG==='undefined' || !WELCOME_CONFIG || !WELCOME_CONFIG.enabled) return;
+  var txt=(WELCOME_CONFIG.text||'').trim();
+  if(!txt) return;
+  var key='PeeWeeTrails_welcome__'+location.pathname;
+  try{ if(localStorage.getItem(key)==='1') return; }catch(e){}
+  function wEsc(s){ return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;'); }
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:340px;width:100%;padding:18px 18px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:14px;line-height:1.45;color:#222';
+  box.innerHTML='<div style="white-space:pre-wrap">'+wEsc(txt)+'</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap"><button type="button" id="welcome-ok" style="background:#eee;color:#222;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer">OK</button><button type="button" id="welcome-never" style="background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer">Don&#39;t show again</button></div>';
+  ov.appendChild(box);
+  function removeOv(){ if(ov.parentNode) ov.parentNode.removeChild(ov); }
+  function closeOnce(){ removeOv(); }                                              // will show again next time
+  function closeForever(){ try{ localStorage.setItem(key,'1'); }catch(e){} removeOv(); }
+  ov.addEventListener('click',function(e){ if(e.target===ov) closeOnce(); });      // tap outside = just close
+  document.body.appendChild(ov);
+  var okb=document.getElementById('welcome-ok'); if(okb) okb.addEventListener('click',closeOnce);
+  var nvb=document.getElementById('welcome-never'); if(nvb) nvb.addEventListener('click',closeForever);
+})();
 
 // A manual zoom (pinch or +/-) is temporary: it does NOT change the "Zoom level"
 // setting, so the next auto-center returns to that level. (followZoom is kept for
@@ -4348,13 +4556,14 @@ map.on('zoomend',function(){
     const _rowIcon=(preset&&preset.iconSvg)||(pendingRouteIcon&&pendingRouteIcon.svg)||null;
     const _rowIconColor=(preset&&preset.iconColor)||(pendingRouteIcon&&pendingRouteIcon.color)||null;
     pendingRouteIcon=null;
-    userRoutes.push({iconSvg:_rowIcon,iconColor:_rowIconColor,name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix,customName:preset?!!preset.customName:false});
+    userRoutes.push({iconSvg:_rowIcon,iconColor:_rowIconColor,name:displayName,visible:true,opacity:0.85,color,fillOpacity:0.2,...routeDefaults,lineWidth:lineWidth||routeDefaults.lineWidth,layers:lyrGroup,arrowLayers:[],labelLayer:null,startLayer:null,bounds,parsed,kmSuffix,colorMode:(preset&&preset.colorMode)||'fixed',customName:preset?!!preset.customName:false});
     // Fit map to route bounds
     if(bounds&&!preset)map.fitBounds(bounds,{padding:[24,24]});
     // Apply label immediately and ensure layers render. Guarded so that an
     // unexpected error here (e.g. an odd property in an imported/BRouter
     // file) can never silently skip adding the row to the list below.
     try{ applyRouteStyle(idx); }catch(e){ console.error('applyRouteStyle failed for "'+displayName+'":',e); }
+    if(userRoutes[idx] && userRoutes[idx].colorMode==='grade'){ try{ rebuildRouteLines(idx); applyRouteStyle(idx); updateGradeLegend(); }catch(e){} }
     // Keep the recorded GPS trail above newly imported tracks, if it exists
     if(typeof bringTrailToFront==='function') bringTrailToFront();
     // Rebuild the route list panel
@@ -4422,6 +4631,8 @@ map.on('zoomend',function(){
     // Update geometry style
     r.layers.forEach(l=>{
       if(!l.setStyle) return;
+      if(l._isCasing){ l.setStyle({weight:(r.lineWidth||5)+4,opacity:r.opacity}); return; }
+      if(l._isGrade){ l.setStyle({weight:(r.lineWidth||5),opacity:r.opacity}); return; }
       if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
         l.setStyle({color:r.color,fillColor:r.color,weight:1,opacity:r.opacity,fillOpacity:r.opacity,radius:r.lineWidth||8});
       } else if(l instanceof L.Polygon){
@@ -4433,8 +4644,9 @@ map.on('zoomend',function(){
 
     // Direction arrows
     if(r.showArrows){
+      var _arrowCol=(r.colorMode==='grade')?'#333333':r.color;
       (r.parsed.tracks||[]).forEach(t=>{
-        buildArrowDecorator(t.coords,r.color).forEach(a=>{
+        buildArrowDecorator(t.coords,_arrowCol).forEach(a=>{
           if(r.visible)a.addTo(map);
           r.arrowLayers.push(a);
         });
@@ -4576,6 +4788,7 @@ map.on('zoomend',function(){
 
   function setRouteVisible(idx,vis){
     userRoutes[idx].visible=vis;
+    setTimeout(updateGradeLegend,0);
     userRoutes[idx].layers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
     userRoutes[idx].arrowLayers.forEach(l=>{if(vis)map.addLayer(l);else map.removeLayer(l);});
     if(userRoutes[idx].labelLayer){if(vis)map.addLayer(userRoutes[idx].labelLayer);else map.removeLayer(userRoutes[idx].labelLayer);}
@@ -4586,7 +4799,7 @@ map.on('zoomend',function(){
   const ROUTES_KEY='PeeWeeTrails_routes__'+location.pathname;
   let pendingRouteIcon=null;   // icon of the routing profile, set just before addUserRoute
   function serializeRoute(r){
-    return {iconSvg:r.iconSvg||null,iconColor:r.iconColor||null,name:r.name,color:r.color,lineWidth:r.lineWidth,visible:r.visible!==false,customName:!!r.customName,kmSuffix:r.kmSuffix||'',parsed:r.parsed};
+    return {iconSvg:r.iconSvg||null,iconColor:r.iconColor||null,name:r.name,color:r.color,lineWidth:r.lineWidth,visible:r.visible!==false,customName:!!r.customName,kmSuffix:r.kmSuffix||'',colorMode:r.colorMode||'fixed',parsed:r.parsed};
   }
   function saveRoutesToStorage(){
     try{ localStorage.setItem(ROUTES_KEY, JSON.stringify(userRoutes.map(serializeRoute))); }catch(e){}
@@ -4597,9 +4810,10 @@ map.on('zoomend',function(){
     if(!Array.isArray(data)) return;
     data.forEach(rd=>{
       if(!rd||!rd.parsed) return;
-      try{ addUserRoute(rd.name, rd.parsed, rd.color||'#e91e63', rd.lineWidth, {name:rd.name,kmSuffix:rd.kmSuffix||'',visible:rd.visible!==false,customName:!!rd.customName,iconSvg:rd.iconSvg||null,iconColor:rd.iconColor||null}); }catch(e){ console.error('restore route failed:',e); }
+      try{ addUserRoute(rd.name, rd.parsed, rd.color||'#e91e63', rd.lineWidth, {name:rd.name,kmSuffix:rd.kmSuffix||'',visible:rd.visible!==false,customName:!!rd.customName,colorMode:rd.colorMode||'fixed',iconSvg:rd.iconSvg||null,iconColor:rd.iconColor||null}); }catch(e){ console.error('restore route failed:',e); }
     });
     const rp=document.getElementById('route-panel'); if(rp) rp.classList.remove('open');
+    updateGradeLegend();
   }
 
   function removeUserRoute(idx){
@@ -4609,6 +4823,7 @@ map.on('zoomend',function(){
     if(userRoutes[idx].startLayer)map.removeLayer(userRoutes[idx].startLayer);
     userRoutes.splice(idx,1);
     renderRouteList();
+    updateGradeLegend();
     saveRoutesToStorage();
   }
 
@@ -4623,6 +4838,7 @@ map.on('zoomend',function(){
     });
     userRoutes.length=0;
     renderRouteList();
+    updateGradeLegend();
     saveRoutesToStorage();
   }
 
@@ -4649,6 +4865,112 @@ map.on('zoomend',function(){
     if(pwDownloadText(pwBuildGpx(r.name||'route', segs, wpts), fname)) showToast('Saved as '+fname, 4000);
     else showToast('Could not save the file.');
   }
+  // ---- Gradient (slope) colouring for tracks with elevation --------------------
+  // Absolute grade classes, symmetric, matching the BRouter-web / Heightgraph scheme:
+  // flat -3..3%, then 3/6/9/12/15% up and down, capped at +/-15%. Colours diverge:
+  // downhill blue/green, flat grey, uphill yellow -> orange -> red -> dark red.
+  var GRADE_STOPS=[-12,-6,-2,2,6,12];
+  var GRADE_COLORS=['#08306b','#4292c6','#41ab5d','#9e9e9e','#f16913','#cb181d','#000000'];
+  var GRADE_LABELS=['< -12%','-12..-6%','-6..-2%','flat (-2..2%)','2..6%','6..12%','> 12%'];
+  function gradeClassIndex(pct){ for(var i=0;i<GRADE_STOPS.length;i++){ if(pct<GRADE_STOPS[i]) return i; } return GRADE_STOPS.length; }
+  function trackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
+  function routeHasEle(r){ return !!(r && r.parsed && (r.parsed.tracks||[]).some(trackHasEle)); }
+  // Split a track into runs of constant grade class; returns [{coords, color}].
+  function buildGradeRuns(coords, ele){
+    var n=coords.length; if(n<2) return [];
+    var cfg=(typeof GRADE_CONFIG!=='undefined'&&GRADE_CONFIG)?GRADE_CONFIG:{};
+    var baseline=Math.max(20, cfg.baseline||90);   // distance the gradient is measured over
+    var minSeg=Math.max(0, cfg.minSeg!=null?cfg.minSeg:60); // absorb runs shorter than this
+    var HYST=0.5;                                   // % margin at class boundaries (anti-flicker)
+    var d=[0]; for(var i=1;i<n;i++){ d[i]=d[i-1]+haversineMeters(coords[i-1],coords[i]); }
+    // Gradient at each point measured over a centered window of ~baseline metres. Because
+    // the source data (SRTM) is ~90 m resolution, a long baseline is what removes the
+    // interpolation noise that otherwise creates spurious short up/down slivers.
+    var half=baseline/2, grade=new Array(n);
+    for(i=0;i<n;i++){
+      var a=i, b=i;
+      while(a>0 && d[i]-d[a]<half) a--;
+      while(b<n-1 && d[b]-d[i]<half) b++;
+      var ea=ele[a], eb=ele[b], dd=d[b]-d[a];
+      grade[i]=(ea!=null && eb!=null && !isNaN(ea) && !isNaN(eb) && dd>0)?((eb-ea)/dd*100):0;
+    }
+    // Classify with hysteresis: only leave the current class once the gradient passes the
+    // boundary by HYST, so it doesn't flip back and forth right on a threshold.
+    var cls=new Array(n), cur=gradeClassIndex(grade[0]); cls[0]=cur;
+    for(i=1;i<n;i++){
+      var lo=(cur>0)?GRADE_STOPS[cur-1]:-Infinity;
+      var hi=(cur<GRADE_STOPS.length)?GRADE_STOPS[cur]:Infinity;
+      if(grade[i]>=hi+HYST || grade[i]<lo-HYST) cur=gradeClassIndex(grade[i]);
+      cls[i]=cur;
+    }
+    // Build point-runs of constant class.
+    var pRuns=[], sIdx=0;
+    for(i=1;i<n;i++){ if(cls[i]!==cls[sIdx]){ pRuns.push({s:sIdx,e:i,c:cls[sIdx]}); sIdx=i; } }
+    pRuns.push({s:sIdx,e:n-1,c:cls[sIdx]});
+    // Merge runs shorter than minSeg into their longer neighbour (absorbs slivers).
+    function runLen(r){ return d[r.e]-d[r.s]; }
+    var changed=true, guard=0;
+    while(changed && guard++<200 && pRuns.length>1){
+      changed=false;
+      for(var k=0;k<pRuns.length && pRuns.length>1;k++){
+        if(runLen(pRuns[k])>=minSeg) continue;
+        var prev=k>0?pRuns[k-1]:null, next=k<pRuns.length-1?pRuns[k+1]:null;
+        var into=(prev&&next)?((runLen(prev)>=runLen(next))?prev:next):(prev||next);
+        if(!into) continue;
+        if(into===prev) prev.e=pRuns[k].e; else next.s=pRuns[k].s;
+        pRuns.splice(k,1); changed=true; break;
+      }
+    }
+    // Join neighbouring runs that ended up in the same class, then emit polylines.
+    var runs=[];
+    pRuns.forEach(function(r){
+      var last=runs.length?runs[runs.length-1]:null;
+      if(last && last._c===r.c){ last.coords=coords.slice(last._s, r.e+1); last._e=r.e; }
+      else runs.push({coords:coords.slice(r.s, r.e+1), color:GRADE_COLORS[r.c], _c:r.c, _s:r.s, _e:r.e});
+    });
+    return runs;
+  }
+  // Rebuild a route's line layers according to its colorMode ('fixed' or 'grade').
+  function rebuildRouteLines(idx){
+    var r=userRoutes[idx]; if(!r) return;
+    r.layers=(r.layers||[]).filter(function(l){ if(l._isLine){ map.removeLayer(l); return false; } return true; });
+    var grade=(r.colorMode==='grade');
+    (r.parsed.tracks||[]).forEach(function(t){
+      if(grade && trackHasEle(t)){
+        var casing=L.polyline(t.coords,{color:'#ffffff',weight:(r.lineWidth||5)+4,opacity:r.opacity,lineCap:'round',lineJoin:'round'});
+        casing._isLine=true; casing._isCasing=true;
+        if(r.visible!==false) casing.addTo(map);
+        r.layers.push(casing);
+        buildGradeRuns(t.coords,t.ele).forEach(function(run){
+          var seg=L.polyline(run.coords,{color:run.color,weight:(r.lineWidth||5),opacity:r.opacity,lineCap:'round',lineJoin:'round'});
+          seg._isLine=true; seg._isGrade=true;
+          if(r.visible!==false) seg.addTo(map);
+          r.layers.push(seg);
+        });
+      } else {
+        var poly=L.polyline(t.coords,{color:r.color,weight:(r.lineWidth||5),opacity:r.opacity});
+        poly.bindPopup('<b>'+(t.name||r.name)+'</b>');
+        poly._isLine=true;
+        if(r.visible!==false) poly.addTo(map);
+        r.layers.push(poly);
+      }
+    });
+  }
+  // Small gradient legend, shown whenever a visible route uses gradient colouring.
+  function updateGradeLegend(){
+    var anyGrade=(typeof __bakedGrade!=='undefined'&&__bakedGrade) || userRoutes.some(function(r){ return r.colorMode==='grade' && r.visible!==false && routeHasEle(r); });
+    var ex=document.getElementById('grade-legend');
+    if(!anyGrade){ if(ex&&ex.parentNode) ex.parentNode.removeChild(ex); return; }
+    if(ex) return;
+    var box=document.createElement('div'); box.id='grade-legend';
+    box.style.cssText='position:absolute;left:8px;bottom:26px;z-index:800;background:rgba(255,255,255,.92);border-radius:8px;padding:6px 8px;box-shadow:0 1px 4px rgba(0,0,0,.3);font-size:11px;line-height:1.35;color:#222';
+    var html='<b>Gradient</b>';
+    for(var i=GRADE_COLORS.length-1;i>=0;i--){
+      html+='<div style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:8px;background:'+GRADE_COLORS[i]+';display:inline-block;border-radius:1px;flex:0 0 auto"></span>'+GRADE_LABELS[i]+'</div>';
+    }
+    box.innerHTML=html;
+    (document.getElementById('map')||document.body).appendChild(box);
+  }
   function renderRouteList(){
     const el=document.getElementById('route-list');
     el.innerHTML='';
@@ -4659,7 +4981,9 @@ map.on('zoomend',function(){
       row.innerHTML=
         profIcon+
         geomIconSvg(r,r.color)+
-        '<input type="color" class="ur-color" value="'+r.color+'" title="Color">'+
+        (r.colorMode==='grade'
+          ? '<span class="ur-color ur-color-grade" title="Coloured by gradient \u2014 open options (\u22ee) to change" style="display:inline-block;width:38px;height:24px;border:1px solid #bbb;border-radius:4px;vertical-align:middle;cursor:pointer;flex:0 0 auto;background:linear-gradient(to right,'+GRADE_COLORS.join(',')+')"></span>'
+          : '<input type="color" class="ur-color" value="'+r.color+'" title="Color">')+
         '<input class="route-name-edit" type="text" title="Click to rename" data-i="'+i+'" autocomplete="off" spellcheck="false">'+
         '<button class="route-more" title="More options" data-i="'+i+'">&#8942;</button>'+
         '<button class="route-vis" title="Show/hide" data-i="'+i+'" style="opacity:'+(r.visible?1:.4)+'">&#128065;</button>'+
@@ -4705,6 +5029,8 @@ map.on('zoomend',function(){
           '<button class="route-gpx ro-fly-btn" title="Save this route as a GPX file on this device" data-i="'+i+'" style="margin-left:8px">&#8681; GPX</button>'+
         '</div>'+
         (_est?(
+        '<div class="route-options-row"><span class="ro-label" title="Fixed colour, or colour each part by its slope (needs elevation data)">Colour</span>'+
+          '<select class="ur-colormode" data-i="'+i+'" style="margin-left:6px"><option value="fixed"'+(r.colorMode==='grade'?'':' selected')+'>Fixed colour</option><option value="grade"'+(r.colorMode==='grade'?' selected':'')+'>By gradient</option></select></div>'+
         '<div class="route-options-row route-elev-row">'+
           '<span class="ro-label" title="Total climb / descent and lowest\u2013highest elevation along this route">\u2191 '+_est.ascent+' m \u00b7 \u2193 '+_est.descent+' m \u00b7 '+_est.min+'\u2013'+_est.max+' m</span>'+
           '<button class="route-elev-toggle ro-fly-btn" data-i="'+i+'" style="margin-left:8px">\u25be Profile</button>'+
@@ -4713,7 +5039,9 @@ map.on('zoomend',function(){
         ):'');
       el.appendChild(detail);
 
-      row.querySelector('.ur-color').addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);saveRoutesToStorage();});
+      var _colEl=row.querySelector('.ur-color');
+      if(_colEl && _colEl.tagName==='INPUT'){ _colEl.addEventListener('input',e=>{userRoutes[i].color=e.target.value;applyRouteStyle(i);saveRoutesToStorage();}); }
+      else if(_colEl){ _colEl.addEventListener('click',function(){ var m=row.querySelector('.route-more'); if(m) m.click(); }); }
       const _nameInp=row.querySelector('.route-name-edit');
       if(_nameInp){
         _nameInp.value=userRoutes[i].name;
@@ -4750,6 +5078,8 @@ map.on('zoomend',function(){
           }
         });
       }
+      var _cmSel=detail.querySelector('.ur-colormode');
+      if(_cmSel) _cmSel.addEventListener('change',function(e){ userRoutes[i].colorMode=e.target.value; rebuildRouteLines(i); applyRouteStyle(i); updateGradeLegend(); saveRoutesToStorage(); renderRouteList(); });
       detail.querySelector('.ro-fly-btn').addEventListener('click',()=>{if(userRoutes[i].bounds)map.fitBounds(userRoutes[i].bounds,{padding:[24,24]});});
       row.querySelector('.route-vis').addEventListener('click',e=>{
         const nv=!userRoutes[i].visible;setRouteVisible(i,nv);e.currentTarget.style.opacity=nv?'1':'0.4';saveRoutesToStorage();
