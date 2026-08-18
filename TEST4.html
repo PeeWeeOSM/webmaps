@@ -1232,7 +1232,7 @@ let locAltByTime={}; // altitude (m) per fix, keyed by timestamp — kept out of
                      // arrays of length 2 or 3 (a 4-element point becomes null).
 let TRAIL_MODE="full";
 let TRAIL_METERS=50;
-let FOLLOW_DELAY=10000; // 0=never, else ms of idle time before re-centering
+let FOLLOW_DELAY=0; // 0=never, else ms of idle time before re-centering
 let lastUserInteraction=Date.now();
 let lastKnownLatLng=null;
 let followCheckInterval=null;
