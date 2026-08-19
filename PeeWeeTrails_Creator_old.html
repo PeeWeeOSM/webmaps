@@ -59,9 +59,6 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 .type-select{font-size:12px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#000;cursor:pointer;flex-shrink:0}
 .file-pts{color:#000;font-size:12px;white-space:nowrap}
 .file-row .delbtn{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:0 2px;line-height:1;flex-shrink:0}
-.draw-order{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:#e0e0e0;color:#333;border-radius:9px;font-size:11px;font-weight:600;flex-shrink:0}
-.file-eye{background:none;border:none;cursor:pointer;font-size:15px;padding:0 2px;line-height:1;flex-shrink:0}
-.file-eye.off{opacity:0.28}
 .file-row .delbtn:hover{color:#e74c3c}
 .layer-move-btn{background:none;border:1px solid #ccc;border-radius:5px;cursor:pointer;color:#000;font-size:14px;padding:3px 7px;line-height:1;flex-shrink:0}
 .layer-move-btn:hover:not(:disabled){background:#eee;color:#000}
@@ -136,9 +133,9 @@ input:checked+.slider:before{transform:translateX(14px)}
       <div class="row" style="gap:10px;margin-top:8px">
         <span class="toggle-label" style="color:#000">center map</span>
         <select id="opt-center-delay" class="posselect" title="Return to your own location after this idle time">
-          <option value="0" selected>never</option>
+          <option value="0">never</option>
           <option value="5000">after 5 s</option>
-          <option value="10000">after 10 s</option>
+          <option value="10000" selected>after 10 s</option>
           <option value="20000">after 20 s</option>
         </select>
         <span class="toggle-label" style="color:#000">zoom level</span>
@@ -160,8 +157,8 @@ input:checked+.slider:before{transform:translateX(14px)}
       <div class="row" style="gap:10px;margin-top:8px">
         <span class="toggle-label" style="color:#000">start orientation</span>
         <select id="opt-start-locmode" class="posselect" title="Which location mode the exported map opens in. North up and Movement direction start GPS tracking right away (and ask for location permission).">
-          <option value="off">location off</option>
-          <option value="north" selected>north up</option>
+          <option value="off" selected>location off</option>
+          <option value="north">north up</option>
           <option value="movement">movement direction</option>
         </select>
       </div>
@@ -290,13 +287,6 @@ input:checked+.slider:before{transform:translateX(14px)}
   <button class="btn primary" id="exportbtn" onclick="exportMap()">
     <i class="ti ti-download" aria-hidden="true"></i> Create your map
   </button>
-  <button class="btn" onclick="saveProject()" title="Save everything (imported files, settings, icons, layers) as a project file you can reopen later" style="margin-left:6px">
-    <i class="ti ti-device-floppy" aria-hidden="true"></i> Save project
-  </button>
-  <button class="btn" onclick="document.getElementById('projinput').click()" title="Reopen a saved project file to continue where you left off" style="margin-left:6px">
-    <i class="ti ti-folder-open" aria-hidden="true"></i> Open project
-  </button>
-  <input type="file" id="projinput" accept=".pwtproj,.json,application/json" style="display:none">
 </div>
 
 <script>
@@ -402,7 +392,6 @@ const DEFAULT_CATEGORIES=[
   {name:'Route to', hidden:false, iconSvg:ROUTE_CAT_SVG, iconSvgRaw:ROUTE_CAT_SVG, iconRecolor:true, iconColor:'#2e7d32', iconImgSrc:null},
   {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Share this map here', builtin:'share',     hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
-  {name:'Share a snapshot (with routes)', builtin:'snapshot', hidden:true, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Save this location',  builtin:'save',      hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Link to…', hidden:false,   iconSvg:GOTO_CAT_SVG,  iconSvgRaw:GOTO_CAT_SVG,  iconRecolor:true, iconColor:'#1565c0', iconImgSrc:null},
   {name:'OSM',      hidden:false,   iconSvg:OSM_CAT_SVG,   iconSvgRaw:OSM_CAT_SVG,   iconRecolor:true, iconColor:'#7ebc6f', iconImgSrc:null}
@@ -410,8 +399,7 @@ const DEFAULT_CATEGORIES=[
 const BUILTIN_CATEGORIES=[
   {name:'Share this map here', builtin:'share',     hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
   {name:'Save this location',  builtin:'save',      hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
-  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null},
-  {name:'Share a snapshot (with routes)', builtin:'snapshot', hidden:true, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null}
+  {name:'Route from here',     builtin:'routefrom', hidden:false, iconSvg:null, iconSvgRaw:null, iconRecolor:false, iconColor:'#555555', iconImgSrc:null}
 ];
 let categories=[];
 let mapActions=[];
@@ -528,74 +516,6 @@ if(document.readyState==='loading'){
 document.getElementById('title').addEventListener('input',saveLayersToStorage);
 var _pwaShortEl=document.getElementById('pwa-short'); if(_pwaShortEl) _pwaShortEl.addEventListener('input',saveLayersToStorage);
 document.getElementById('output-info-url').addEventListener('input',saveLayersToStorage);
-
-// ---- Project save / open: one file that holds ALL your work, data included ----
-// A project is a plain JSON snapshot: the imported geometry itself plus every
-// setting/icon/layer. Reopening restores the session exactly. It is a snapshot,
-// so a source file changed on disk afterwards is not picked up automatically;
-// re-import that file to refresh it.
-function _pv(id){ var e=document.getElementById(id); return e?e.value:undefined; }
-function _pc(id){ var e=document.getElementById(id); return e?!!e.checked:undefined; }
-function buildProject(){
-  return {
-    __pwtproj:1,
-    files: files,
-    layers: extraLayers.map(function(l){ return {type:l.type,url:l.url,wmsLayer:l.wmsLayer||'',displayName:l.displayName||'',opacity:l.opacity,zoomMin:Math.min(l.zoomMin||1,22),zoomMax:Math.min(l.zoomMax||22,22),defaultOn:l.defaultOn||false,previewOn:l.previewOn!==false,attribution:l.attribution||''}; }),
-    mapActions: mapActions.map(function(a){ return {group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''}; }),
-    categories: categories.map(function(c){ return {name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null}; }),
-    notesConfig: Object.assign({}, notesConfig),
-    gradeConfig: Object.assign({}, gradeConfig),
-    settings: {
-      title:_pv('title'), pwaShort:_pv('pwa-short'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
-      zoomLevel:_pv('opt-zoom-level'), centerDelay:_pv('opt-center-delay'), hideUi:_pv('opt-hide-ui'),
-      rotateGesture:_pv('opt-rotate-gesture'), startLocMode:_pv('opt-start-locmode'),
-      welcomeEnabled:_pc('opt-welcome-enabled'), welcomeText:_pv('opt-welcome-text')
-    }
-  };
-}
-function saveProject(){
-  try{
-    var blob=new Blob([JSON.stringify(buildProject())],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    var t=(_pv('title')||'project').replace(/[^a-zA-Z0-9_\- ]/g,'').trim()||'project';
-    a.href=url; a.download=t+'.pwtproj';
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
-  }catch(e){ alert('Could not save the project: '+e); }
-}
-function loadProject(obj){
-  if(!obj || !obj.__pwtproj){ alert('This does not look like a PeeWeeTrails project file.'); return; }
-  try{
-    var S=obj.settings||{};
-    // Reuse the existing restore path for the config (layers/categories/actions/notes/grade/title/...)
-    var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig,
-             title:S.title, pwaShort:S.pwaShort, osmOpacity:S.osmOpacity, outputInfoUrl:S.outputInfoUrl };
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); }catch(e){}
-    loadLayersFromStorage();
-    // Restore the imported geometry
-    files.length=0;
-    (obj.files||[]).forEach(function(f){ files.push(f); });
-    renderList();
-    // Restore the settings-defaults inputs (these are read at export time)
-    function sv(id,v){ var e=document.getElementById(id); if(e&&v!=null) e.value=v; }
-    function sc(id,v){ var e=document.getElementById(id); if(e&&v!=null) e.checked=!!v; }
-    sv('opt-zoom-level',S.zoomLevel); sv('opt-center-delay',S.centerDelay); sv('opt-hide-ui',S.hideUi);
-    sv('opt-rotate-gesture',S.rotateGesture); sv('opt-start-locmode',S.startLocMode);
-    sc('opt-welcome-enabled',S.welcomeEnabled); sv('opt-welcome-text',S.welcomeText);
-    updatePreview();
-    var eb=document.getElementById('exportbtn'); if(eb) eb.disabled=false;
-  }catch(e){ alert('Could not open the project: '+e); }
-}
-(function(){
-  var pi=document.getElementById('projinput');
-  if(pi) pi.addEventListener('change', function(e){
-    var file=e.target.files&&e.target.files[0]; if(!file) return;
-    var rd=new FileReader();
-    rd.onload=function(ev){ try{ loadProject(JSON.parse(ev.target.result)); }catch(err){ alert('Could not read the project file: '+err); } e.target.value=''; };
-    rd.readAsText(file);
-  });
-})();
 
 // Small notice under the export button
 (function(){
@@ -1265,10 +1185,10 @@ function mergeTracksIntoOne(tracks){
   for(var t=0;t<tracks.length;t++){
     var c=tracks[t].coords;
     if(!c||c.length===0) continue;
-    if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c,ele:tracks[t].ele||null,osmId:tracks[t].osmId||''}); continue; }
-    segs.push({name:tracks[t].name||'', pts:c, ele:tracks[t].ele||null, osmId:tracks[t].osmId||''});
+    if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c,ele:tracks[t].ele||null}); continue; }
+    segs.push({name:tracks[t].name||'', pts:c, ele:tracks[t].ele||null});
   }
-  if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts,ele:s.ele||null,osmId:s.osmId||''};}));
+  if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts,ele:s.ele||null};}));
   function key(pt){ return pt[0].toFixed(7)+','+pt[1].toFixed(7); }
   var endMap={};
   function addEnd(k,i,end){ (endMap[k]||(endMap[k]=[])).push({i:i,end:end}); }
@@ -1282,11 +1202,11 @@ function mergeTracksIntoOne(tracks){
     var pts=segs[i].pts.slice();
     var eles=(segs[i].ele?segs[i].ele.slice():segs[i].pts.map(function(){return null;}));
     var names=segs[i].name?[segs[i].name]:[];
-    var osmId=segs[i].osmId||''; var openK=segs[i].k1, fromI=i, nx, s2, a, pre, preE;
+    var openK=segs[i].k1, fromI=i, nx, s2, a, pre, preE;
     while(true){
       nx=step(openK,fromI);
       if(!nx||used[nx.i]) break;
-      used[nx.i]=true; s2=segs[nx.i]; if(!osmId&&s2.osmId)osmId=s2.osmId;
+      used[nx.i]=true; s2=segs[nx.i];
       if(nx.end===0){ for(a=1;a<s2.pts.length;a++){ pts.push(s2.pts[a]); eles.push(s2.ele?s2.ele[a]:null); } openK=s2.k1; }
       else { for(a=s2.pts.length-2;a>=0;a--){ pts.push(s2.pts[a]); eles.push(s2.ele?s2.ele[a]:null); } openK=s2.k0; }
       if(s2.name) names.push(s2.name); fromI=nx.i;
@@ -1295,13 +1215,13 @@ function mergeTracksIntoOne(tracks){
     while(true){
       nx=step(openK,fromI);
       if(!nx||used[nx.i]) break;
-      used[nx.i]=true; s2=segs[nx.i]; if(!osmId&&s2.osmId)osmId=s2.osmId;
+      used[nx.i]=true; s2=segs[nx.i];
       if(nx.end===1){ pre=s2.pts.slice(0,s2.pts.length-1); preE=(s2.ele?s2.ele.slice(0,s2.pts.length-1):pre.map(function(){return null;})); pts=pre.concat(pts); eles=preE.concat(eles); openK=s2.k0; }
       else { pre=s2.pts.slice(1).reverse(); preE=(s2.ele?s2.ele.slice(1).reverse():pre.map(function(){return null;})); pts=pre.concat(pts); eles=preE.concat(eles); openK=s2.k1; }
       if(s2.name) names.unshift(s2.name); fromI=nx.i;
     }
     var anyE=eles.some(function(x){return x!=null;});
-    result.push({name:names.length?names[0]:'', coords:pts, ele:anyE?eles:null, osmId:osmId});
+    result.push({name:names.length?names[0]:'', coords:pts, ele:anyE?eles:null});
   }
   segs.forEach(function(s,i){ if(used[i]) return; if(degree(s.k0)!==2||degree(s.k1)!==2) build(i); });
   segs.forEach(function(s,i){ if(!used[i]) build(i); });
@@ -1322,30 +1242,29 @@ function parseGeoJSON(text){
       if(!geom)return;
       const name=(props&&(props.name||props.title||props.Name||props.NAME))||'';
       const desc=(props&&(props.desc||props.description||props.Description))||'';
-        const osmId=(props&&(props['@id']||props.osm_id||props.id))||'';
       if(geom.type==='LineString'){
         const coords=geom.coordinates.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
-        if(coords.length)tracks.push({name,coords,osmId});
+        if(coords.length)tracks.push({name,coords});
       } else if(geom.type==='MultiLineString'){
         geom.coordinates.forEach(line=>{
           const coords=line.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
-          if(coords.length)tracks.push({name,coords,osmId});
+          if(coords.length)tracks.push({name,coords});
         });
       } else if(geom.type==='Polygon'){
         // Each ring: outer ring + optional holes
         const rings=geom.coordinates.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
-        if(rings[0]&&rings[0].length)polygons.push({name,desc,rings,osmId});
+        if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
       } else if(geom.type==='MultiPolygon'){
         geom.coordinates.forEach(poly=>{
           const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
-          if(rings[0]&&rings[0].length)polygons.push({name,desc,rings,osmId});
+          if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
         });
       } else if(geom.type==='Point'){
         const c=geom.coordinates;
-        if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc,osmId});
+        if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
       } else if(geom.type==='MultiPoint'){
         geom.coordinates.forEach(c=>{
-          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc,osmId});
+          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
         });
       } else if(geom.type==='GeometryCollection'){
         geom.geometries.forEach(g=>handleGeom(g,props));
@@ -1363,28 +1282,6 @@ function parseGeoJSON(text){
   }catch(e){return null;}
 }
 
-// --- OpenStreetMap element links: turn an @id like "way/123" into a link icon ---
-function osmUrlFrom(id){
-  if(!id) return '';
-  var s=(''+id).trim(), parts=s.split('/');
-  if(parts.length!==2) return '';
-  var t=parts[0], n=parts[1];
-  if(t!=='node' && t!=='way' && t!=='relation') return '';
-  if(!n.length) return '';
-  for(var k=0;k<n.length;k++){ var ch=n.charCodeAt(k); if(ch<48||ch>57) return ''; }
-  return 'https://www.openstreetmap.org/'+t+'/'+n;
-}
-function osmLink(id){
-  var u=osmUrlFrom(id);
-  return u?' <a href="'+u+'" target="_blank" rel="noopener" title="View on OpenStreetMap" style="text-decoration:none">&#128279;</a>':'';
-}
-function elPopup(name, desc, id){
-  var lk=osmLink(id), html='';
-  if(name){ html='<b>'+name+'</b>'+lk; }
-  else if(lk){ html=lk.slice(1); }
-  if(desc){ html+=(html?'<br>':'')+desc; }
-  return html;
-}
 function renderList(){
   const el=document.getElementById('file-list');
   el.innerHTML='';
@@ -1395,8 +1292,6 @@ function renderList(){
       .replace('style="vertical-align:middle;flex:0 0 auto"','style="flex:0 0 auto" title="'+(f._splitType==='wpt'?'Waypoint':f._splitType==='pol'?'Polygon':'Track')+'"');
     row.innerHTML=`
       <div class="file-row-main">
-      <span class="draw-order" title="Draw order — the top layer in the list is drawn first (underneath); the bottom is drawn last (on top)">${i+1}</span>
-      <button class="file-eye${f.previewOn===false?' off':''}" data-idx="${i}" title="Show in this preview. The exported map always includes this layer.">&#128065;</button>
       ${geomIcon}
       <input type="color" value="${f.color}" title="Color" data-idx="${i}" class="colorpick">
       <input type="text" value="${f.displayName.replace(/"/g,'&quot;')}" title="Name on map" data-idx="${i}" class="nameinput" placeholder="Name">
@@ -1412,8 +1307,6 @@ function renderList(){
       <span class="toggle-label" style="color:#000">–</span>
       <input type="number" value="${Math.min(f.mapZoomMax!=null?f.mapZoomMax:22,22)}" min="1" max="22" data-idx="${i}" class="zoominput mapzoommax" title="Track/waypoints visible up to zoom level (max 22)">
       <span class="file-pts">${f._splitType==='wpt'?f.waypoints.length+'wpt':f._splitType==='pol'?(f.polygons||[]).length+'pol':f.tracks.length+'t'} &middot; ${f.npts}pt</span>
-      <button class="file-move-btn layer-move-btn" data-idx="${i}" data-dir="up" title="Move up (drawn earlier — appears underneath others)" ${i===0?'disabled':''}>&#8593;</button>
-      <button class="file-move-btn layer-move-btn" data-idx="${i}" data-dir="down" title="Move down (drawn later — appears on top of others)" ${i===files.length-1?'disabled':''}>&#8595;</button>
       <button class="delbtn" data-idx="${i}" title="Remove">&times;</button>
       </div>
       <div class="file-row-main">
@@ -1634,22 +1527,6 @@ function renderList(){
   });
   el.querySelectorAll('.delbtn').forEach(btn=>{
     btn.addEventListener('click',e=>removeFile(parseInt(e.target.dataset.idx)));
-  });
-  el.querySelectorAll('.file-move-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=parseInt(e.currentTarget.dataset.idx);
-      const j=e.currentTarget.dataset.dir==='up'?i-1:i+1;
-      if(j<0||j>=files.length) return;
-      const tmp=files[i]; files[i]=files[j]; files[j]=tmp;
-      renderList(); updatePreview();
-    });
-  });
-  el.querySelectorAll('.file-eye').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=parseInt(e.currentTarget.dataset.idx);
-      files[i].previewOn = !(files[i].previewOn!==false);
-      renderList(); updatePreview();
-    });
   });
 }
 
@@ -1994,7 +1871,6 @@ function updatePreview(){
   layers.forEach(l=>map.removeLayer(l));layers=[];
   const allCoords=[];
   files.forEach(f=>{
-    if(f.previewOn===false) return;   // hidden in this preview only; the export always includes it
     const fLw=f.lineWidth!=null?f.lineWidth:3;
     const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
     const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
@@ -2009,7 +1885,7 @@ function updatePreview(){
         allCoords.push(...t.coords);
       } else {
         const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
-        poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+osmLink(t.osmId)+(t.name?'<br>'+t.name:''));
+        poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
         poly._gpxFile=f;
         poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
         poly._trackZoomMin=fZMin;
@@ -2054,7 +1930,7 @@ function updatePreview(){
     f.waypoints.forEach(w=>{
       const m=buildWaypointMarker(f,w).addTo(map);
       const wLabel=getLabelText(f,w.name);
-      {var wp=elPopup(wLabel,w.desc,w.osmId); if(wp)m.bindPopup(wp);}
+      if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
       m._gpxWptMarker=true;
       // narrowest (strictest) range of global waypoint-marker-zoom and this GPX's map zoom
       const wMarkerZoomMin=1;
@@ -2114,7 +1990,7 @@ function updatePreview(){
     // Plain Polygon: single L.polygon, label at centroid (if name set).
     (f.polygons||[]).forEach(p=>{
       const poly=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2)}).addTo(map);
-      {var pn=p.name||(osmUrlFrom(p.osmId)?'':f.displayName); var pp=elPopup(pn,p.desc,p.osmId); if(pp)poly.bindPopup(pp);}
+      if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||f.displayName)+'</b>'+(p.desc?'<br>'+p.desc:''));
       poly._gpxTrack=true;
       poly._trackZoomMin=fZMin;
       poly._trackZoomMax=fZMax;
@@ -2718,33 +2594,6 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 
 // --- Embedded map data baked in at export time ---
 const D=${JSON.stringify(data)};   // Array of track/waypoint objects (GPX/GeoJSON files)
-// --- Snapshot: rebuild this page with the visitor's current routes baked in ---
-// __snapshotExtra is filled in from the route module (closure) so shareSnapshot,
-// which lives at top level, can reach the live userRoutes.
-var __snapshotExtra=function(){ return []; };
-function shareSnapshot(){
-  if(typeof closeMenu==='function'){ try{ closeMenu(); }catch(e){} }
-  if(location.protocol==='file:'){
-    alert('To create a shareable copy, open this map from a web address (https). A page opened straight from disk cannot rebuild itself.');
-    return;
-  }
-  if(typeof showToast==='function') showToast('Building a copy…');
-  fetch(location.href).then(function(r){ return r.text(); }).then(function(html){
-    var baked=(typeof D!=='undefined'&&D)?D:[];
-    var newData=baked.concat(__snapshotExtra());
-    var i=html.indexOf('const D=');
-    var c=html.indexOf('// Array of track/waypoint', i);
-    if(i<0 || c<0){ alert('Sorry, this map could not be rebuilt (marker not found).'); return; }
-    var newHtml=html.slice(0,i)+'const D='+JSON.stringify(newData)+';   '+html.slice(c);
-    var blob=new Blob([newHtml],{type:'text/html'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download=(document.title||'map')+' (snapshot).html';
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
-    if(typeof showToast==='function') showToast('Snapshot saved to your downloads');
-  }).catch(function(e){ alert('Sorry, the snapshot could not be built: '+e); });
-}
 const B=${JSON.stringify(bounds)}; // Combined bounding box of all tracks, or null
 const MAX_ZOOM=22;                 // tiles are optically over-zoomed (blurred) beyond their native resolution up to this level
 // (auto-center-on-idle setting now lives in FOLLOW_DELAY, defined further down)
@@ -3196,28 +3045,6 @@ const polygonLayers=[];     // L.Polygon filled areas only
 // zoomLayers built after D.forEach (see below)
 
 
-// --- OpenStreetMap element links: turn an @id like "way/123" into a link icon ---
-function osmUrlFrom(id){
-  if(!id) return '';
-  var s=(''+id).trim(), parts=s.split('/');
-  if(parts.length!==2) return '';
-  var t=parts[0], n=parts[1];
-  if(t!=='node' && t!=='way' && t!=='relation') return '';
-  if(!n.length) return '';
-  for(var k=0;k<n.length;k++){ var ch=n.charCodeAt(k); if(ch<48||ch>57) return ''; }
-  return 'https://www.openstreetmap.org/'+t+'/'+n;
-}
-function osmLink(id){
-  var u=osmUrlFrom(id);
-  return u?' <a href="'+u+'" target="_blank" rel="noopener" title="View on OpenStreetMap" style="text-decoration:none">&#128279;</a>':'';
-}
-function elPopup(name, desc, id){
-  var lk=osmLink(id), html='';
-  if(name){ html='<b>'+name+'</b>'+lk; }
-  else if(lk){ html=lk.slice(1); }
-  if(desc){ html+=(html?'<br>':'')+desc; }
-  return html;
-}
 // Baked-track gradient colouring: draw Creator-exported grade tracks by slope.
 var BGRADE_STOPS=[-12,-6,-2,2,6,12];
 var BGRADE_COLORS=['#08306b','#4292c6','#41ab5d','#9e9e9e','#f16913','#cb181d','#000000'];
@@ -3290,7 +3117,7 @@ D.forEach(f=>{
   // For plain Polygon: pass rings normally.
   (f.polygons||[]).forEach(p=>{
     const pg=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2)}).addTo(map);
-    {var pn=p.name||(osmUrlFrom(p.osmId)?'':f.filename); var pp=elPopup(pn,p.desc,p.osmId); if(pp)pg.bindPopup(pp);}
+    if(p.name||p.desc)pg.bindPopup('<b>'+(p.name||f.filename)+'</b>'+(p.desc?'<br>'+p.desc:''));
     pg._isPolygon=true;
     pg._baseFillOpacity=(f.fillOpacity!=null?f.fillOpacity:0.2);
     pg._trackZoomMin=fZMin;
@@ -3310,7 +3137,7 @@ D.forEach(f=>{
       });
     } else {
       const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
-      poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+osmLink(t.osmId)+(t.name?'<br>'+t.name:''));
+      poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+(t.name?'<br>'+t.name:''));
       poly._gpxFile=f;
       poly._trackZoomMin=fZMin;
       poly._trackZoomMax=fZMax;
@@ -3359,7 +3186,7 @@ D.forEach(f=>{
   f.waypoints.forEach(w=>{
     const m=buildWaypointMarker(f,w).addTo(map);
     const wLabel=getLabelText(f,w.name);
-    {var wp=elPopup(wLabel,w.desc,w.osmId); if(wp)m.bindPopup(wp);}
+    if(w.name||w.desc)m.bindPopup('<b>'+wLabel+'</b>'+(w.desc?'<br>'+w.desc:''));
     m._trackZoomMin=fZMin;
     m._trackZoomMax=fZMax;
     wptMarkerLayers.push(m);  // waypoints group only
@@ -4209,16 +4036,7 @@ setInterval(function(){
 },1000);
 map.on('rotate zoomend moveend', updateArrowRotations);
 document.getElementById('map-wrap').addEventListener('pointerdown',function(){ showUi(); },true);
-// Geolocation only works in a secure context (https or localhost). When this page
-// is opened straight from disk (file://) or over insecure http, hide the location/
-// orientation button so a shared copy doesn't show a button that can't work.
-var __geoOK=(window.isSecureContext && location.protocol!=='file:');
-if(__geoOK){
-  setLocMode((typeof START_LOCMODE!=='undefined' && START_LOCMODE) ? START_LOCMODE : 'off');
-} else {
-  setLocMode('off');
-  if(locBtn) locBtn.style.display='none';
-}
+setLocMode((typeof START_LOCMODE!=='undefined' && START_LOCMODE) ? START_LOCMODE : 'off');
 
 // --- Welcome popup (once per device): how to pin / bookmark the map ---------------
 (function(){
@@ -4491,10 +4309,10 @@ map.on('zoomend',function(){
     for(var t=0;t<tracks.length;t++){
       var c=tracks[t].coords;
       if(!c||c.length===0) continue;
-      if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c,ele:tracks[t].ele||null,osmId:tracks[t].osmId||''}); continue; }
-      segs.push({name:tracks[t].name||'', pts:c, ele:tracks[t].ele||null, osmId:tracks[t].osmId||''});
+      if(c.length===1){ singles.push({name:tracks[t].name||'',coords:c,ele:tracks[t].ele||null}); continue; }
+      segs.push({name:tracks[t].name||'', pts:c, ele:tracks[t].ele||null});
     }
-    if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts,ele:s.ele||null,osmId:s.osmId||''};}));
+    if(segs.length<=1) return singles.concat(segs.map(function(s){return {name:s.name,coords:s.pts,ele:s.ele||null};}));
     function key(pt){ return pt[0].toFixed(7)+','+pt[1].toFixed(7); }
     var endMap={};
     function addEnd(k,i,end){ (endMap[k]||(endMap[k]=[])).push({i:i,end:end}); }
@@ -4507,11 +4325,11 @@ map.on('zoomend',function(){
       used[i]=true;
       var pts=segs[i].pts.slice();
       var names=segs[i].name?[segs[i].name]:[];
-      var osmId=segs[i].osmId||''; var openK=segs[i].k1, fromI=i, nx, s2, a, pre;
+      var openK=segs[i].k1, fromI=i, nx, s2, a, pre;
       while(true){
         nx=step(openK,fromI);
         if(!nx||used[nx.i]) break;
-        used[nx.i]=true; s2=segs[nx.i]; if(!osmId&&s2.osmId)osmId=s2.osmId;
+        used[nx.i]=true; s2=segs[nx.i];
         if(nx.end===0){ for(a=1;a<s2.pts.length;a++) pts.push(s2.pts[a]); openK=s2.k1; }
         else { for(a=s2.pts.length-2;a>=0;a--) pts.push(s2.pts[a]); openK=s2.k0; }
         if(s2.name) names.push(s2.name); fromI=nx.i;
@@ -4520,12 +4338,12 @@ map.on('zoomend',function(){
       while(true){
         nx=step(openK,fromI);
         if(!nx||used[nx.i]) break;
-        used[nx.i]=true; s2=segs[nx.i]; if(!osmId&&s2.osmId)osmId=s2.osmId;
+        used[nx.i]=true; s2=segs[nx.i];
         if(nx.end===1){ pre=s2.pts.slice(0,s2.pts.length-1); pts=pre.concat(pts); openK=s2.k0; }
         else { pre=s2.pts.slice(1).reverse(); pts=pre.concat(pts); openK=s2.k1; }
         if(s2.name) names.unshift(s2.name); fromI=nx.i;
       }
-      result.push({name:names.length?names[0]:'', coords:pts, osmId:osmId});
+      result.push({name:names.length?names[0]:'', coords:pts});
     }
     segs.forEach(function(s,i){ if(used[i]) return; if(degree(s.k0)!==2||degree(s.k1)!==2) build(i); });
     segs.forEach(function(s,i){ if(!used[i]) build(i); });
@@ -4540,32 +4358,31 @@ map.on('zoomend',function(){
         if(!geom)return;
         const name=(props&&(props.name||props.title||props.Name||props.NAME))||'';
         const desc=(props&&(props.desc||props.description||props.Description))||'';
-        const osmId=(props&&(props['@id']||props.osm_id||props.id))||'';
         if(geom.type==='LineString'){
           const c=geom.coordinates.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
           const ele=[];let anyEle=false;
           geom.coordinates.forEach(cc=>{ if(!isNaN(cc[1])&&!isNaN(cc[0])){ const e=(cc.length>2&&cc[2]!=null&&!isNaN(cc[2]))?cc[2]:null; ele.push(e); if(e!=null)anyEle=true; } });
-          if(c.length)tracks.push({name,coords:c,ele:anyEle?ele:null,osmId});
+          if(c.length)tracks.push({name,coords:c,ele:anyEle?ele:null});
         } else if(geom.type==='MultiLineString'){
           geom.coordinates.forEach(line=>{
             const c=line.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1]));
             const ele=[];let anyEle=false;
             line.forEach(cc=>{ if(!isNaN(cc[1])&&!isNaN(cc[0])){ const e=(cc.length>2&&cc[2]!=null&&!isNaN(cc[2]))?cc[2]:null; ele.push(e); if(e!=null)anyEle=true; } });
-            if(c.length)tracks.push({name,coords:c,ele:anyEle?ele:null,osmId});
+            if(c.length)tracks.push({name,coords:c,ele:anyEle?ele:null});
           });
         } else if(geom.type==='Polygon'){
           const rings=geom.coordinates.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
-          if(rings.length)polygons.push({name,desc,rings,osmId});
+          if(rings.length)polygons.push({name,desc,rings});
         } else if(geom.type==='MultiPolygon'){
           geom.coordinates.forEach(poly=>{
             const rings=poly.map(ring=>ring.map(c=>[c[1],c[0]]).filter(c=>!isNaN(c[0])&&!isNaN(c[1])));
-            if(rings[0]&&rings[0].length)polygons.push({name,desc,rings,osmId});
+            if(rings[0]&&rings[0].length)polygons.push({name,desc,rings});
           });
         } else if(geom.type==='Point'){
           const c=geom.coordinates;
-          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc,osmId});
+          if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});
         } else if(geom.type==='MultiPoint'){
-          geom.coordinates.forEach(c=>{if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc,osmId});});
+          geom.coordinates.forEach(c=>{if(!isNaN(c[1])&&!isNaN(c[0]))waypoints.push({lat:c[1],lon:c[0],name,desc});});
         } else if(geom.type==='GeometryCollection'){
           geom.geometries.forEach(g=>handleGeom(g,props));
         }
@@ -5058,36 +4875,6 @@ map.on('zoomend',function(){
   function gradeClassIndex(pct){ for(var i=0;i<GRADE_STOPS.length;i++){ if(pct<GRADE_STOPS[i]) return i; } return GRADE_STOPS.length; }
   function trackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
   function routeHasEle(r){ return !!(r && r.parsed && (r.parsed.tracks||[]).some(trackHasEle)); }
-  // Expose the visitor's current routes to the top-level snapshot builder, in the
-  // same shape as the Creator's baked D entries so they render identically.
-  __snapshotExtra=function(){
-    return userRoutes.filter(function(r){ return r.visible!==false && r.parsed; }).map(function(r){
-      return {
-        filename:r.name||'route',
-        color:r.color,
-        showLabel:!!r.showLabel,
-        labelMode:r.labelMode||'nametag',
-        showStart:!!r.showStart,
-        labelPos:'centroid',
-        labelZoomMin:(r.labelZoomMin!=null?r.labelZoomMin:0),
-        labelZoomMax:(r.labelZoomMax!=null?r.labelZoomMax:22),
-        labelFontSize:24,
-        useElementName:false,
-        lineWidth:(r.lineWidth!=null?r.lineWidth:3),
-        fillOpacity:(r.fillOpacity!=null?r.fillOpacity:0.2),
-        mapZoomMin:1,
-        mapZoomMax:22,
-        showKmMarkers:!!r.showKmMarkers,
-        showTrackDist:false,
-        wptIconSvg:null,
-        wptIconSize:28,
-        colorMode:r.colorMode||'fixed',
-        tracks:(r.parsed.tracks||[]),
-        waypoints:(r.parsed.waypoints||[]),
-        polygons:(r.parsed.polygons||[])
-      };
-    });
-  };
   // Split a track into runs of constant grade class; returns [{coords, color}].
   function buildGradeRuns(coords, ele){
     var n=coords.length; if(n<2) return [];
@@ -6163,7 +5950,6 @@ function showToast(msg,duration){
       const shareBtn='<button class="mam-item" data-share-map="1"><span class="mam-icon">&#128279;</span>Share this map here</button>';
       const saveBtn='<button class="mam-item" data-save-point="1"><span class="mam-icon">&#128204;</span>Save this location</button>';
       const routeFromBtnHtml='<button class="mam-item" data-route-from="1"><span class="mam-icon">&#9873;</span>Route from here</button>';
-      const snapshotBtn='<button class="mam-item" data-snapshot="1"><span class="mam-icon">&#128190;</span>Share a snapshot (with routes)</button>';
       const shown={};
       if(cats.some(c=>c.builtin)){
         // Menu order follows the category order set in the Creator; built-in items and
@@ -6173,7 +5959,6 @@ function showToast(msg,duration){
           if(c.builtin==='share'){ html+=shareBtn; }
           else if(c.builtin==='save'){ html+=saveBtn; }
           else if(c.builtin==='routefrom'){ html+=routeFromBtnHtml; }
-          else if(c.builtin==='snapshot'){ html+=snapshotBtn; }
           else if(c.name && groupMap[c.name] && groupMap[c.name].length){ html+=catBtnHtml(c.name,c); shown[c.name]=1; }
         });
         // Any groups without a matching category row appear at the end.
@@ -6190,8 +5975,6 @@ function showToast(msg,duration){
       if(routeFromBtn) routeFromBtn.addEventListener('click',()=>{ const ll=currentLatLng; closeMenu(); startRouteFrom(ll); });
       const savePointBtn=menuEl.querySelector('[data-save-point]');
       if(savePointBtn) savePointBtn.addEventListener('click',saveLocationHere);
-      const snapBtn=menuEl.querySelector('[data-snapshot]');
-      if(snapBtn) snapBtn.addEventListener('click',shareSnapshot);
       menuEl.querySelectorAll('[data-group]').forEach(btn=>{
         btn.addEventListener('click',()=>renderActionLevel(btn.dataset.group));
       });
