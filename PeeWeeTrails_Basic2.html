@@ -58,7 +58,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
    uses the *visible* height so it stays correct when the mobile address bar shows;
    the earlier 154px value ignored the header, pushing the bottom slider off-screen
    and out of scroll reach on the phone. */
-#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#layers-panel{display:none;position:absolute;top:0;right:40px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #layers-panel.open{display:block}
 #layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
@@ -372,7 +372,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
   <div id="layers-overlay">
     <button class="ctrl-btn" id="layers-btn" title="Map layers">&#9776;</button>
-    <div id="layers-panel"><h3>Map layers</h3><div id="layers-panel-content"></div></div>
+    <div id="layers-panel"><h3 style="display:flex;align-items:center;justify-content:space-between;gap:10px">Map layers<button id="layers-close" title="Close" style="background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#888;padding:0 2px;margin:0">&times;</button></h3><div id="layers-panel-content"></div></div>
   </div>
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
@@ -651,7 +651,7 @@ const GRADE_CONFIG={"baseline":90,"minSeg":60};
 const START_LOCMODE="north";
 const WELCOME_CONFIG={"enabled":true,"text":"Tip: add this map to your phone's home screen for quick, app-like access. Open your browser menu and choose \"Add to Home screen\" (Android) or Share → \"Add to Home Screen\" (iPhone). On a computer you can bookmark this page instead. This map needs an internet connection."};
 const SEARCH_CATS=[{"icon":"🪑","label":"Bench","terms":["bench","picnic site","picnic table"]},{"icon":"🚿","label":"Drinking water","terms":["drinking water"]},{"icon":"🚽","label":"Toilets","terms":["toilets"]},{"icon":"🍱","label":"Picnic site","terms":["picnic site","picnic table"]},{"icon":"🏕","label":"Shelter","terms":["shelter"]},{"icon":"👀","label":"Viewpoint","terms":["viewpoint"]},{"icon":"⛺","label":"Camp site","terms":["camp site"]},{"icon":"🚲","label":"Bicycle shop","terms":["bicycle shop"]},{"icon":"🥐","label":"Bakery","terms":["bakery"]},{"icon":"☕","label":"Café","terms":["cafe"]},{"icon":"🍺","label":"Pub","terms":["pub"]},{"icon":"🍽","label":"Restaurant","terms":["restaurant"]},{"icon":"🛒","label":"Supermarket","terms":["supermarket"]}];
-const PREVIEW_VIEW={"lat":52.150028036592836,"lng":5.382184982299805,"zoom":13};
+const PREVIEW_VIEW={"lat":52.15381978139549,"lng":5.394244194030762,"zoom":14};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Remember which extra layers are ticked, across a browser reload / tab discard.
 const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
@@ -800,9 +800,8 @@ const wmsLayerObjs=new Array(EX.length);
   topoRow.querySelector('input').addEventListener('change',function(){ if(this.checked) selectBaseMap('topo'); });
 
   layersBtn.onclick=function(){ if(!layersPanel.classList.contains('open')) closePanelsExcept('layers-panel'); layersPanel.classList.toggle('open'); };
-  document.addEventListener('click',function(e){
-    if(!layersOverlay.contains(e.target))layersPanel.classList.remove('open');
-  });
+  var __layersClose=document.getElementById('layers-close');
+  if(__layersClose) __layersClose.addEventListener('click',function(e){ e.stopPropagation(); layersPanel.classList.remove('open'); });
 }
 
 // --- OSM Notes overlay: live query of the OSM Notes API for the current view ------
