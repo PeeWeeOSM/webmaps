@@ -2375,7 +2375,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
    uses the *visible* height so it stays correct when the mobile address bar shows;
    the earlier 154px value ignored the header, pushing the bottom slider off-screen
    and out of scroll reach on the phone. */
-#layers-panel{display:none;position:absolute;top:42px;right:0;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#layers-panel{display:none;position:absolute;top:0;right:40px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;min-width:180px;max-width:240px;max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #layers-panel.open{display:block}
 #layers-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .layer-toggle-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#222}
@@ -2689,7 +2689,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="zoom-indicator">z<span id="zoom-val">–</span></div>
   <div id="layers-overlay">
     <button class="ctrl-btn" id="layers-btn" title="Map layers">&#9776;</button>
-    <div id="layers-panel"><h3>Map layers</h3><div id="layers-panel-content"></div></div>
+    <div id="layers-panel"><h3 style="display:flex;align-items:center;justify-content:space-between;gap:10px">Map layers<button id="layers-close" title="Close" style="background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#888;padding:0 2px;margin:0">&times;</button></h3><div id="layers-panel-content"></div></div>
   </div>
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
@@ -3117,9 +3117,8 @@ const wmsLayerObjs=new Array(EX.length);
   topoRow.querySelector('input').addEventListener('change',function(){ if(this.checked) selectBaseMap('topo'); });
 
   layersBtn.onclick=function(){ if(!layersPanel.classList.contains('open')) closePanelsExcept('layers-panel'); layersPanel.classList.toggle('open'); };
-  document.addEventListener('click',function(e){
-    if(!layersOverlay.contains(e.target))layersPanel.classList.remove('open');
-  });
+  var __layersClose=document.getElementById('layers-close');
+  if(__layersClose) __layersClose.addEventListener('click',function(e){ e.stopPropagation(); layersPanel.classList.remove('open'); });
 }
 
 // --- OSM Notes overlay: live query of the OSM Notes API for the current view ------
@@ -3573,6 +3572,7 @@ let TRAIL_MODE=${JSON.stringify(trailMode)};
 let TRAIL_METERS=${trailMeters};
 let FOLLOW_DELAY=${centerDelay}; // 0=never, else ms of idle time before re-centering
 let lastUserInteraction=Date.now();
+let sharedView=false;  // true when opened from a shared link (explicit view in URL): stay there
 let lastKnownLatLng=null;
 let followCheckInterval=null;
 let programmaticMove=false;
@@ -4053,7 +4053,7 @@ function stopLoc(){
 
 // Detect manual map interaction (drag/zoom by user) to temporarily pause auto-centering
 map.on('dragstart zoomstart rotate',function(){
-  if(!programmaticMove){ lastUserInteraction=Date.now(); following=false; }
+  if(!programmaticMove){ lastUserInteraction=Date.now(); following=false; sharedView=false; }
 });
 
 function recenterOnLocation(ll){
@@ -4184,7 +4184,7 @@ function startGPS(){
 // --- Compass modes menu + auto-return timer ---
 const compassMenu=document.getElementById('compass-menu');
 function setLocMode(m){
-  locMode=m; following=true; lastUserInteraction=Date.now(); northHold=false;
+  locMode=m; following=true; lastUserInteraction=Date.now(); northHold=false; sharedView=false;
   var _mw=document.getElementById('map-wrap'); if(_mw) _mw.classList.toggle('mode-movement', m==='movement');
   compassMenu.classList.add('hidden');
   document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode===m); });
@@ -4196,7 +4196,8 @@ locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropag
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
 setInterval(function(){
-  if(searchActive || routeEditing) return;
+  if(searchActive || routeEditing || anyPanelOpen()){ lastUserInteraction=Date.now(); return; }   // don't snap back while a panel/dialog is open
+  if(sharedView) return;                                                                            // shared link: stay at the shared view
   if(FOLLOW_DELAY<=0) return;
   // Held-north view while standing still (e.g. after a double-tap, then panning to
   // look around): stay where the user left it. Only once they move again does the
@@ -4219,6 +4220,10 @@ if(__geoOK){
   setLocMode('off');
   if(locBtn) locBtn.style.display='none';
 }
+// A shared link carries an explicit view in the URL. Open there and stay put: don't let
+// the start orientation immediately re-center on the visitor's own location. Normal
+// follow behaviour resumes as soon as the visitor pans/zooms or taps the location button.
+if(__geoOK && urlState && urlState.z!=null){ sharedView=true; following=false; }
 
 // --- Welcome popup (once per device): how to pin / bookmark the map ---------------
 (function(){
