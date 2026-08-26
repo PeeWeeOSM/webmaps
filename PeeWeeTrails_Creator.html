@@ -188,6 +188,16 @@ input:checked+.slider:before{transform:translateX(14px)}
       <p style="font-size:12px;color:#000;margin:2px 0 6px">For the "colour by gradient" option on tracks with elevation. Elevation data (SRTM) is about 90 m resolution, so a longer baseline gives cleaner, longer segments; a larger minimum length absorbs tiny slivers.</p>
       <div id="grade-settings" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
+    <div style="margin-top:8px">
+      <span style="font-size:13px;color:#000;font-weight:600">Simplify tracks</span>
+      <p style="font-size:12px;color:#000;margin:2px 0 6px">Drops trackpoints that barely change the line (Douglas-Peucker) for faster rendering and smaller exports. Applied to the preview and the exported map; your original files and saved projects keep every point. Elevation stays in step with the points.</p>
+      <select id="opt-simplify" class="posselect">
+        <option value="0">off (keep every point)</option>
+        <option value="2" selected>light (~2 m)</option>
+        <option value="5">medium (~5 m)</option>
+        <option value="10">strong (~10 m)</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -200,6 +210,11 @@ input:checked+.slider:before{transform:translateX(14px)}
     Drag GPX, GeoJSON or FIT files here, or click to browse
   </div>
   <input type="file" id="fileinput" accept=".gpx,.geojson,.json,.fit" multiple style="display:none" onchange="handleFiles(this.files)">
+  <details id="filedefaults" style="margin:8px 0;border:1px solid #e2e2e2;border-radius:8px;padding:6px 10px">
+    <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#000">Default settings for new files</summary>
+    <p class="sub" style="margin:6px 0">Set these first; files you import afterwards use these values. Files already in the list are not changed.</p>
+    <div id="filedefaults-body"></div>
+  </details>
   <div id="file-list"></div>
   <button class="btn" id="creategeombtn" style="margin-top:8px;width:100%" onclick="startGeometryTypePicker()">
     <i class="ti ti-pencil-plus" aria-hidden="true"></i> Create geometry
@@ -439,6 +454,8 @@ function saveLayersToStorage(){
       categories:categories.map(c=>({name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
       notesConfig:Object.assign({}, notesConfig),
       gradeConfig:Object.assign({}, gradeConfig),
+      fileDefaults:JSON.parse(JSON.stringify(fileDefaults)),
+      simplifyTol:simplifyTol,
       title:document.getElementById('title').value,
       pwaShort:(document.getElementById('pwa-short')||{}).value,
       osmOpacity:document.getElementById('osmopacity').value,
@@ -470,6 +487,8 @@ function loadLayersFromStorage(){
     renderLayerList();
     notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG, (state&&state.notesConfig)||{});
     gradeConfig=Object.assign({}, DEFAULT_GRADE_CONFIG, (state&&state.gradeConfig)||{});
+    if(state&&state.fileDefaults){ ['trk','wpt','pol'].forEach(function(k){ if(state.fileDefaults[k]) fileDefaults[k]=Object.assign({}, DEFAULT_FILE_DEFAULTS[k], state.fileDefaults[k]); }); }
+    if(state&&state.simplifyTol!=null){ simplifyTol=state.simplifyTol; var _se=document.getElementById('opt-simplify'); if(_se) _se.value=String(simplifyTol); }
 
     const catsToLoad=state&&state.categories;
     const catsSource=catsToLoad&&catsToLoad.length>0?catsToLoad:DEFAULT_CATEGORIES;
@@ -502,6 +521,7 @@ function loadLayersFromStorage(){
     renderGradeSettings();
 
     _restoring=false;
+    renderFileDefaults();
     if(state&&state.title) document.getElementById('title').value=state.title;
     if(state&&state.pwaShort!=null&&document.getElementById('pwa-short')) document.getElementById('pwa-short').value=state.pwaShort;
     if(state&&state.outputInfoUrl) document.getElementById('output-info-url').value=state.outputInfoUrl;
@@ -545,6 +565,8 @@ function buildProject(){
     categories: categories.map(function(c){ return {name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null}; }),
     notesConfig: Object.assign({}, notesConfig),
     gradeConfig: Object.assign({}, gradeConfig),
+    fileDefaults: JSON.parse(JSON.stringify(fileDefaults)),
+    simplifyTol: simplifyTol,
     settings: {
       title:_pv('title'), pwaShort:_pv('pwa-short'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
       zoomLevel:_pv('opt-zoom-level'), centerDelay:_pv('opt-center-delay'), hideUi:_pv('opt-hide-ui'),
@@ -569,7 +591,7 @@ function loadProject(obj){
   try{
     var S=obj.settings||{};
     // Reuse the existing restore path for the config (layers/categories/actions/notes/grade/title/...)
-    var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig,
+    var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig, fileDefaults:obj.fileDefaults, simplifyTol:obj.simplifyTol,
              title:S.title, pwaShort:S.pwaShort, osmOpacity:S.osmOpacity, outputInfoUrl:S.outputInfoUrl };
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); }catch(e){}
     loadLayersFromStorage();
@@ -612,6 +634,42 @@ function loadProject(obj){
 })();
 const MAX_ZOOM=22; // tile layers are optically over-zoomed (blurred) beyond their native resolution up to this level
 let files=[];
+const DEFAULT_FILE_DEFAULTS={
+  trk:{showLabel:true,labelMode:'nametag',labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,useElementName:true,labelZoomMin:14,labelZoomMax:22,labelFontSize:24,lineWidth:5,mapZoomMin:1,mapZoomMax:22,colorMode:'fixed'},
+  wpt:{showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:8,mapZoomMin:9,mapZoomMax:22},
+  pol:{showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2}
+};
+let fileDefaults=JSON.parse(JSON.stringify(DEFAULT_FILE_DEFAULTS));
+let simplifyTol=2;  // metres; Douglas-Peucker tolerance for line simplification (0 = off)
+// Iterative Douglas-Peucker (no recursion, safe for very long tracks). Keeps ele in sync.
+function simplifyTrack(coords, ele, tolM, use3d){
+  var n=coords.length;
+  if(!tolM || tolM<=0 || n<3) return {coords:coords, ele:ele};
+  var lat0=coords[0][0]*Math.PI/180, kx=111320*Math.cos(lat0), ky=110540;
+  var hasE=!!(use3d && ele && ele.length===n);
+  function px(i){ return coords[i][1]*kx; }
+  function py(i){ return coords[i][0]*ky; }
+  function pz(i){ return hasE ? (ele[i]!=null?ele[i]:0) : 0; }
+  var keep=new Uint8Array(n); keep[0]=1; keep[n-1]=1;
+  var stack=[[0,n-1]], tol2=tolM*tolM;
+  while(stack.length){
+    var seg=stack.pop(), a=seg[0], b=seg[1];
+    if(b<=a+1) continue;
+    var ax=px(a),ay=py(a),az=pz(a),dx=px(b)-ax,dy=py(b)-ay,dz=pz(b)-az,len2=dx*dx+dy*dy+dz*dz;
+    var maxd=-1, idx=-1;
+    for(var i=a+1;i<b;i++){
+      var vx=px(i)-ax, vy=py(i)-ay, vz=pz(i)-az, d;
+      if(len2===0){ d=vx*vx+vy*vy+vz*vz; }
+      else { var t=(vx*dx+vy*dy+vz*dz)/len2; if(t<0)t=0; else if(t>1)t=1; var cx=dx*t-vx, cy=dy*t-vy, cz=dz*t-vz; d=cx*cx+cy*cy+cz*cz; }
+      if(d>maxd){ maxd=d; idx=i; }
+    }
+    if(maxd>tol2){ keep[idx]=1; stack.push([a,idx]); stack.push([idx,b]); }
+  }
+  var oc=[], oe=ele?[]:null;
+  for(var i=0;i<n;i++){ if(keep[i]){ oc.push(coords[i]); if(oe) oe.push(ele[i]); } }
+  return {coords:oc, ele:oe};
+}
+(function(){ var e=document.getElementById('opt-simplify'); if(e) e.addEventListener('change',function(){ simplifyTol=parseFloat(e.value)||0; try{updatePreview();}catch(_){} try{saveLayersToStorage();}catch(_){} }); })();
 let map=null;
 let layers=[];
 let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
@@ -1117,7 +1175,7 @@ function handleFiles(fl){
       const baseName=f.name.replace(/\.(gpx|geojson|json|fit)$/i,'');
 
       // --- SPLIT: one row per track ---
-      const trkDefaults={showLabel:true,labelMode:'nametag',labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,useElementName:true,labelZoomMin:14,labelZoomMax:22,labelFontSize:24,lineWidth:5,mapZoomMin:1,mapZoomMax:22};
+      const trkDefaults=Object.assign({},fileDefaults.trk);
       parsed.tracks.forEach((trk,tIdx)=>{
         // Name: use <name> tag if present, else baseName (single track) or baseName_trkN (multiple)
         const displayName=trk.name&&trk.name.trim() ? trk.name.trim() : parsed.tracks.length===1 ? baseName : baseName+' ('+(tIdx+1)+')';
@@ -1137,7 +1195,7 @@ function handleFiles(fl){
         const displayName=baseName;
         if(!files.find(x=>x.displayName===displayName&&x._splitType==='wpt')){
           const color=COLORS[files.length%COLORS.length];
-          const wptDefaults={showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:8,mapZoomMin:9,mapZoomMax:22};
+          const wptDefaults=Object.assign({},fileDefaults.wpt);
           const npts=parsed.waypoints.length;
           files.push({
             name:f.name, displayName, color, polygons:[], _splitType:'wpt',
@@ -1152,7 +1210,7 @@ function handleFiles(fl){
       // share one row (same styling), regardless of individual names.
       // Otherwise (mixed file), group by name so MultiPolygon parts (same name) stay together
       // while distinctly-named polygons get their own row.
-      const polDefaults={showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2};
+      const polDefaults=Object.assign({},fileDefaults.pol);
       const polygonOnlyFile=parsed.tracks.length===0&&parsed.waypoints.length===0;
       let polGroups=[];
       if(polygonOnlyFile){
@@ -1384,6 +1442,48 @@ function elPopup(name, desc, id){
   else if(lk){ html=lk.slice(1); }
   if(desc){ html+=(html?'<br>':'')+desc; }
   return html;
+}
+const FD_SPECS={
+  trk:{label:'Tracks',fields:['lineWidth','colorMode','labelMode','labelPos','labelZoomMin','labelZoomMax','labelFontSize','mapZoomMin','mapZoomMax','showStart','showKmMarkers']},
+  wpt:{label:'Waypoints',fields:['lineWidth','labelMode','labelPos','labelZoomMin','labelZoomMax','labelFontSize','mapZoomMin','mapZoomMax']},
+  pol:{label:'Polygons',fields:['lineWidth','fillOpacity','labelMode','labelPos','labelZoomMin','labelZoomMax','labelFontSize','mapZoomMin','mapZoomMax']}
+};
+const FD_META={
+  lineWidth:{t:'num',min:1,max:30,lbl:function(k){return k==='wpt'?'Dot size (px)':k==='pol'?'Border width (px)':'Line width (px)';}},
+  colorMode:{t:'grade',lbl:'Colour by gradient (tracks with elevation)'},
+  fillOpacity:{t:'pct',min:0,max:100,lbl:'Fill opacity (%)'},
+  labelMode:{t:'mode',lbl:'Label'}, labelPos:{t:'pos',lbl:'Label position'},
+  labelZoomMin:{t:'num',min:1,max:22,lbl:'Label zoom from'}, labelZoomMax:{t:'num',min:1,max:22,lbl:'Label zoom to'},
+  labelFontSize:{t:'num',min:8,max:72,lbl:'Font size (px)'},
+  mapZoomMin:{t:'num',min:1,max:22,lbl:'Visible from zoom'}, mapZoomMax:{t:'num',min:1,max:22,lbl:'Visible to zoom'},
+  showStart:{t:'bool',lbl:'Start marker'}, showKmMarkers:{t:'bool',lbl:'Km markers'}
+};
+function renderFileDefaults(){
+  var body=document.getElementById('filedefaults-body'); if(!body) return;
+  var html='';
+  ['trk','wpt','pol'].forEach(function(type){
+    var spec=FD_SPECS[type], d=fileDefaults[type];
+    html+='<div style="margin:8px 0"><div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#000;margin-bottom:4px">'+spec.label+'</div><div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center">';
+    spec.fields.forEach(function(fld){
+      var m=FD_META[fld], lbl=(typeof m.lbl==='function')?m.lbl(type):m.lbl, id='fd-'+type+'-'+fld;
+      if(m.t==='bool'){ html+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#000"><input type="checkbox" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" '+(d[fld]?'checked':'')+'>'+lbl+'</label>'; }
+      else if(m.t==='grade'){ html+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#000"><input type="checkbox" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" '+(d.colorMode==='grade'?'checked':'')+'>'+lbl+'</label>'; }
+      else if(m.t==='mode'){ html+='<label style="font-size:12px;color:#000">'+lbl+' <select id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" class="posselect"><option value="nametag"'+(d.labelMode==='nametag'?' selected':'')+'>name tag</option><option value="filename"'+(d.labelMode==='filename'?' selected':'')+'>file name</option><option value="none"'+(d.labelMode==='none'?' selected':'')+'>none</option></select></label>'; }
+      else if(m.t==='pos'){ html+='<label style="font-size:12px;color:#000">'+lbl+' <select id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" class="posselect"><option value="start"'+(d.labelPos==='start'?' selected':'')+'>start</option><option value="centroid"'+(d.labelPos==='centroid'?' selected':'')+'>centroid</option></select></label>'; }
+      else { var val=(m.t==='pct')?Math.round((d[fld]!=null?d[fld]:0)*100):(d[fld]!=null?d[fld]:''); html+='<label style="font-size:12px;color:#000">'+lbl+' <input type="number" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" data-kind="'+m.t+'" min="'+m.min+'" max="'+m.max+'" value="'+val+'" class="zoominput" style="width:56px"></label>'; }
+    });
+    html+='</div></div>';
+  });
+  body.innerHTML=html;
+  body.querySelectorAll('input,select').forEach(function(el){
+    el.addEventListener('change',function(){
+      var type=el.dataset.type, fld=el.dataset.fld;
+      if(el.type==='checkbox'){ fileDefaults[type][fld]=(fld==='colorMode')?(el.checked?'grade':'fixed'):el.checked; }
+      else if(el.tagName==='SELECT'){ fileDefaults[type][fld]=el.value; if(fld==='labelMode'){ fileDefaults[type].showLabel=(el.value!=='none'); fileDefaults[type].useElementName=(el.value==='nametag'); } }
+      else { var v=parseFloat(el.value); if(el.dataset.kind==='pct'){ v=Math.max(0,Math.min(100,isNaN(v)?0:v))/100; } fileDefaults[type][fld]=v; }
+      try{ saveLayersToStorage(); }catch(e){}
+    });
+  });
 }
 function renderList(){
   const el=document.getElementById('file-list');
@@ -1956,6 +2056,9 @@ function cBuildGradeRuns(coords, ele){
   });
   return runs;
 }
+function pushAll(dst,src){ for(var i=0;i<src.length;i++) dst.push(src[i]); return dst; }
+function arrMin(a){ var m=Infinity; for(var i=0;i<a.length;i++) if(a[i]<m) m=a[i]; return m; }
+function arrMax(a){ var m=-Infinity; for(var i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
 function updatePreview(){
   const empty=document.getElementById('preview-empty');
   const wrap=document.getElementById('preview-wrap');
@@ -1999,22 +2102,23 @@ function updatePreview(){
     const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
     const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
     f.tracks.forEach(t=>{
+      const _s=simplifyTrack(t.coords,t.ele,simplifyTol,(f.colorMode==='grade'&&cTrackHasEle(t))), tc=_s.coords, te=_s.ele;
       if(f.colorMode==='grade' && cTrackHasEle(t)){
-        const casing=L.polyline(t.coords,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
+        const casing=L.polyline(tc,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
         casing._gpxFile=f; casing._gpxTrack=true; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; layers.push(casing);
-        cBuildGradeRuns(t.coords,t.ele).forEach(run=>{
+        cBuildGradeRuns(tc,te).forEach(run=>{
           const seg=L.polyline(run.coords,{color:run.color,weight:fLw,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
           seg._gpxFile=f; seg._gpxTrack=true; seg._trackZoomMin=fZMin; seg._trackZoomMax=fZMax; layers.push(seg);
         });
-        allCoords.push(...t.coords);
+        pushAll(allCoords,tc);
       } else {
-        const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
+        const poly=L.polyline(tc,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
         poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+osmLink(t.osmId)+(t.name?'<br>'+t.name:''));
         poly._gpxFile=f;
         poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
         poly._trackZoomMin=fZMin;
         poly._trackZoomMax=fZMax;
-        layers.push(poly);allCoords.push(...t.coords);
+        layers.push(poly);pushAll(allCoords,tc);
       }
     });
     // start marker: tonen op basis van showStart toggle, binnen kaartzoom-bereik van deze GPX
@@ -2119,7 +2223,7 @@ function updatePreview(){
       poly._trackZoomMin=fZMin;
       poly._trackZoomMax=fZMax;
       layers.push(poly);
-      p.rings.forEach(ring=>allCoords.push(...ring));
+      p.rings.forEach(ring=>pushAll(allCoords,ring));
     });
     // Labels: MultiPolygon → one label at combined centroid; plain Polygon → label at its own centroid (if named).
     if(f.showLabel&&(f.polygons||[]).length>0){
@@ -2166,7 +2270,7 @@ function updatePreview(){
   if(allCoords.length){
     if(!map._extentSetOnce){
       const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
-      map.fitBounds([[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],{padding:[20,20]});
+      map.fitBounds([[arrMin(lats),arrMin(lons)],[arrMax(lats),arrMax(lons)]],{padding:[20,20]});
       map._extentSetOnce=true;
       // If fitBounds landed at a zoom where labels would be invisible (zoom < labelZoomMin of
       // any file with labels enabled), zoom in a bit further so labels are visible right away.
@@ -2284,18 +2388,18 @@ function exportMap(){
     wptIconSvg:f.wptIconSvg||null,
     wptIconSize:f.wptIconSize||28,
     colorMode:f.colorMode||'fixed',
-    tracks:f.tracks,
+    tracks:f.tracks.map(function(t){ var g=(f.colorMode==='grade'&&t.ele&&t.ele.length===t.coords.length); var s=simplifyTrack(t.coords,t.ele,simplifyTol,g); return {name:t.name,coords:s.coords,ele:s.ele,osmId:t.osmId}; }),
     waypoints:f.waypoints,
     polygons:f.polygons||[]
   }));
-  const allCoords=[];
+  let _bMinLa=Infinity,_bMinLo=Infinity,_bMaxLa=-Infinity,_bMaxLo=-Infinity,_bAny=false;
+  function _bAcc(la,lo){ if(la<_bMinLa)_bMinLa=la; if(la>_bMaxLa)_bMaxLa=la; if(lo<_bMinLo)_bMinLo=lo; if(lo>_bMaxLo)_bMaxLo=lo; _bAny=true; }
   data.forEach(f=>{
-    f.tracks.forEach(t=>allCoords.push(...t.coords));
-    f.waypoints.forEach(w=>allCoords.push([w.lat,w.lon]));
-    (f.polygons||[]).forEach(p=>p.rings.forEach(r=>allCoords.push(...r)));
+    f.tracks.forEach(t=>{ for(var i=0;i<t.coords.length;i++) _bAcc(t.coords[i][0],t.coords[i][1]); });
+    f.waypoints.forEach(w=>_bAcc(w.lat,w.lon));
+    (f.polygons||[]).forEach(p=>p.rings.forEach(r=>{ for(var i=0;i<r.length;i++) _bAcc(r[i][0],r[i][1]); }));
   });
-  const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
-  const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
+  const bounds=_bAny?[[_bMinLa,_bMinLo],[_bMaxLa,_bMaxLo]]:null;
   const safeTitle=title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const safeInfoUrl=JSON.stringify(outputInfoUrl);
   const pwaShort=((document.getElementById('pwa-short')||{}).value||'').trim().slice(0,24)||'PWTrails';
@@ -2481,9 +2585,10 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
 #route-panel #route-list{flex:1 1 auto;min-height:0;overflow-y:auto}
 #route-panel #route-add-bar{flex:0 0 auto;padding-top:8px;margin-top:4px;border-top:1px solid #eee;background:#fff}
 #route-panel h3{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;display:flex;align-items:center}
-#route-clear-all{margin-left:auto;margin-right:18px;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
+#route-clear-all{margin-left:22px;margin-right:0;background:none;border:1px solid #ccc;border-radius:5px;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:#c0392b;cursor:pointer;padding:3px 8px;flex-shrink:0}
 #route-clear-all:hover{background:#fdeeee}
-#route-panel-close{background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 0 0 8px;flex-shrink:0}
+#route-panel-close{background:none;border:none;font-size:18px;line-height:1;cursor:pointer;color:#aaa;padding:0 8px 0 0;flex-shrink:0}
+.route-panel-title{margin-left:auto}
 #route-panel-close:hover{color:#333}
 .user-route-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;color:#222}
 .user-route-row:last-child{border-bottom:none}
@@ -2694,7 +2799,7 @@ body{font-family:sans-serif;background:#1c1c1e;color:#eee;height:100dvh;display:
   <div id="notice">Background map unavailable (no connection)</div>
   <!-- User route loader -->
   <div id="route-overlay">
-    <div id="route-panel"><h3>Files<button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><button id="route-panel-close" title="Close">&times;</button></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON / FIT</button></div></div>
+    <div id="route-panel"><h3><button id="route-panel-close" title="Close">&times;</button><button id="route-clear-all" title="Remove all imported files" style="display:none">Clear all</button><span class="route-panel-title">Files</span></h3><div id="route-list"></div><div id="route-add-bar"><button id="route-add-file">+ GPX / GeoJSON / FIT</button></div></div>
     <button class="ctrl-btn" id="route-btn" title="GPX files"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" fill="#333"/></svg></button>
   </div>
   <input type="file" id="route-file-input" accept=".gpx,.geojson,.json,.fit" style="display:none">
@@ -4707,7 +4812,7 @@ map.on('zoomend',function(){
     // Display name in list gets the suffix; label on map uses track name + suffix
     const displayName=preset?preset.name:((kmSuffix?kmSuffix.trim()+' ':'')+name);
     parsed.tracks.forEach(t=>{
-      allCoords.push(...t.coords);
+      for(var _ci=0;_ci<t.coords.length;_ci++) allCoords.push(t.coords[_ci]);
       const poly=L.polyline(t.coords,{color,weight:4,opacity:0.85}).addTo(map);
       const popupName=t.name||name;
       poly.bindPopup('<b>'+popupName+'</b>');
@@ -4715,7 +4820,7 @@ map.on('zoomend',function(){
       lyrGroup.push(poly);
     });
     (parsed.polygons||[]).forEach(p=>{
-      allCoords.push(...p.rings[0]);
+      for(var _ci=0;_ci<p.rings[0].length;_ci++) allCoords.push(p.rings[0][_ci]);
       const poly=L.polygon(p.rings,{color,fillColor:color,fillOpacity:0.2,weight:lineWidth||2,opacity:0.85}).addTo(map);
       if(p.name||p.desc)poly.bindPopup('<b>'+(p.name||name)+'</b>'+(p.desc?'<br>'+p.desc:''));
       lyrGroup.push(poly);
@@ -4726,8 +4831,9 @@ map.on('zoomend',function(){
       if(w.name||w.desc)m.bindPopup('<b>'+(w.name||name)+'</b>'+(w.desc?'<br>'+w.desc:''));
       lyrGroup.push(m);
     });
-    const lats=allCoords.map(p=>p[0]),lons=allCoords.map(p=>p[1]);
-    const bounds=allCoords.length?[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]]:null;
+    var _mLa=Infinity,_mLo=Infinity,_xLa=-Infinity,_xLo=-Infinity;
+    for(var _bi=0;_bi<allCoords.length;_bi++){ var _p=allCoords[_bi]; if(_p[0]<_mLa)_mLa=_p[0]; if(_p[0]>_xLa)_xLa=_p[0]; if(_p[1]<_mLo)_mLo=_p[1]; if(_p[1]>_xLo)_xLo=_p[1]; }
+    const bounds=allCoords.length?[[_mLa,_mLo],[_xLa,_xLo]]:null;
     const idx=userRoutes.length;
     // Defaults match input HTML per geometry type
     const hasTrk=parsed.tracks.length>0;
