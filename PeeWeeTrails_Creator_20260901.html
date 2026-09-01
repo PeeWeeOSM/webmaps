@@ -3380,32 +3380,6 @@ var BGRADE_LABELS=['< -12%','-12..-6%','-6..-2%','flat (-2..2%)','2..6%','6..12%
 function bGradeClass(pct){ for(var i=0;i<BGRADE_STOPS.length;i++){ if(pct<BGRADE_STOPS[i]) return i; } return BGRADE_STOPS.length; }
 function bTrackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
 function trackKmStr(coords){ if(!coords||coords.length<2) return ''; var d=0; for(var i=1;i<coords.length;i++) d+=haversineMeters(coords[i-1],coords[i]); return (d/1000).toFixed(1).replace('.',',')+' km'; }
-// --- Download a clicked track as GPX ---
-var __bakedTracks=[];
-function __xmlEsc(x){ x=''+x; x=x.split('&').join('&amp;'); x=x.split('<').join('&lt;'); x=x.split('>').join('&gt;'); return x; }
-function trackToGpx(name, coords, ele){
-  var hasE=ele && ele.length===coords.length, body='';
-  for(var i=0;i<coords.length;i++){
-    var la=coords[i][0], lo=coords[i][1];
-    body+='<trkpt lat="'+la.toFixed(6)+'" lon="'+lo.toFixed(6)+'">';
-    if(hasE && ele[i]!=null && !isNaN(ele[i])) body+='<ele>'+(+ele[i]).toFixed(1)+'</ele>';
-    body+='</trkpt>';
-  }
-  return '<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="PeeWeeTrails" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+__xmlEsc(name)+'</name><trkseg>'+body+'</trkseg></trk></gpx>';
-}
-function pwtDownloadTrack(idx){
-  var t=__bakedTracks[idx]; if(!t) return;
-  try{
-    var blob=new Blob([trackToGpx(t.name, t.coords, t.ele)],{type:'application/gpx+xml'});
-    var url=URL.createObjectURL(blob), a=document.createElement('a');
-    var raw=(t.name||'track'), fn='';
-    for(var i=0;i<raw.length;i++){ var c=raw.charCodeAt(i); if((c>=48&&c<=57)||(c>=65&&c<=90)||(c>=97&&c<=122)||c===32||c===45||c===95) fn+=raw.charAt(i); }
-    fn=fn.trim(); if(!fn) fn='track';
-    a.href=url; a.download=fn+'.gpx';
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
-  }catch(e){ alert('Could not create the GPX file: '+e); }
-}
 // --- Highlight the clicked track: thicker + dashed + on top; revert the previous one. ---
 var __selTrack=null;
 function contrastColor(hex){
@@ -3516,10 +3490,7 @@ D.forEach(f=>{
     var _asc=(t.ascent!=null && t.ascent>0)?(' &uarr; '+t.ascent+' m'):'';
     var _lbl=getLabelText(f,t.name);
     var _sub=(t.name&&t.name.trim()&&t.name.trim()!==_lbl&&!isDateTimeOnly(t.name))?('<br>'+t.name):'';
-    var _dlIdx=__bakedTracks.length;
-    __bakedTracks.push({name:(_lbl||t.name||'track'), coords:t.coords, ele:t.ele});
-    var _dl=' &middot; <a href="#" onclick="pwtDownloadTrack('+_dlIdx+');return false;" title="Download this track as a GPX file" style="text-decoration:none">&#8681; GPX</a>';
-    var _popup='<b>'+_lbl+'</b>'+osmLink(t.osmId)+(_km?' &mdash; '+_km:'')+_asc+_dl+_sub;
+    var _popup='<b>'+_lbl+'</b>'+osmLink(t.osmId)+(_km?' &mdash; '+_km:'')+_asc+_sub;
     var _grp=[];
     function _toFront(){ selectTrackGroup(_grp); }
     if(f.colorMode==='grade' && bTrackHasEle(t)){
