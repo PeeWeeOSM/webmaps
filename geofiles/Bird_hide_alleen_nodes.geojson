@@ -1,0 +1,2504 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-06-30T14:46:52Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/332050193",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9237037,
+          52.0890658
+        ]
+      },
+      "id": "node/332050193"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/417411656",
+        "leisure": "bird_hide",
+        "note": "vogelkijkhut Plas van Gent Noord-Ginkel",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.7220108,
+          52.0506439
+        ]
+      },
+      "id": "node/417411656"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/447887066",
+        "leisure": "bird_hide",
+        "man_made": "tower",
+        "name": "Ooijpolder - Groenlanden - Uitkijktoren",
+        "tourism": "viewpoint",
+        "tower:type": "observation",
+        "wheelchair": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.9092718,
+          51.8652716
+        ]
+      },
+      "id": "node/447887066"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/549325018",
+        "leisure": "bird_hide",
+        "name": "Zouweboezem - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9903682,
+          51.9502749
+        ]
+      },
+      "id": "node/549325018"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/985385655",
+        "leisure": "bird_hide",
+        "name": "Observatiehut De Brandgans",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4077135,
+          52.4451604
+        ]
+      },
+      "id": "node/985385655"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747596",
+        "leisure": "bird_hide",
+        "name": "Ilperveld - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9416528,
+          52.4408052
+        ]
+      },
+      "id": "node/1169747596"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747625",
+        "leisure": "bird_hide",
+        "name": "Lepelaarplassen - Kwelplas - Uitkijkpunt",
+        "note": "Lepelaarplassen - Kwelplas - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.20348,
+          52.41478
+        ]
+      },
+      "id": "node/1169747625"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747657",
+        "leisure": "bird_hide",
+        "name": "Breemwaard - Vogelkijkhut",
+        "note": "Breemwaard - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.16534,
+          51.81072
+        ]
+      },
+      "id": "node/1169747657"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747690",
+        "leisure": "bird_hide",
+        "name": "Hoge Veluwe - Landschappentuin - Vogelkijkhut",
+        "note": "Hoge Veluwe - Landschappentuin - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.83969,
+          52.10487
+        ]
+      },
+      "id": "node/1169747690"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747722",
+        "leisure": "bird_hide",
+        "name": "Nedereindse Plas - Vogelkijkscherm",
+        "note": "Nedereindse Plas - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.05278,
+          52.0342
+        ]
+      },
+      "id": "node/1169747722"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747729",
+        "leisure": "bird_hide",
+        "name": "Surfplas - Plas Broekvelden",
+        "note": "Reeuwijkse plassen - Surfplas - Plas Broekvelden"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7609315,
+          52.0454579
+        ]
+      },
+      "id": "node/1169747729"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747752",
+        "leisure": "bird_hide",
+        "name": "Bovenmeent - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.11663,
+          52.28177
+        ]
+      },
+      "id": "node/1169747752"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747756",
+        "leisure": "bird_hide",
+        "name": "Nationaal Park de Hoge Veluwe - Observatieschermen",
+        "note": "Nationaal Park de Hoge Veluwe - Observatieschermen"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.83946,
+          52.0824
+        ]
+      },
+      "id": "node/1169747756"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747893",
+        "leisure": "bird_hide",
+        "name": "Buitenhuizen Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.71104,
+          52.43848
+        ]
+      },
+      "id": "node/1169747893"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747918",
+        "leisure": "bird_hide",
+        "name": "Het Twiske - De Vennen - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.90773,
+          52.44361
+        ]
+      },
+      "id": "node/1169747918"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747949",
+        "alt_name": "De Natte Hond",
+        "leisure": "bird_hide",
+        "name": "Vogelhut Eemmeer"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2973126,
+          52.2916024
+        ]
+      },
+      "id": "node/1169747949"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747953",
+        "leisure": "bird_hide",
+        "name": "Het Twiske - Het Drijfsijsje - Vogelkijkwand",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.900513,
+          52.4669049
+        ]
+      },
+      "id": "node/1169747953"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169747991",
+        "leisure": "bird_hide",
+        "name": "Ouderkerkerplas - Vogelkijkhut",
+        "note": "Ouderkerkerplas - Vogelkijkhut",
+        "tourism": "viewpoint",
+        "wheelchair": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9350644,
+          52.2869488
+        ]
+      },
+      "id": "node/1169747991"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748021",
+        "amenity": "shelter",
+        "leisure": "bird_hide",
+        "name": "De Grote Zilverreiger",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3865354,
+          52.4874162
+        ]
+      },
+      "id": "node/1169748021"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748131",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Mariapolder",
+        "website": "https://vogelkijkhut.nl/view/423/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.752456,
+          51.8001081
+        ]
+      },
+      "id": "node/1169748131"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748155",
+        "leisure": "bird_hide",
+        "name": "Bolgerijen - Vogelkijkscherm",
+        "note": "Bolgerijen - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1020929,
+          51.9564127
+        ]
+      },
+      "id": "node/1169748155"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748187",
+        "leisure": "bird_hide",
+        "name": "Doornspijk - Sint Ludgeruskerk - Vogelkijkhut",
+        "note": "Doornspijk - Sint Ludgeruskerk - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8112249,
+          52.4349869
+        ]
+      },
+      "id": "node/1169748187"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748215",
+        "leisure": "bird_hide",
+        "name": "Schuddebeurs - Lage Zwaluwe",
+        "note": "Schuddebeurs - Lage Zwaluwe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6758421,
+          51.711759
+        ]
+      },
+      "id": "node/1169748215"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748273",
+        "leisure": "bird_hide",
+        "name": "Vogelplas Middelblok - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6974422,
+          51.9779612
+        ]
+      },
+      "id": "node/1169748273"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748284",
+        "leisure": "bird_hide",
+        "name": "Oostvaardersdijk - Vogelkijkpunten",
+        "note": "Oostvaardersdijk - Vogelkijkpunten",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.29747,
+          52.45173
+        ]
+      },
+      "id": "node/1169748284"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748320",
+        "leisure": "bird_hide",
+        "name": "Ouderkerkerplas - Bultje van John - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9394782,
+          52.2869781
+        ]
+      },
+      "id": "node/1169748320"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748348",
+        "leisure": "bird_hide",
+        "name": "Harderbroek - Laarzenpad - Uitkijkpunt",
+        "note": "Harderbroek - Laarzenpad - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5947167,
+          52.371073
+        ]
+      },
+      "id": "node/1169748348"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748501",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkscherm",
+        "note": "Klein Hoogland - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1037605,
+          51.8702969
+        ]
+      },
+      "id": "node/1169748501"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748520",
+        "leisure": "bird_hide",
+        "name": "Amsterdamse Bos - Schinkelbos - Vogelkijkschermen",
+        "note": "Amsterdamse Bos - Schinkelbos - Vogelkijkschermen"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.81069,
+          52.30131
+        ]
+      },
+      "id": "node/1169748520"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748525",
+        "leisure": "bird_hide",
+        "name": "Polsmaten - Vogelkijkscherm",
+        "note": "Polsmaten - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.7372281,
+          52.3976721
+        ]
+      },
+      "id": "node/1169748525"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748558",
+        "leisure": "bird_hide",
+        "name": "Polder Langenbroek - Donkse Laagten - Vogelkijkpunt",
+        "note": "Polder Langenbroek - Donkse Laagten - Vogelkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.77717,
+          51.88395
+        ]
+      },
+      "id": "node/1169748558"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748590",
+        "description": "Vogelkijkhut",
+        "leisure": "bird_hide",
+        "name": "De Grauwe Gans"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4070569,
+          52.4747417
+        ]
+      },
+      "id": "node/1169748590"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748622",
+        "leisure": "bird_hide",
+        "name": "De Groesplaat - Vogelkijkhut 'Het Vinkennestje'",
+        "note": "De Groesplaat - Vogelkijkhut 'Het Vinkennestje'"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.98126,
+          51.8167322
+        ]
+      },
+      "id": "node/1169748622"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748657",
+        "leisure": "bird_hide",
+        "name": "Kraaijenbergse plassen - Vogelkijkhut",
+        "note": "Kraaijenbergse plassen - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.7944301,
+          51.7415495
+        ]
+      },
+      "id": "node/1169748657"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748753",
+        "addr:street": "Kerkweg",
+        "leisure": "bird_hide",
+        "name": "Spaarnwouderplas - Vogelkijkhut \"De Smient\".",
+        "note": "Spaarnwouderplas - Vogelkijkhut \"De Smient\"."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6929973,
+          52.3995683
+        ]
+      },
+      "id": "node/1169748753"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748772",
+        "leisure": "bird_hide",
+        "name": "Polder Zeldert - Vogelkijkhut",
+        "note": "Polder Zeldert - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.314946,
+          52.2030904
+        ]
+      },
+      "id": "node/1169748772"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748859",
+        "leisure": "bird_hide",
+        "name": "De Horte - Vogelkijkscherm",
+        "note": "De Horte - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.2075028,
+          52.4933615
+        ]
+      },
+      "id": "node/1169748859"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169748918",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Lepelaarsplassen",
+        "note": "Lepelaarplassen - Vogelkijkhutten"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2208113,
+          52.4064245
+        ]
+      },
+      "id": "node/1169748918"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749055",
+        "description": "Naardermeer - De Machine - Uitkijkpunt",
+        "leisure": "bird_hide",
+        "name": "De Machine",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1139689,
+          52.3093894
+        ]
+      },
+      "id": "node/1169749055"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749163",
+        "leisure": "bird_hide",
+        "name": "Zouweboezem - Vogelkijkscherm",
+        "note": "Zouweboezem - Vogelkijkscherm",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9895857,
+          51.9552193
+        ]
+      },
+      "id": "node/1169749163"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749173",
+        "leisure": "bird_hide",
+        "operator": "Stichting Duurzaam Beheer Landje van Gruijters",
+        "source": "www.landjevangruijters.nl"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6788331,
+          52.4175334
+        ]
+      },
+      "id": "node/1169749173"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749218",
+        "leisure": "bird_hide",
+        "name": "Spijk-Bremerberg - Vogelkijkhut",
+        "note": "Spijk-Bremerberg - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.65882,
+          52.40896
+        ]
+      },
+      "id": "node/1169749218"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749236",
+        "amenity": "shelter",
+        "leisure": "bird_hide",
+        "name": "De Poelruiter",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4148399,
+          52.4441956
+        ]
+      },
+      "id": "node/1169749236"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749243",
+        "leisure": "bird_hide",
+        "name": "Durgerdam - Vogelkijkscherm",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.002857,
+          52.3825369
+        ]
+      },
+      "id": "node/1169749243"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749287",
+        "leisure": "bird_hide",
+        "name": "Oostvaardersplassen - Kotterbos - Uitkijkheuvel",
+        "note": "Oostvaardersplassen - Kotterbos - Uitkijkheuvel"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3359677,
+          52.4139073
+        ]
+      },
+      "id": "node/1169749287"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749328",
+        "leisure": "bird_hide",
+        "name": "Strandgaperweg - Uitkijkpunt",
+        "note": "Strandgaperweg - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.65991,
+          52.40424
+        ]
+      },
+      "id": "node/1169749328"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749352",
+        "leisure": "bird_hide",
+        "name": "Botshol - Grote Wije - Uitkijkpunt",
+        "note": "Botshol - Grote Wije - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.92531,
+          52.2441
+        ]
+      },
+      "id": "node/1169749352"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749389",
+        "leisure": "bird_hide",
+        "name": "Harderbroek - Uitkijkpunt - Knardijkzijde",
+        "note": "Harderbroek - Uitkijkpunt - Knardijkzijde"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5633225,
+          52.3678468
+        ]
+      },
+      "id": "node/1169749389"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749442",
+        "leisure": "bird_hide",
+        "name": "Boetelerveld - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.3368567,
+          52.360356
+        ]
+      },
+      "id": "node/1169749442"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749446",
+        "leisure": "bird_hide",
+        "name": "Rietland Elburg - Vogelkijkscherm",
+        "note": "Rietland Elburg - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8391692,
+          52.4654158
+        ]
+      },
+      "id": "node/1169749446"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749568",
+        "leisure": "bird_hide",
+        "name": "Naardermeer - Vogelkijkhutten",
+        "note": "Naardermeer - Vogelkijkhutten"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.11605,
+          52.28968
+        ]
+      },
+      "id": "node/1169749568"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749574",
+        "leisure": "bird_hide",
+        "name": "Polder Sekdoorn - Vogelkijkscherm",
+        "note": "Polder Sekdoorn - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.13824,
+          52.4759
+        ]
+      },
+      "id": "node/1169749574"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749629",
+        "check_date": "2025-10-19",
+        "leisure": "bird_hide",
+        "name": "Posbank - Veluwezoom - Uitkijkpunt",
+        "note": "Posbank - Veluwezoom - Uitkijkpunt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.02179,
+          52.02853
+        ]
+      },
+      "id": "node/1169749629"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749647",
+        "leisure": "bird_hide",
+        "name": "Oud Reemst - Kijkpunt",
+        "note": "Oud Reemst - Kijkpunt",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8046206,
+          52.0404433
+        ]
+      },
+      "id": "node/1169749647"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749663",
+        "leisure": "bird_hide",
+        "name": "Zuiderwoude - Vogelkijkhut",
+        "note": "Zuiderwoude - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.02969,
+          52.43286
+        ]
+      },
+      "id": "node/1169749663"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749706",
+        "leisure": "bird_hide",
+        "name": "Noordzeekanaal - Vogelkijkscherm",
+        "note": "Noordzeekanaal - Vogelkijkscherm"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7069206,
+          52.4358328
+        ]
+      },
+      "id": "node/1169749706"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1169749717",
+        "leisure": "bird_hide",
+        "name": "Broekbos - De Kapteinshut - Vogelkijkhut",
+        "note": "Broekbos - De Kapteinshut - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.64009,
+          52.39235
+        ]
+      },
+      "id": "node/1169749717"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1469287750",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4789741,
+          52.1177549
+        ]
+      },
+      "id": "node/1469287750"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1477791926",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Tongplaat"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7085482,
+          51.7490798
+        ]
+      },
+      "id": "node/1477791926"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1761700343",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Natte Graslanden",
+        "shelter": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1909678,
+          52.3969988
+        ]
+      },
+      "id": "node/1761700343"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1761700347",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Natte Graslanden",
+        "shelter": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1795863,
+          52.3978206
+        ]
+      },
+      "id": "node/1761700347"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1801904410",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7754131,
+          51.9854016
+        ]
+      },
+      "id": "node/1801904410"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1808944618",
+        "access": "permissive",
+        "leisure": "bird_hide",
+        "opening_hours": "sunrise-sunset",
+        "operator": "Staatsbosbeheer",
+        "shelter": "yes",
+        "survey:date": "2019-03"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.108925,
+          52.2978436
+        ]
+      },
+      "id": "node/1808944618"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1810740082",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Gooyersgracht",
+        "shelter": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3087308,
+          52.2764357
+        ]
+      },
+      "id": "node/1810740082"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1842703009",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0858466,
+          51.9296273
+        ]
+      },
+      "id": "node/1842703009"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1984813905",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Sophiapolder",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6669761,
+          51.8378821
+        ]
+      },
+      "id": "node/1984813905"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2105714803",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkscherm Beusichemse Waard"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2709059,
+          51.9605231
+        ]
+      },
+      "id": "node/2105714803"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2232528152",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7745631,
+          52.4898257
+        ]
+      },
+      "id": "node/2232528152"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2256006701",
+        "leisure": "bird_hide",
+        "shelter": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7549079,
+          52.0403634
+        ]
+      },
+      "id": "node/2256006701"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2318886741",
+        "leisure": "bird_hide",
+        "name": "Haarrijnse Plas - Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0119498,
+          52.1185177
+        ]
+      },
+      "id": "node/2318886741"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2459331304",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4196177,
+          52.1538735
+        ]
+      },
+      "id": "node/2459331304"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2614907597",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7554088,
+          51.7698723
+        ]
+      },
+      "id": "node/2614907597"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2890065982",
+        "description": "vogelkijkscherm",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0298714,
+          52.4336407
+        ]
+      },
+      "id": "node/2890065982"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2898204182",
+        "leisure": "bird_hide",
+        "name": "Simon Hendriks-vogelkijkwand"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2256734,
+          51.7638593
+        ]
+      },
+      "id": "node/2898204182"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2964373705",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8362086,
+          52.1019287
+        ]
+      },
+      "id": "node/2964373705"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2973791849",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.7923705,
+          52.1040247
+        ]
+      },
+      "id": "node/2973791849"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3085804873",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.1555347,
+          52.1633845
+        ]
+      },
+      "id": "node/3085804873"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3126442190",
+        "leisure": "bird_hide",
+        "man_made": "tower",
+        "tourism": "viewpoint",
+        "tower:type": "observation"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7920943,
+          51.7882381
+        ]
+      },
+      "id": "node/3126442190"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3366897301",
+        "direction": "130",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Herman van den Bijtel"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2623315,
+          52.1299465
+        ]
+      },
+      "id": "node/3366897301"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3393042558",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7185196,
+          51.989035
+        ]
+      },
+      "id": "node/3393042558"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3456313268",
+        "leisure": "bird_hide",
+        "name": "Stille Kern",
+        "shelter": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4582967,
+          52.3093383
+        ]
+      },
+      "id": "node/3456313268"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3522057543",
+        "leisure": "bird_hide",
+        "note": "Een plek waar je dassen kunt spotten"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.2846513,
+          52.0972954
+        ]
+      },
+      "id": "node/3522057543"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4046250222",
+        "check_date": "2026-04-12",
+        "leisure": "bird_hide",
+        "name": "De Oeverloper",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4137324,
+          52.4471469
+        ]
+      },
+      "id": "node/4046250222"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4523454043",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkscherm",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6995233,
+          51.9776466
+        ]
+      },
+      "id": "node/4523454043"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4947587239",
+        "leisure": "bird_hide",
+        "name": "Blokhoven"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1658092,
+          51.9850968
+        ]
+      },
+      "id": "node/4947587239"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4948509065",
+        "description": "View on IJsvogelwand",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3197603,
+          52.0110731
+        ]
+      },
+      "id": "node/4948509065"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4972900660",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0050287,
+          52.3141528
+        ]
+      },
+      "id": "node/4972900660"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5137376923",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9801966,
+          51.9543364
+        ]
+      },
+      "id": "node/5137376923"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5315588242",
+        "amenity": "shelter",
+        "leisure": "bird_hide",
+        "man_made": "tower",
+        "name": "Vogelkijkhut",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0557083,
+          52.2192921
+        ]
+      },
+      "id": "node/5315588242"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5388180759",
+        "leisure": "bird_hide",
+        "name": "De Schollevaar",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching",
+        "website": "https://www.nationaalparknieuwland.nl/nl/locatieoverzicht/1212055764/uitkijkpunt-de-schollevaar"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4004917,
+          52.460679
+        ]
+      },
+      "id": "node/5388180759"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5388180785",
+        "leisure": "bird_hide",
+        "name": "Observatiehut Wigbels Eiland",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4040619,
+          52.4485593
+        ]
+      },
+      "id": "node/5388180785"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5508116524",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut",
+        "name:en": "Bird watching cabin"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1720194,
+          52.0874831
+        ]
+      },
+      "id": "node/5508116524"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5604524100",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6991384,
+          51.7749886
+        ]
+      },
+      "id": "node/5604524100"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5653669511",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.6909372,
+          51.9559923
+        ]
+      },
+      "id": "node/5653669511"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5818424826",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.679253,
+          52.3780774
+        ]
+      },
+      "id": "node/5818424826"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6027755200",
+        "leisure": "bird_hide",
+        "name": "De Kluut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4171962,
+          52.4579457
+        ]
+      },
+      "id": "node/6027755200"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6027755201",
+        "leisure": "bird_hide",
+        "name": "Blauwborst",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching",
+        "website": "https://vogelkijkhut.nl/view/276/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4152321,
+          52.4554655
+        ]
+      },
+      "id": "node/6027755201"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6052701561",
+        "covered": "no",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7473493,
+          52.0595955
+        ]
+      },
+      "id": "node/6052701561"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6057774207",
+        "leisure": "bird_hide",
+        "name": "Hekslootpolder - Vogelkijkhut",
+        "note": "Hekslootpolder - Vogelkijkhut",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6657532,
+          52.4146598
+        ]
+      },
+      "id": "node/6057774207"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6223988205",
+        "leisure": "bird_hide",
+        "shelter": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9422646,
+          52.2110126
+        ]
+      },
+      "id": "node/6223988205"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6284437194",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2304274,
+          52.4178657
+        ]
+      },
+      "id": "node/6284437194"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6284451525",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2325878,
+          52.4192255
+        ]
+      },
+      "id": "node/6284451525"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6300119679",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.956855,
+          52.4776747
+        ]
+      },
+      "id": "node/6300119679"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6313253186",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkscherm Natte Graslanden"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1940065,
+          52.4000198
+        ]
+      },
+      "id": "node/6313253186"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6331095233",
+        "leisure": "bird_hide",
+        "shelter": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1859589,
+          52.3952433
+        ]
+      },
+      "id": "node/6331095233"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6450897312",
+        "covered": "no",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.991796,
+          52.4219907
+        ]
+      },
+      "id": "node/6450897312"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7345625747",
+        "leisure": "bird_hide",
+        "operator": "Park Lingezegen",
+        "tourism": "viewpoint",
+        "website": "https://parklingezegen.nl/activiteiten/vogelkijkscherm/"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.8880662,
+          51.9283554
+        ]
+      },
+      "id": "node/7345625747"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7702844902",
+        "covered": "no",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.8697298,
+          52.1607772
+        ]
+      },
+      "id": "node/7702844902"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7760849482",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut Passewaay"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4195317,
+          51.8724497
+        ]
+      },
+      "id": "node/7760849482"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7894630885",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.838177,
+          52.2337079
+        ]
+      },
+      "id": "node/7894630885"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8299996070",
+        "leisure": "bird_hide",
+        "shelter": "yes"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1730009,
+          52.3376421
+        ]
+      },
+      "id": "node/8299996070"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8337533450",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1816277,
+          52.3394499
+        ]
+      },
+      "id": "node/8337533450"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8337533451",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1783743,
+          52.3408748
+        ]
+      },
+      "id": "node/8337533451"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8551213300",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9626564,
+          52.2876065
+        ]
+      },
+      "id": "node/8551213300"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8690463889",
+        "leisure": "bird_hide",
+        "name": "De kiekendief"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7127305,
+          52.4195386
+        ]
+      },
+      "id": "node/8690463889"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8694170619",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6707044,
+          52.0203818
+        ]
+      },
+      "id": "node/8694170619"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8742787387",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7049544,
+          51.7773881
+        ]
+      },
+      "id": "node/8742787387"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/8866648474",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.7439501,
+          51.9615788
+        ]
+      },
+      "id": "node/8866648474"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9143020120",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6480009,
+          52.1074314
+        ]
+      },
+      "id": "node/9143020120"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9585743705",
+        "leisure": "bird_hide",
+        "shelter": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4459283,
+          52.1789163
+        ]
+      },
+      "id": "node/9585743705"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9761989437",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.159416,
+          52.1120988
+        ]
+      },
+      "id": "node/9761989437"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9827579373",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0071857,
+          52.3800369
+        ]
+      },
+      "id": "node/9827579373"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9919424861",
+        "leisure": "bird_hide",
+        "shelter": "no",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4099197,
+          52.2137473
+        ]
+      },
+      "id": "node/9919424861"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10095431787",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6547579,
+          52.1056654
+        ]
+      },
+      "id": "node/10095431787"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10183445204",
+        "leisure": "bird_hide",
+        "name": "Uitkijkpunt Kiekuut",
+        "shelter": "no"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.1269342,
+          52.1058178
+        ]
+      },
+      "id": "node/10183445204"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10267010771",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.370302,
+          52.4133883
+        ]
+      },
+      "id": "node/10267010771"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10267011832",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3966964,
+          52.4244546
+        ]
+      },
+      "id": "node/10267011832"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10267018193",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4023794,
+          52.4269946
+        ]
+      },
+      "id": "node/10267018193"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10925867949",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.550275,
+          52.2967631
+        ]
+      },
+      "id": "node/10925867949"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11016474760",
+        "leisure": "bird_hide",
+        "name": "Amfibion",
+        "tourism": "viewpoint",
+        "wikidata": "Q135104487"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7587531,
+          52.3565711
+        ]
+      },
+      "id": "node/11016474760"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11110313561",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9067713,
+          52.4458989
+        ]
+      },
+      "id": "node/11110313561"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11159725967",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4214942,
+          51.8245991
+        ]
+      },
+      "id": "node/11159725967"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11335282531",
+        "description": "Leersumse Veld - Vogelkijkhut",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.439188,
+          52.044372
+        ]
+      },
+      "id": "node/11335282531"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11739627703",
+        "leisure": "bird_hide",
+        "name": "Martin Kemperman hut"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.8827872,
+          52.1782198
+        ]
+      },
+      "id": "node/11739627703"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/11939928422",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkwand",
+        "operator": "Collectief Eemland"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.3413953,
+          52.2531502
+        ]
+      },
+      "id": "node/11939928422"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12075625168",
+        "leisure": "bird_hide",
+        "material": "wood",
+        "shelter": "wood"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9959638,
+          52.423387
+        ]
+      },
+      "id": "node/12075625168"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12635356287",
+        "leisure": "bird_hide",
+        "mapillary": "1308075857951284",
+        "name": "Natuurobservatiepost De Elsberg",
+        "operator": "Natuurmonumenten"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.0189743,
+          52.0539805
+        ]
+      },
+      "id": "node/12635356287"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12749562741",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1755161,
+          52.4021497
+        ]
+      },
+      "id": "node/12749562741"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12900210994",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7388691,
+          52.0297717
+        ]
+      },
+      "id": "node/12900210994"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12956674314",
+        "leisure": "bird_hide",
+        "name": "270 degrees",
+        "tourism": "artwork",
+        "wikidata": "Q112287302",
+        "wikimedia_commons": "Category:270 degrees",
+        "wikipedia": "nl:270 degrees"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7907097,
+          52.375456
+        ]
+      },
+      "id": "node/12956674314"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12956674316",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7905168,
+          52.3755506
+        ]
+      },
+      "id": "node/12956674316"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12956674317",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.7909841,
+          52.3753698
+        ]
+      },
+      "id": "node/12956674317"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13043244431",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.0686652,
+          51.9796991
+        ]
+      },
+      "id": "node/13043244431"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13050948041",
+        "fixme": "locatie niet zeker",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.6765712,
+          51.9417473
+        ]
+      },
+      "id": "node/13050948041"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13390391198",
+        "leisure": "bird_hide",
+        "name": "Vogelkijkhut De Visarend"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.110104,
+          52.4437433
+        ]
+      },
+      "id": "node/13390391198"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13390411594",
+        "leisure": "bird_hide",
+        "name": "Vreugderijkerwaard"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6.0271551,
+          52.5163089
+        ]
+      },
+      "id": "node/13390411594"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13435269939",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint",
+        "viewpoint": "bird_watching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.4007895,
+          52.1453274
+        ]
+      },
+      "id": "node/13435269939"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13458156050",
+        "leisure": "bird_hide",
+        "tourism": "viewpoint"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.0013696,
+          52.3179095
+        ]
+      },
+      "id": "node/13458156050"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13624999800",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9076878,
+          52.1319446
+        ]
+      },
+      "id": "node/13624999800"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13711334869",
+        "leisure": "bird_hide"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.1991715,
+          51.8231205
+        ]
+      },
+      "id": "node/13711334869"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13821634896",
+        "leisure": "bird_hide",
+        "shelter": "no",
+        "tourism": "viewpoint",
+        "viewpoint": "birdwatching"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.2792485,
+          52.2494494
+        ]
+      },
+      "id": "node/13821634896"
+    }
+  ]
+}
