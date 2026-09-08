@@ -1,6 +1,13 @@
+#!/usr/bin/env bash
 
+set -e
 
-cd /home/peewee/github/webmaps   # ga naar de juiste repo
-git add .                                 # voeg alle gewijzigde bestanden toe
-git commit -m "webmaps opgeschoond"   # sla op met een berichtje
-git push                             # stuur naar GitHub     
+cd /home/peewee/github/webmaps
+
+git add .
+git commit -m "webmaps opgeschoond"
+git push
+
+echo
+echo "Klaar. Druk op Enter om dit venster te sluiten..."
+read
