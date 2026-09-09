@@ -8,6 +8,6 @@ git add .
 git commit -m "webmaps opgeschoond"
 git push
 
-echo
-echo "Klaar. Druk op Enter om dit venster te sluiten..."
-read
+#echo
+#echo "Klaar. Druk op Enter om dit venster te sluiten..."
+#read
