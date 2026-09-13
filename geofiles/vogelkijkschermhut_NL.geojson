@@ -324,7 +324,7 @@
 { "type": "Feature", "properties": { "osm_id": 1169749402, "@id": "node/1169749402", "name": "Reuselse Moeren - De Kiekkaaste" }, "geometry": { "type": "Point", "coordinates": [ 5.1653594, 51.316585499198425 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749404, "@id": "node/1169749404", "name": "Noordhollands Duinreservaat - Boetje v/o Kees - Vogelkijkhut" }, "geometry": { "type": "Point", "coordinates": [ 4.6211376, 52.538847599086992 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749425, "@id": "node/1169749425", "name": "Wiersterfjild - Vogelkijkscherm" }, "geometry": { "type": "Point", "coordinates": [ 5.6364423, 53.254756999099833 ] } },
-{ "type": "Feature", "properties": { "osm_id": 1169749442, "@id": "node/1169749442", "name": "Boetelerveld - Vogelkijkhut" }, "geometry": { "type": "Point", "coordinates": [ 6.3368567, 52.360355999093521 ] } },
+{ "type": "Feature", "properties": { "osm_id": 1169749442, "@id": "node/1169749442", "name": "Boetelerveld - Vogelkijkhut" }, "geometry": { "type": "Point", "coordinates": [ 6.336807, 52.361017999093477 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749446, "@id": "node/1169749446", "name": "Rietland Elburg - Vogelkijkscherm" }, "geometry": { "type": "Point", "coordinates": [ 5.8391692, 52.46541579908925 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749447, "@id": "node/1169749447", "name": "Hoogeweg polder - Vogelkijkhut" }, "geometry": { "type": "Point", "coordinates": [ 4.446917, 52.21413399910152 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749514, "@id": "node/1169749514", "name": "Plakkeven - Vogelkijkscherm" }, "geometry": { "type": "Point", "coordinates": [ 5.0425427, 51.615186199157755 ] } },
