@@ -101,7 +101,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v119</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v121</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator turns your own GPX / GeoJSON / FIT files into a single, self-contained OpenStreetMap map that you can share or put online. Everything is put together here and then "baked" into one standalone HTML file.</p>
@@ -180,8 +180,8 @@ input:checked+.slider:before{transform:translateX(14px)}
       <div class="row" style="gap:10px;margin-top:8px">
         <span class="toggle-label" style="color:#000">start orientation</span>
         <select id="opt-start-locmode" class="posselect" title="Which location mode the exported map opens in. North up and Movement direction start GPS tracking right away (and ask for location permission).">
-          <option value="off">location off</option>
-          <option value="north" selected>north up</option>
+          <option value="off" selected>location off</option>
+          <option value="north">north up</option>
           <option value="movement">movement direction</option>
         </select>
       </div>
@@ -796,7 +796,8 @@ function buildProject(){
       title:_pv('title'), pwaShort:_pv('pwa-short'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
       zoomLevel:_pv('opt-zoom-level'), centerDelay:_pv('opt-center-delay'), hideUi:_pv('opt-hide-ui'),
       rotateGesture:_pv('opt-rotate-gesture'), startLocMode:_pv('opt-start-locmode'),
-      welcomeEnabled:_pc('opt-welcome-enabled'), welcomeText:_pv('opt-welcome-text')
+      welcomeEnabled:_pc('opt-welcome-enabled'), welcomeText:_pv('opt-welcome-text'),
+      ogImage:_pv('og-image'), ogDesc:_pv('og-desc'), ogUrl:_pv('og-url')
     }
   };
 }
@@ -818,7 +819,8 @@ function loadProject(obj){
     var S=obj.settings||{};
     // Reuse the existing restore path for the config (layers/categories/actions/notes/grade/title/...)
     var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig, fileDefaults:obj.fileDefaults, simplifyTol:obj.simplifyTol, liveLayers:obj.liveLayers,
-             title:S.title, pwaShort:S.pwaShort, osmOpacity:S.osmOpacity, outputInfoUrl:S.outputInfoUrl };
+             title:S.title, pwaShort:S.pwaShort, osmOpacity:S.osmOpacity, outputInfoUrl:S.outputInfoUrl,
+             ogImage:S.ogImage, ogDesc:S.ogDesc, ogUrl:S.ogUrl };
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); }catch(e){}
     loadLayersFromStorage(st);
     // Guaranteed restores — run independently so a hiccup in the bulk restore
@@ -835,6 +837,7 @@ function loadProject(obj){
     sv('opt-zoom-level',S.zoomLevel); sv('opt-center-delay',S.centerDelay); sv('opt-hide-ui',S.hideUi);
     sv('opt-rotate-gesture',S.rotateGesture); sv('opt-start-locmode',S.startLocMode);
     sc('opt-welcome-enabled',S.welcomeEnabled); sv('opt-welcome-text',S.welcomeText);
+    sv('og-image',S.ogImage); sv('og-desc',S.ogDesc); sv('og-url',S.ogUrl);
     updatePreview();
     var eb=document.getElementById('exportbtn'); if(eb) eb.disabled=false;
     var _ls=window.__pwtLiveStatus||{};
@@ -3485,6 +3488,19 @@ function updateUrlHash(){
 // --- Initialise Leaflet map and OSM base layer ---
 const urlState=parseStateFromHash();
 const map=L.map('map',{rotate:true,bearing:0,touchRotate:true,rotateControl:false});
+// Fix leaflet-textpath: setText appends a new <text> node on every call without
+// removing the previous one, so along-the-line labels pile up when zooming.
+// Remove the tracked node first so nothing accumulates.
+(function(){ try{
+  if(L&&L.Polyline&&L.Polyline.prototype.setText&&!L.Polyline.prototype.__pwtSetTextFix){
+    var _origSetText=L.Polyline.prototype.setText;
+    L.Polyline.prototype.setText=function(text,options){
+      if(this._textNode&&this._textNode.parentNode){ try{ this._textNode.parentNode.removeChild(this._textNode); }catch(e){} this._textNode=null; }
+      return _origSetText.call(this,text,options);
+    };
+    L.Polyline.prototype.__pwtSetTextFix=true;
+  }
+}catch(e){} })();
 // Attribution links should open in a new tab, not replace the map app.
 (function(){
   function fixAttribLinks(){
