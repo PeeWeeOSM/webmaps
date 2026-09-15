@@ -14,6 +14,7 @@
 -->
 <html lang="en">
 <head>
+
 <script data-goatcounter="https://peewee32.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 
@@ -101,7 +102,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v118</span></h1>
+<h1>PeeWeeTrails</h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator turns your own GPX / GeoJSON / FIT files into a single, self-contained OpenStreetMap map that you can share or put online. Everything is put together here and then "baked" into one standalone HTML file.</p>
@@ -110,11 +111,6 @@ input:checked+.slider:before{transform:translateX(14px)}
   <p><b>Bake your map.</b> When you&rsquo;re happy, click &ldquo;Create your map&rdquo; at the bottom to save one standalone .html file. Placed on a web address with https (for example GitHub Pages), that exported map can also show your current location, so you can use it to navigate. Opened straight from your device it still works as a map, only without the live location.</p>
   <p style="color:#555">Tip: use &ldquo;Save project&rdquo; to keep your work (files and settings) so you can reopen and continue later.</p>
 </div>
-
-<div id="fileproto-note" style="display:none;margin:10px 0;padding:10px 12px;border:1px solid #e0b400;background:#fff8e1;border-radius:8px;color:#5b4a00;font-size:13px;line-height:1.4">
-  <b>You opened this page as a local file.</b> For full functionality &mdash; loading/saving projects and seeing the OpenStreetMap tiles in the Preview &mdash; open it over <b>http(s)</b> instead: for example from your GitHub&nbsp;Pages, or by running a small local web server. Some browsers (notably Brave) restrict storage and file access for local <code>file://</code> pages, so project files may fail to load and map tiles may be blocked.
-</div>
-<script>if(location.protocol==='file:'){var _fn=document.getElementById('fileproto-note'); if(_fn) _fn.style.display='block';}</script>
 
 <div class="card">
   <!-- Settings: map title, PWA name, default zoom / orientation, welcome popup, OSM Notes and gradient tuning -- all baked into the exported map. -->
@@ -225,10 +221,10 @@ input:checked+.slider:before{transform:translateX(14px)}
   <!-- Files: import GPX / GeoJSON / FIT tracks. Each becomes a styleable route drawn on the map (colour, width, labels, arrows, gradient). -->
   <div class="section-label">Files</div>
   <p class="sub" style="margin-top:0">Each track, waypoint group and polygon is split into a separate row automatically.</p>
-  <label class="dropzone" id="dropzone" for="fileinput" style="cursor:pointer">
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('fileinput').click()">
     <i class="ti ti-map-2" aria-hidden="true"></i>
     Drag GPX, GeoJSON or FIT files here, or click to browse
-  </label>
+  </div>
   <input type="file" id="fileinput" accept=".gpx,.geojson,.json,.fit" multiple style="display:none" onchange="handleFiles(this.files)">
   <details id="filedefaults" style="margin:8px 0;border:1px solid #e2e2e2;border-radius:8px;padding:6px 10px">
     <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#000">Default settings for new files</summary>
@@ -291,25 +287,6 @@ input:checked+.slider:before{transform:translateX(14px)}
   <button class="btn" onclick="resetLayersToDefault()" title="Discard your current layer list and restore the built-in default layers" style="font-size:13px;padding:6px 12px;margin-left:6px">
     <i class="ti ti-refresh" aria-hidden="true"></i> Reset layers to default
   </button>
-  <div style="margin-top:10px;border-top:1px solid #eee;padding-top:8px">
-    <button class="btn" type="button" onclick="toggleWmtsHelper()" style="font-size:13px;padding:6px 12px"><i class="ti ti-wand" aria-hidden="true"></i> Add from WMTS GetCapabilities</button>
-    <div id="wmts-helper" style="display:none;margin-top:8px">
-      <p style="font-size:12px;color:#000;margin:4px 0">Paste a WMTS <b>GetCapabilities</b> URL and press Analyse. Layers that offer Web&nbsp;Mercator (EPSG:3857) get an <b>Add</b> button that fills in the correct tile URL automatically. RD-only layers are skipped (they don&rsquo;t align with this map).</p>
-      <input id="wmts-caps-url" placeholder="https://.../wmts?REQUEST=GetCapabilities&amp;SERVICE=WMTS" style="width:100%;box-sizing:border-box">
-      <div style="margin-top:6px"><button class="btn" type="button" onclick="wmtsHelperGo()" style="font-size:13px;padding:5px 10px">Analyse</button></div>
-      <div id="wmts-helper-msg" style="font-size:12px;color:#555;margin-top:6px"></div>
-      <textarea id="wmts-caps-xml" placeholder="&hellip;or paste the GetCapabilities XML here, then press Analyse" style="display:none;width:100%;box-sizing:border-box;height:90px;margin-top:6px;font-family:monospace;font-size:11px"></textarea>
-      <div id="wmts-helper-results" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <!-- Live data from a URL: GeoJSON/GPX fetched fresh each time the map opens, one geometry type + one style per URL, shown as a toggle in the exported map's layer panel. -->
-  <div class="section-label">Live data (from a URL)</div>
-  <p style="font-size:12px;color:#000;margin:-4px 0 8px">Load GeoJSON / GPX from a URL every time the map opens, so the data stays up to date (e.g. a file you refresh daily). Each URL is <b>one geometry type</b> with <b>one style</b>. It appears as a toggle in the exported map's layer panel. The server must allow cross-origin access &mdash; GitHub Pages does; it must also be https if your map is on https.</p>
-  <div id="livedata-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
-  <button class="btn" onclick="addLiveLayer()" style="font-size:13px;padding:6px 12px"><i class="ti ti-plus" aria-hidden="true"></i> Add live data URL</button>
 </div>
 
 <div class="card">
@@ -347,15 +324,10 @@ input:checked+.slider:before{transform:translateX(14px)}
   <button class="btn" onclick="saveProject()" title="Save everything (imported files, settings, icons, layers) as a project file you can reopen later" style="margin-left:6px">
     <i class="ti ti-device-floppy" aria-hidden="true"></i> Save project
   </button>
-  <span style="position:relative;display:inline-flex;margin-left:6px;vertical-align:middle">
-    <span class="btn" style="pointer-events:none;display:inline-flex;align-items:center;gap:5px">
-      <i class="ti ti-folder-open" aria-hidden="true"></i> Open project
-    </span>
-    <input type="file" id="projinput" title="Reopen a saved project file to continue where you left off" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0">
-  </span>
-  <div id="projdrop" title="Drop a .pwtproj project file here to open it" style="margin-top:10px;padding:12px;border:2px dashed #bbb;border-radius:8px;color:#666;font-size:13px;text-align:center;transition:background .15s,border-color .15s">
-    &hellip; or <b>drag a saved .pwtproj project file here</b> to open it (handy if the &ldquo;Open project&rdquo; button doesn&rsquo;t open a file dialog in your browser)
-  </div>
+  <button class="btn" onclick="document.getElementById('projinput').click()" title="Reopen a saved project file to continue where you left off" style="margin-left:6px">
+    <i class="ti ti-folder-open" aria-hidden="true"></i> Open project
+  </button>
+  <input type="file" id="projinput" accept=".pwtproj,.json,application/json" style="display:none">
 </div>
 
 <script>
@@ -475,142 +447,6 @@ let mapActions=[];
 const STORAGE_KEY='PeeWeeTrails_layers_v1__'+(location.pathname||location.href||'default');
 let _restoring=false;
 
-const LIVE_ORDER=['line','point','polygon'];
-const LIVE_TLBL={line:'Lines',point:'Points',polygon:'Polygons'};
-function newLiveType(gt){
-  const d = gt==='point'?fileDefaults.wpt : gt==='polygon'?fileDefaults.pol : fileDefaults.trk;
-  return {geomType:gt, color:'#d7263d',
-    size:(gt==='point'?(d.lineWidth||8):(gt==='polygon'?(d.lineWidth||2):(d.lineWidth||4))),
-    fillOpacity:(d.fillOpacity!=null?d.fillOpacity:0.2),
-    iconSvg:null,iconSvgRaw:null,iconSize:28,iconRecolor:true,
-    labelMode:(d.labelMode==='none')?'none':'name', labelText:'',
-    labelPos:(gt==='line'?'along':'centroid'),
-    labelZoomMin:(d.labelZoomMin!=null?d.labelZoomMin:14), labelZoomMax:(d.labelZoomMax!=null?d.labelZoomMax:22),
-    labelFontSize:(d.labelFontSize||18), mapZoomMin:(d.mapZoomMin!=null?d.mapZoomMin:1), mapZoomMax:(d.mapZoomMax!=null?d.mapZoomMax:22),
-    defaultOn:true};
-}
-function liveTypeBlock(i,ti,T){
-  const isPt=T.geomType==='point', isPol=T.geomType==='polygon', isLn=T.geomType==='line';
-  const sizeLbl=isPt?'Dot size':isPol?'Border':'Width';
-  let h='<div style="border:1px solid #e8e8e8;border-radius:6px;padding:6px 8px;margin-top:6px;background:#fafafa">'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">'+LIVE_TLBL[T.geomType]+'</span>'
-    +'<label style="font-size:12px;color:#000;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="lt-on" data-i="'+i+'" data-t="'+ti+'" '+(T.defaultOn!==false?'checked':'')+'>on by default</label>'
-    +'<button class="lt-del" data-i="'+i+'" data-t="'+ti+'" title="Remove this type" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#aaa;font-size:16px">&times;</button></div>'
-    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-    +'<input type="color" class="lt-color" data-i="'+i+'" data-t="'+ti+'" value="'+(T.color||'#d7263d')+'" title="Colour">'
-    +'<label style="font-size:12px;color:#000">'+sizeLbl+' <input type="number" class="lt-size" data-i="'+i+'" data-t="'+ti+'" min="1" max="30" value="'+(T.size!=null?T.size:3)+'" style="width:50px"></label>'
-    +(isPol?('<label style="font-size:12px;color:#000">Fill % <input type="number" class="lt-fill" data-i="'+i+'" data-t="'+ti+'" min="0" max="100" value="'+Math.round((T.fillOpacity!=null?T.fillOpacity:0.2)*100)+'" style="width:50px"></label>'):'')
-    +'</div>';
-  if(isPt){
-    h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px">'
-      +'<span style="font-size:12px;color:#000">Icon</span>'
-      +'<span class="lt-icon-prev" style="display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;color:'+(T.color||'#d7263d')+'">'+(T.iconSvg?T.iconSvg:'<span style="color:#bbb;font-size:11px">dot</span>')+'</span>'
-      +'<label class="lt-icon-btn" for="lt-icon-'+i+'-'+ti+'" style="font-size:12px;cursor:pointer;display:inline-block;padding:4px 8px;border:1px solid #ccc;border-radius:6px;background:#fff">Choose SVG</label>'
-      +'<input type="file" id="lt-icon-'+i+'-'+ti+'" accept=".svg,image/svg+xml" style="display:none" data-i="'+i+'" data-t="'+ti+'" class="lt-icon-file">'
-      +(T.iconSvg?('<button type="button" class="lt-icon-clear" data-i="'+i+'" data-t="'+ti+'" style="font-size:12px">remove</button>'):'')
-      +'<label style="font-size:12px;color:#000">size <input type="number" class="lt-icon-size" data-i="'+i+'" data-t="'+ti+'" min="8" max="100" value="'+(T.iconSize||28)+'" style="width:50px"></label>'
-      +(T.iconSvg?('<label style="font-size:12px;color:#000;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="lt-icon-recolor" data-i="'+i+'" data-t="'+ti+'" '+(T.iconRecolor!==false?'checked':'')+'>recolor</label>'):'')
-      +'</div>';
-  }
-  h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">'
-    +'<label style="font-size:12px;color:#000">Label <select class="lt-lmode posselect" data-i="'+i+'" data-t="'+ti+'"><option value="none"'+(T.labelMode==='none'?' selected':'')+'>none</option><option value="name"'+(T.labelMode==='name'?' selected':'')+'>name if present</option><option value="fixed"'+(T.labelMode==='fixed'?' selected':'')+'>fixed text</option></select></label>'
-    +(T.labelMode==='fixed'?('<input class="lt-ltext" data-i="'+i+'" data-t="'+ti+'" placeholder="label text" value="'+(T.labelText||'').replace(/"/g,'&quot;')+'" style="width:110px">'):'')
-    +(isLn?('<label style="font-size:12px;color:#000">Position <select class="lt-lpos posselect" data-i="'+i+'" data-t="'+ti+'"><option value="along"'+(T.labelPos==='along'?' selected':'')+'>along the line</option><option value="middle"'+(T.labelPos==='middle'?' selected':'')+'>at the middle</option><option value="start"'+(T.labelPos==='start'?' selected':'')+'>start point</option><option value="centroid"'+(T.labelPos==='centroid'?' selected':'')+'>centroid</option></select></label>'):'')
-    +'<label style="font-size:12px;color:#000">Label zoom <input type="number" class="lt-lzmin" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.labelZoomMin!=null?T.labelZoomMin:14)+'" style="width:44px">&ndash;<input type="number" class="lt-lzmax" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.labelZoomMax!=null?T.labelZoomMax:22)+'" style="width:44px"></label>'
-    +'<label style="font-size:12px;color:#000">Font <input type="number" class="lt-font" data-i="'+i+'" data-t="'+ti+'" min="8" max="72" value="'+(T.labelFontSize||18)+'" style="width:44px"></label>'
-    +'<label style="font-size:12px;color:#000">Visible zoom <input type="number" class="lt-mzmin" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.mapZoomMin!=null?T.mapZoomMin:1)+'" style="width:44px">&ndash;<input type="number" class="lt-mzmax" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.mapZoomMax!=null?T.mapZoomMax:22)+'" style="width:44px"></label>'
-    +'</div>';
-  h+='</div>';
-  return h;
-}
-function renderLiveList(){
-  const el=document.getElementById('livedata-list'); if(!el) return;
-  el.innerHTML='';
-  liveLayers.forEach((L2,i)=>{
-    if(!L2.types) L2.types=[];
-    const row=document.createElement('div');
-    row.style.cssText='border:1px solid #ccc;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px';
-    let h='<div style="display:flex;gap:6px;align-items:center">'
-      +'<input class="lv-url" data-i="'+i+'" placeholder="https://.../data.geojson" value="'+(L2.url||'').replace(/"/g,'&quot;')+'" style="flex:1;min-width:0">'
-      +'<button class="lv-get btn" data-i="'+i+'" style="font-size:12px;padding:5px 10px">Get file</button>'
-      +'<button class="lv-mv layer-move-btn" data-i="'+i+'" data-dir="up" title="Move up" '+(i===0?'disabled':'')+'>&#8593;</button>'
-      +'<button class="lv-mv layer-move-btn" data-i="'+i+'" data-dir="down" title="Move down" '+(i===liveLayers.length-1?'disabled':'')+'>&#8595;</button>'
-      +'<button class="lv-del" data-i="'+i+'" title="Remove layer" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1">&times;</button>'
-      +'</div>'
-      +'<input class="lv-name" data-i="'+i+'" placeholder="Layer name (for the panel)" value="'+(L2.name||'').replace(/"/g,'&quot;')+'" style="width:220px">';
-    if(!L2.types.length){ h+='<div style="font-size:12px;color:#777">Paste a URL and press <b>Get file</b> to detect the geometry types and set the styling per type.</div>'; }
-    L2.types.forEach((T,ti)=>{ h+=liveTypeBlock(i,ti,T); });
-    row.innerHTML=h; el.appendChild(row);
-  });
-  const gi=e=>parseInt(e.currentTarget.dataset.i), gt=e=>parseInt(e.currentTarget.dataset.t);
-  const T=(i,ti)=>liveLayers[i].types[ti];
-  el.querySelectorAll('.lv-url').forEach(x=>x.addEventListener('input',e=>{liveLayers[+e.target.dataset.i].url=e.target.value; saveLayersToStorage();}));
-  el.querySelectorAll('.lv-name').forEach(x=>x.addEventListener('input',e=>{liveLayers[+e.target.dataset.i].name=e.target.value; saveLayersToStorage();}));
-  el.querySelectorAll('.lv-get').forEach(x=>x.addEventListener('click',e=>{ getLiveFile(gi(e)); }));
-  el.querySelectorAll('.lv-del').forEach(x=>x.addEventListener('click',e=>{ removeLiveLayer(gi(e)); }));
-  el.querySelectorAll('.lv-mv').forEach(x=>x.addEventListener('click',e=>{ var i=gi(e),dir=e.currentTarget.dataset.dir,j=dir==='up'?i-1:i+1; if(j<0||j>=liveLayers.length) return; var t=liveLayers[i]; liveLayers[i]=liveLayers[j]; liveLayers[j]=t; renderLiveList(); saveLayersToStorage(); }));
-  el.querySelectorAll('.lt-del').forEach(x=>x.addEventListener('click',e=>{ var i=gi(e),ti=gt(e); liveLayers[i].types.splice(ti,1); renderLiveList(); saveLayersToStorage(); }));
-  el.querySelectorAll('.lt-on').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).defaultOn=e.target.checked; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-color').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).color=e.target.value; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-size').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).size=parseInt(e.target.value)||1; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-fill').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).fillOpacity=Math.max(0,Math.min(100,parseInt(e.target.value)||0))/100; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-lmode').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).labelMode=e.target.value; renderLiveList(); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-ltext').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).labelText=e.target.value; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-lpos').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).labelPos=e.target.value; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-lzmin').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).labelZoomMin=Math.max(1,Math.min(22,parseInt(e.target.value)||14)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-lzmax').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).labelZoomMax=Math.max(1,Math.min(22,parseInt(e.target.value)||22)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-font').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).labelFontSize=Math.max(8,Math.min(72,parseInt(e.target.value)||18)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-mzmin').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).mapZoomMin=Math.max(1,Math.min(22,parseInt(e.target.value)||1)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-mzmax').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).mapZoomMax=Math.max(1,Math.min(22,parseInt(e.target.value)||22)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-icon-size').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).iconSize=parseInt(e.target.value)||28; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-icon-clear').forEach(x=>x.addEventListener('click',e=>{var t=T(gi(e),gt(e)); t.iconSvg=null; t.iconSvgRaw=null; renderLiveList(); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-icon-recolor').forEach(x=>x.addEventListener('change',e=>{var t=T(gi(e),gt(e)); t.iconRecolor=e.target.checked; if(t.iconSvgRaw) t.iconSvg=prepareSvgForRecolor(t.iconSvgRaw,e.target.checked); renderLiveList(); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-icon-file').forEach(x=>x.addEventListener('change',e=>{
-    var i=+e.target.dataset.i, ti=+e.target.dataset.t, file=e.target.files&&e.target.files[0]; if(!file) return;
-    var rd=new FileReader(); rd.onload=ev=>{ var tx=ev.target.result; if(!/<svg[\s>]/i.test(tx)){ alert('This does not look like a valid SVG file.'); return; } var t=liveLayers[i].types[ti]; t.iconSvgRaw=tx; t.iconRecolor=(t.iconRecolor!==false); t.iconSvg=prepareSvgForRecolor(tx,t.iconRecolor); renderLiveList(); saveLayersToStorage(); }; rd.readAsText(file); e.target.value='';
-  }));
-}
-function gpxTextToGeoJSON(text){
-  var doc; try{ doc=new DOMParser().parseFromString(text,'application/xml'); }catch(e){ return null; }
-  if(!doc || doc.querySelector('parsererror')) return null;
-  var feats=[];
-  var trks=doc.querySelectorAll('trk,rte');
-  for(var i=0;i<trks.length;i++){
-    var el=trks[i], nmEl=el.querySelector('name'), nm=nmEl?nmEl.textContent:'';
-    var pts=el.querySelectorAll('trkpt,rtept'), coords=[];
-    for(var j=0;j<pts.length;j++){ var la=parseFloat(pts[j].getAttribute('lat')), lo=parseFloat(pts[j].getAttribute('lon')); if(!isNaN(la)&&!isNaN(lo)) coords.push([lo,la]); }
-    if(coords.length>1) feats.push({type:'Feature',properties:{name:nm},geometry:{type:'LineString',coordinates:coords}});
-  }
-  var wpts=doc.querySelectorAll('wpt');
-  for(var k=0;k<wpts.length;k++){ var w=wpts[k], la2=parseFloat(w.getAttribute('lat')), lo2=parseFloat(w.getAttribute('lon')); if(isNaN(la2)||isNaN(lo2)) continue; var wnEl=w.querySelector('name'), wn=wnEl?wnEl.textContent:''; feats.push({type:'Feature',properties:{name:wn},geometry:{type:'Point',coordinates:[lo2,la2]}}); }
-  return {type:'FeatureCollection',features:feats};
-}
-function parseLiveText(text){
-  var t=(''+(text||'')); if(t.charCodeAt(0)===0xFEFF) t=t.slice(1); t=t.trim();
-  var c=t.charAt(0);
-  if(c==='{'||c==='['){ try{ return JSON.parse(t); }catch(e){ return null; } }
-  if(t.indexOf('<gpx')>=0 || (t.indexOf('<?xml')>=0 && t.indexOf('<trk')>=0)){ return gpxTextToGeoJSON(t); }
-  try{ return JSON.parse(t); }catch(e2){ return gpxTextToGeoJSON(t); }
-}
-function getLiveFile(i){
-  const L2=liveLayers[i]; if(!L2||!L2.url||!L2.url.trim()){ alert('Please paste a URL first.'); return; }
-  const btn=document.querySelector('.lv-get[data-i="'+i+'"]'); if(btn){ btn.disabled=true; btn.textContent='Loading...'; }
-  let u=L2.url.trim(); u=u+(u.indexOf('?')>=0?'&':'?')+'_t='+Date.now();
-  fetch(u).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(text=>{
-    const data=parseLiveText(text);
-    if(!data){ alert('Could not read that file. Supported formats are GeoJSON and GPX.'); return; }
-    const present={};
-    ((data&&data.features)||[]).forEach(f=>{ const g=f&&f.geometry; if(!g) return; const t=g.type;
-      if(t==='LineString'||t==='MultiLineString') present.line=1; else if(t==='Point'||t==='MultiPoint') present.point=1; else if(t==='Polygon'||t==='MultiPolygon') present.polygon=1; });
-    if(!L2.types) L2.types=[];
-    LIVE_ORDER.forEach(g=>{ if(present[g] && !L2.types.some(t=>t.geomType===g)) L2.types.push(newLiveType(g)); });
-    if(!Object.keys(present).length) alert('No line, point or polygon features were found in that file.');
-    renderLiveList(); saveLayersToStorage();
-  }).catch(e=>{ alert('Could not fetch the file: '+e+'\n\nThe server must allow cross-origin access (GitHub Pages does).'); })
-  .then(()=>{ const b2=document.querySelector('.lv-get[data-i="'+i+'"]'); if(b2){ b2.disabled=false; b2.textContent='Get file'; } });
-}
-function addLiveLayer(){ liveLayers.push({url:'',name:'',types:[]}); renderLiveList(); saveLayersToStorage(); }
-function removeLiveLayer(i){ liveLayers.splice(i,1); renderLiveList(); saveLayersToStorage(); }
 function saveLayersToStorage(){
   if(_restoring) return;
   try{
@@ -622,7 +458,6 @@ function saveLayersToStorage(){
         defaultOn:l.defaultOn||false, previewOn:l.previewOn!==false,
         attribution:l.attribution||''
       })),
-      liveLayers:JSON.parse(JSON.stringify(liveLayers)),
       mapActions:mapActions.map(a=>({group:a.group||'',iconSvg:a.iconSvg||null,iconSvgRaw:a.iconSvgRaw||null,iconRecolor:!!a.iconRecolor,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name||'',urlTemplate:a.urlTemplate||''})),
       categories:categories.map(c=>({name:c.name||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconSvgRaw:c.iconSvgRaw||null,iconRecolor:!!c.iconRecolor,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})),
       notesConfig:Object.assign({}, notesConfig),
@@ -638,25 +473,11 @@ function saveLayersToStorage(){
   }catch(e){}
 }
 
-function applyLiveLayers(arr){
-  if(!Array.isArray(arr)) return;
-  liveLayers.length=0;
-  arr.forEach(function(l){
-    if(l && l.geomType && !l.types){   // migrate old flat model -> grouped
-      liveLayers.push({url:l.url||'',name:l.name||'',types:[{geomType:l.geomType,color:l.color||'#d7263d',size:l.size!=null?l.size:3,fillOpacity:l.fillOpacity!=null?l.fillOpacity:0.2,iconSvg:l.iconSvg||null,iconSvgRaw:l.iconSvgRaw||null,iconSize:l.iconSize||28,iconRecolor:l.iconRecolor!==false,labelMode:l.labelMode||'none',labelText:'',labelPos:(l.geomType==='line'?'along':'centroid'),labelZoomMin:l.labelZoomMin!=null?l.labelZoomMin:14,labelZoomMax:l.labelZoomMax!=null?l.labelZoomMax:22,labelFontSize:l.labelFontSize||18,mapZoomMin:l.mapZoomMin!=null?l.mapZoomMin:1,mapZoomMax:l.mapZoomMax!=null?l.mapZoomMax:22,defaultOn:l.defaultOn!==false}]});
-    } else if(l){ if(!l.types) l.types=[]; liveLayers.push(l); }
-  });
-  var _err=null;
-  try{ renderLiveList(); }catch(e){ _err=(e&&(e.stack||e.message))||(''+e); console.error('renderLiveList failed:', e); }
-  var _rows=-1;
-  try{ var _el=document.getElementById('livedata-list'); _rows=_el?_el.querySelectorAll('.lv-url').length:-2; }catch(e){}
-  window.__pwtLiveStatus={n:liveLayers.length, rows:_rows, err:_err};
-}
-function loadLayersFromStorage(stateOverride){
+function loadLayersFromStorage(){
   try{
-    const raw=(stateOverride!=null)?null:localStorage.getItem(STORAGE_KEY);
-    const state=(stateOverride!=null)?stateOverride:(raw?JSON.parse(raw):null);
-    const layersToLoad=state?state.layers:null;
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const layersToLoad=raw?JSON.parse(raw).layers:null;
+    const state=raw?JSON.parse(raw):null;
 
     // Use saved layers, or fall back to the default set
     const source=layersToLoad&&layersToLoad.length>0?layersToLoad:DEFAULT_LAYERS;
@@ -709,7 +530,6 @@ function loadLayersFromStorage(stateOverride){
 
     _restoring=false;
     renderFileDefaults();
-    if(state&&state.liveLayers) applyLiveLayers(state.liveLayers);
     if(state&&state.title) document.getElementById('title').value=state.title;
     if(state&&state.pwaShort!=null&&document.getElementById('pwa-short')) document.getElementById('pwa-short').value=state.pwaShort;
     if(state&&state.outputInfoUrl) document.getElementById('output-info-url').value=state.outputInfoUrl;
@@ -718,7 +538,7 @@ function loadLayersFromStorage(stateOverride){
       sl.value=state.osmOpacity;
       document.getElementById('osmopacityval').textContent=Math.round(state.osmOpacity*100)+'%';
     }
-  }catch(e){ _restoring=false; console.error('PeeWeeTrails restore error:', e); }
+  }catch(e){ _restoring=false; }
 }
 
 // Restore on page load — must wait for DOM to be ready
@@ -744,28 +564,6 @@ document.getElementById('output-info-url').addEventListener('input',saveLayersTo
 // re-import that file to refresh it.
 function _pv(id){ var e=document.getElementById(id); return e?e.value:undefined; }
 function _pc(id){ var e=document.getElementById(id); return e?!!e.checked:undefined; }
-function pwtToast(msg, isErr){
-  try{
-    var t=document.getElementById('pwt-toast');
-    if(!t){
-      t=document.createElement('div'); t.id='pwt-toast';
-      t.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 44px 10px 16px;font-size:14px;font-weight:600;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4);max-height:45vh;overflow:auto';
-      t._log=document.createElement('div'); t.appendChild(t._log);
-      var x=document.createElement('button'); x.textContent='\u00d7'; x.title='Dismiss';
-      x.style.cssText='position:absolute;top:4px;right:12px;background:none;border:none;color:#fff;font-size:24px;line-height:1;cursor:pointer';
-      x.onclick=function(){ t.style.display='none'; t._log.innerHTML=''; };
-      t.appendChild(x); document.body.appendChild(t);
-    }
-    var line=document.createElement('div');
-    line.textContent=(isErr?'\u26a0 ':'\u2713 ')+msg;
-    line.style.cssText='padding:2px 0;border-top:1px solid rgba(255,255,255,.25)'+(isErr?';color:#ffdede':'');
-    t._log.appendChild(line);
-    while(t._log.children.length>10) t._log.removeChild(t._log.firstChild);
-    t.style.display='block'; t.style.background=isErr?'#7a1f1f':'#1f4d2e';
-    t.scrollTop=t.scrollHeight;
-  }catch(e){}
-  try{ (isErr?console.error:console.log)('[PWT] '+msg); }catch(e){}
-}
 function buildProject(){
   return {
     __pwtproj:1,
@@ -777,7 +575,6 @@ function buildProject(){
     gradeConfig: Object.assign({}, gradeConfig),
     fileDefaults: JSON.parse(JSON.stringify(fileDefaults)),
     simplifyTol: simplifyTol,
-    liveLayers: JSON.parse(JSON.stringify(liveLayers)),
     settings: {
       title:_pv('title'), pwaShort:_pv('pwa-short'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
       zoomLevel:_pv('opt-zoom-level'), centerDelay:_pv('opt-center-delay'), hideUi:_pv('opt-hide-ui'),
@@ -798,19 +595,14 @@ function saveProject(){
   }catch(e){ alert('Could not save the project: '+e); }
 }
 function loadProject(obj){
-  if(!obj || !obj.__pwtproj){ pwtToast('This does not look like a PeeWeeTrails project file.', true); return; }
-  pwtToast('Reading project\u2026');
+  if(!obj || !obj.__pwtproj){ alert('This does not look like a PeeWeeTrails project file.'); return; }
   try{
     var S=obj.settings||{};
     // Reuse the existing restore path for the config (layers/categories/actions/notes/grade/title/...)
-    var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig, fileDefaults:obj.fileDefaults, simplifyTol:obj.simplifyTol, liveLayers:obj.liveLayers,
+    var st={ layers:obj.layers, mapActions:obj.mapActions, categories:obj.categories, notesConfig:obj.notesConfig, gradeConfig:obj.gradeConfig, fileDefaults:obj.fileDefaults, simplifyTol:obj.simplifyTol,
              title:S.title, pwaShort:S.pwaShort, osmOpacity:S.osmOpacity, outputInfoUrl:S.outputInfoUrl };
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); }catch(e){}
-    loadLayersFromStorage(st);
-    // Guaranteed restores — run independently so a hiccup in the bulk restore
-    // (seen in some browsers) can never drop the title or the live-data layers.
-    try{ if(obj.liveLayers) applyLiveLayers(obj.liveLayers); }catch(e){ console.error('live-data restore failed:', e); }
-    try{ var _t=document.getElementById('title'); if(_t && S.title!=null) _t.value=S.title; }catch(e){ console.error('title restore failed:', e); }
+    loadLayersFromStorage();
     // Restore the imported geometry
     files.length=0;
     (obj.files||[]).forEach(function(f){ files.push(f); });
@@ -823,32 +615,16 @@ function loadProject(obj){
     sc('opt-welcome-enabled',S.welcomeEnabled); sv('opt-welcome-text',S.welcomeText);
     updatePreview();
     var eb=document.getElementById('exportbtn'); if(eb) eb.disabled=false;
-    var _ls=window.__pwtLiveStatus||{};
-    var _extra=_ls.err?(' \u2014 LIST RENDER ERROR: '+_ls.err):(' \u2014 rows shown: '+_ls.rows);
-    pwtToast('Project loaded: '+((obj.liveLayers||[]).length)+' live-data layer(s), '+((obj.files||[]).length)+' file(s)'+_extra, !!_ls.err);
-  }catch(e){ pwtToast('Could not open the project: '+e, true); }
+  }catch(e){ alert('Could not open the project: '+e); }
 }
 (function(){
-  function readProjectFile(file, how){
-    pwtToast((how||'File chosen')+': '+(file?file.name:'(none)'));
-    if(!file) return;
-    var rd=new FileReader();
-    rd.onerror=function(){ pwtToast('Could not read the file (reader error): '+((rd.error&&rd.error.message)||rd.error||'unknown'), true); };
-    rd.onload=function(ev){
-      var txt=ev.target.result;
-      pwtToast('File read ('+(txt?txt.length:0)+' chars) \u2014 parsing\u2026');
-      try{ loadProject(JSON.parse(txt)); }catch(err){ pwtToast('Could not parse the project file: '+err, true); }
-    };
-    rd.readAsText(file);
-  }
   var pi=document.getElementById('projinput');
-  if(pi) pi.addEventListener('change', function(e){ readProjectFile(e.target.files&&e.target.files[0], 'File chosen'); e.target.value=''; });
-  var pd=document.getElementById('projdrop');
-  if(pd){
-    ['dragenter','dragover'].forEach(function(ev){ pd.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation(); pd.style.background='#e8f5e9'; pd.style.borderColor='#2e7d32'; pd.style.color='#2e7d32'; }); });
-    ['dragleave','drop'].forEach(function(ev){ pd.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation(); pd.style.background=''; pd.style.borderColor=''; pd.style.color=''; }); });
-    pd.addEventListener('drop', function(e){ var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; readProjectFile(f, 'File dropped'); });
-  }
+  if(pi) pi.addEventListener('change', function(e){
+    var file=e.target.files&&e.target.files[0]; if(!file) return;
+    var rd=new FileReader();
+    rd.onload=function(ev){ try{ loadProject(JSON.parse(ev.target.result)); }catch(err){ alert('Could not read the project file: '+err); } e.target.value=''; };
+    rd.readAsText(file);
+  });
 })();
 
 // Small notice under the export button
@@ -915,7 +691,6 @@ function trackAscentM(ele){
 let map=null;
 let layers=[];
 let extraLayers=[];       // {type:'xyz'|'wms', url, wmsLayer, opacity, leafletLayer}
-let liveLayers=[];        // live data from a URL: {url,name,geomType,color,size,fillOpacity,defaultOn}
 const DEFAULT_NOTES_CONFIG={enabled:false, defaultOn:false, minZoom:12, colorOpen:'#e8590c', icon:'!'};
 let notesConfig=Object.assign({}, DEFAULT_NOTES_CONFIG);
 const DEFAULT_GRADE_CONFIG={baseline:90, minSeg:60};
@@ -923,105 +698,6 @@ let gradeConfig=Object.assign({}, DEFAULT_GRADE_CONFIG);
 let previewExtraLayers=[];
 let osmTileLayer=null;
 
-// --- WMTS GetCapabilities helper: turn a caps URL/XML into ready-to-use XYZ layers ---
-var _wmtsParsed=[];
-function toggleWmtsHelper(){ var h=document.getElementById('wmts-helper'); if(h) h.style.display=(h.style.display==='none'?'block':'none'); }
-function _wmtsMsg(t){ var m=document.getElementById('wmts-helper-msg'); if(m) m.textContent=t||''; }
-function _wByLocal(root,name){ var out=[],all=root.getElementsByTagName('*'); for(var i=0;i<all.length;i++){ if(all[i].localName===name) out.push(all[i]); } return out; }
-function _wChild(el,name){ for(var i=0;i<el.children.length;i++){ if(el.children[i].localName===name) return el.children[i]; } return null; }
-function _wChildren(el,name){ var out=[]; for(var i=0;i<el.children.length;i++){ if(el.children[i].localName===name) out.push(el.children[i]); } return out; }
-function _wHref(el){ return el.getAttribute('xlink:href')||el.getAttributeNS('http://www.w3.org/1999/xlink','href')||''; }
-function parseWmtsCaps(xmlText, capsUrl){
-  var doc; try{ doc=new DOMParser().parseFromString(xmlText,'application/xml'); }catch(e){ return {error:'Could not parse the XML.'}; }
-  if(!doc || doc.getElementsByTagName('parsererror').length){ return {error:'That does not look like valid XML.'}; }
-  var root=doc.documentElement; if(!root) return {error:'Empty document.'};
-  var rn=(root.localName||'').toLowerCase();
-  if(rn==='wms_capabilities'||rn==='wmt_ms_capabilities') return _parseWms(root,capsUrl);
-  return _parseWmts(root,capsUrl);
-}
-function _parseWmts(root,capsUrl){
-  var getTileHref='';
-  _wByLocal(root,'Operation').forEach(function(op){ if(op.getAttribute('name')==='GetTile'){ var g=_wByLocal(op,'Get')[0]; if(g) getTileHref=_wHref(g); } });
-  var kvpBase=(getTileHref||capsUrl||'').split('?')[0];
-  var merc={};
-  _wByLocal(root,'TileMatrixSet').forEach(function(tms){
-    var idEl=_wChild(tms,'Identifier'); if(!idEl) return; var id=idEl.textContent.trim();
-    var tmats=_wChildren(tms,'TileMatrix'); if(!tmats.length) return;
-    if(/3857|900913|googlemaps|webmercator/i.test(id)){
-      var zp=false; for(var i=0;i<tmats.length;i++){ var mi=_wChild(tmats[i],'Identifier'); if(mi && /^0\d$/.test(mi.textContent.trim())){ zp=true; break; } }
-      merc[id]={zeroPad:zp};
-    }
-  });
-  var layers=[];
-  _wByLocal(root,'Layer').forEach(function(L){
-    var idEl=_wChild(L,'Identifier'); if(!idEl) return; var id=idEl.textContent.trim();
-    var tEl=_wChild(L,'Title'); var title=(tEl&&tEl.textContent.trim())||id;
-    var sets=_wChildren(L,'TileMatrixSetLink').map(function(lk){ var sEl=_wChild(lk,'TileMatrixSet'); return sEl?sEl.textContent.trim():''; });
-    var useSet=sets.filter(function(x){ return merc[x]; })[0];
-    var fEl=_wChild(L,'Format'); var fmt=(fEl&&fEl.textContent.trim())||'image/png';
-    if(!useSet){ layers.push({id:id,title:title,usable:false}); return; }
-    var zp=merc[useSet].zeroPad, url='';
-    var rurl=_wChildren(L,'ResourceURL').filter(function(r){ return (r.getAttribute('resourceType')||'')==='tile'; })[0];
-    if(rurl && rurl.getAttribute('template')){
-      url=rurl.getAttribute('template').replace(/\{TileMatrixSet\}/g,useSet).replace(/\{TileMatrix\}/g,'{z}').replace(/\{TileCol\}/g,'{x}').replace(/\{TileRow\}/g,'{y}').replace(/\{Style\}/g,'default');
-    } else {
-      url=kvpBase+'?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER='+encodeURIComponent(id)+'&STYLE=default&TILEMATRIXSET='+encodeURIComponent(useSet)+'&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT='+encodeURIComponent(fmt);
-    }
-    layers.push({id:id,title:title,usable:true,note:(zp?'Zero-padded zoom \u2192 min zoom set to 10.':''),presets:[
-      {label:'Add as layer',preset:{type:'xyz',url:url,wmsLayer:'',displayName:title,opacity:1,zoomMin:(zp?10:1),zoomMax:22,defaultOn:false,attribution:''}}
-    ]});
-  });
-  return {kind:'WMTS',layers:layers};
-}
-function _parseWms(root,capsUrl){
-  var base='';
-  _wByLocal(root,'GetMap').forEach(function(gm){ var g=_wByLocal(gm,'Get')[0]; if(g){ var orr=_wByLocal(g,'OnlineResource')[0]; if(orr) base=_wHref(orr); } });
-  base=(base||capsUrl||'').split('?')[0];
-  var layers=[];
-  _wByLocal(root,'Layer').forEach(function(L){
-    var nEl=_wChild(L,'Name'); if(!nEl) return; var name=nEl.textContent;
-    var tEl=_wChild(L,'Title'); var title=(tEl&&tEl.textContent.trim())||name.trim();
-    var ok=false,n=L; while(n){ if(n.localName==='Layer'){ var crs=_wChildren(n,'CRS').concat(_wChildren(n,'SRS')); for(var i=0;i<crs.length;i++){ if(/3857/.test(crs[i].textContent)){ ok=true; break; } } } if(ok) break; n=n.parentElement; }
-    if(!ok){ layers.push({id:name.trim(),title:title,usable:false}); return; }
-    var tileUrl=base+'?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER='+encodeURIComponent(name)+'&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}';
-    layers.push({id:name.trim(),title:title,usable:true,presets:[
-      {label:'Add as tiles (WMTS)',preset:{type:'xyz',url:tileUrl,wmsLayer:'',displayName:title,opacity:1,zoomMin:1,zoomMax:22,defaultOn:false,attribution:''}},
-      {label:'Add as WMS',preset:{type:'wms',url:base,wmsLayer:name,displayName:title,opacity:1,zoomMin:1,zoomMax:22,defaultOn:false,attribution:''}}
-    ]});
-  });
-  return {kind:'WMS',layers:layers,note:'Tiles (WMTS) work for QGIS Server (e.g. QGIS Cloud). If a layer stays blank, use \u201cAdd as WMS\u201d instead.'};
-}
-function wmtsHelperGo(){
-  _wmtsMsg('');
-  var xEl=document.getElementById('wmts-caps-xml'); var xml=(xEl&&xEl.value||'').trim();
-  if(xml){ _wmtsShow(parseWmtsCaps(xml,'')); return; }
-  var uEl=document.getElementById('wmts-caps-url'); var url=(uEl&&uEl.value||'').trim();
-  if(!url){ _wmtsMsg('Paste a GetCapabilities URL (or the XML) first.'); return; }
-  _wmtsMsg('Fetching\u2026');
-  fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-    .then(function(t){ _wmtsShow(parseWmtsCaps(t,url)); })
-    .catch(function(e){ _wmtsMsg('Could not fetch it directly (often blocked by the browser / CORS). Open the URL in a new tab, copy all the XML, paste it in the box below, and press Analyse again.'); if(xEl) xEl.style.display='block'; });
-}
-function _wmtsShow(res){
-  var box=document.getElementById('wmts-helper-results'); if(box) box.innerHTML='';
-  if(!res || res.error){ _wmtsMsg((res&&res.error)||'Could not read it.'); return; }
-  _wmtsParsed=res.layers||[];
-  var usable=_wmtsParsed.filter(function(l){return l.usable;});
-  _wmtsMsg((res.kind||'')+': '+usable.length+' usable layer(s)'+(_wmtsParsed.length>usable.length?(', '+(_wmtsParsed.length-usable.length)+' skipped (no Web Mercator)'):'')+'.'+(res.note?(' '+res.note):''));
-  _wmtsParsed.forEach(function(l,i){
-    if(!l.usable) return;
-    var row=document.createElement('div'); row.style.cssText='border:1px solid #e2e2e2;border-radius:6px;padding:6px 8px;font-size:12px';
-    var h='<div style="font-weight:600">'+l.title.replace(/</g,'&lt;')+'</div>';
-    if(l.note) h+='<div style="color:#a60">'+l.note+'</div>';
-    row.innerHTML=h;
-    (l.presets||[]).forEach(function(pp){
-      var b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent=pp.label; b.style.cssText='font-size:12px;padding:4px 10px;margin:4px 6px 0 0';
-      b.addEventListener('click',function(){ var copy={}; for(var k in pp.preset) copy[k]=pp.preset[k]; addLayer(copy); _wmtsMsg('Added: '+l.title+' ('+pp.label+') \u2014 check it in the preview.'); });
-      row.appendChild(b);
-    });
-    box.appendChild(row);
-  });
-}
 // --- Extra tile layer management (XYZ/WMTS/WMS) ---
 // Each entry in extraLayers becomes an overlay in the exported map.
 function addLayer(preset){
@@ -1256,7 +932,7 @@ function renderCategoriesList(){
       <div class="layer-row-top">
         <span class="toggle-label" style="color:#000">Icon</span>
         <div class="caticon-preview" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:${c.iconColor||'#555'}">${c.iconSvg?c.iconSvg:(c.iconImgSrc?`<img src="${c.iconImgSrc}" style="max-width:22px;max-height:22px">`:'')}</div>
-        <label class="caticon-upload-btn" for="caticon-file-${i}"><i class="ti ti-upload" aria-hidden="true"></i> Choose icon</label>
+        <button type="button" class="caticon-upload-btn" data-idx="${i}" onclick="document.getElementById('caticon-file-${i}').click()"><i class="ti ti-upload" aria-hidden="true"></i> Choose icon</button>
         <input type="file" id="caticon-file-${i}" accept=".svg,image/svg+xml,.ico,.png,.jpg,.jpeg,.gif,.webp,image/*" style="display:none" data-idx="${i}" class="caticon-fileinput">
         ${(c.iconSvg||c.iconImgSrc)?`<button type="button" class="caticon-clear" data-idx="${i}">remove</button>`:''}
         ${c.iconSvg?`
@@ -1329,9 +1005,9 @@ function renderMapActionsList(){
       <div class="layer-row-top">
         <span class="toggle-label" style="color:#000">Icon</span>
         <div class="maicon-preview" style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:${a.iconColor||'#555'}">${a.iconSvg?a.iconSvg:(a.iconImgSrc?`<img src="${a.iconImgSrc}" alt="" style="max-width:100%;max-height:100%">`:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:15px"></i>')}</div>
-        <label class="maicon-upload-btn" for="maicon-file-${i}">
+        <button type="button" class="maicon-upload-btn" data-idx="${i}" onclick="document.getElementById('maicon-file-${i}').click()">
           <i class="ti ti-upload" aria-hidden="true"></i> Choose icon
-        </label>
+        </button>
         <input type="file" id="maicon-file-${i}" accept=".svg,image/svg+xml,.ico,.png,.jpg,.jpeg,.gif,.webp,image/*" style="display:none" data-idx="${i}" class="maicon-fileinput">
         ${(a.iconSvg||a.iconImgSrc)?`<button type="button" class="maicon-clear" data-idx="${i}">remove</button>`:''}
         ${a.iconSvg?`
@@ -1812,7 +1488,7 @@ function renderFileDefaults(){
       if(m.t==='bool'){ html+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#000"><input type="checkbox" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" '+(d[fld]?'checked':'')+'>'+lbl+'</label>'; }
       else if(m.t==='grade'){ html+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#000"><input type="checkbox" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" '+(d.colorMode==='grade'?'checked':'')+'>'+lbl+'</label>'; }
       else if(m.t==='mode'){ html+='<label style="font-size:12px;color:#000">'+lbl+' <select id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" class="posselect"><option value="nametag"'+(d.labelMode==='nametag'?' selected':'')+'>name tag</option><option value="filename"'+(d.labelMode==='filename'?' selected':'')+'>file name</option><option value="none"'+(d.labelMode==='none'?' selected':'')+'>none</option></select></label>'; }
-      else if(m.t==='pos'){ var _lo=(type==='trk')?('<option value="middle"'+(d.labelPos==='middle'?' selected':'')+'>at the middle</option><option value="along"'+(d.labelPos==='along'?' selected':'')+'>along the line</option>'):''; html+='<label style="font-size:12px;color:#000">'+lbl+' <select id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" class="posselect"><option value="start"'+(d.labelPos==='start'?' selected':'')+'>start</option><option value="centroid"'+(d.labelPos==='centroid'?' selected':'')+'>centroid</option>'+_lo+'</select></label>'; }
+      else if(m.t==='pos'){ html+='<label style="font-size:12px;color:#000">'+lbl+' <select id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" class="posselect"><option value="start"'+(d.labelPos==='start'?' selected':'')+'>start</option><option value="centroid"'+(d.labelPos==='centroid'?' selected':'')+'>centroid</option></select></label>'; }
       else { var val=(m.t==='pct')?Math.round((d[fld]!=null?d[fld]:0)*100):(d[fld]!=null?d[fld]:''); html+='<label style="font-size:12px;color:#000">'+lbl+' <input type="number" id="'+id+'" data-type="'+type+'" data-fld="'+fld+'" data-kind="'+m.t+'" min="'+m.min+'" max="'+m.max+'" value="'+val+'" class="zoominput" style="width:56px"></label>'; }
     });
     html+='</div></div>';
@@ -1870,7 +1546,6 @@ function renderList(){
       <select data-idx="${i}" class="posselect" title="Label position">
         <option value="centroid" ${f.labelPos==='centroid'?'selected':''}>centroid</option>
         <option value="start" ${f.labelPos==='start'?'selected':''}>start point</option>
-        ${f._splitType==='trk'?`<option value="middle" ${f.labelPos==='middle'?'selected':''}>at the middle</option><option value="along" ${f.labelPos==='along'?'selected':''}>along the line</option>`:''}
       </select>
       ${f._splitType==='trk'?`
       <label class="toggle" title="Show start point on map">
@@ -1901,9 +1576,9 @@ function renderList(){
       <div class="file-row-wpticon">
         <span class="toggle-label" style="color:#000">Waypoint icon</span>
         <div class="wpticon-preview" id="wpticon-preview-${i}" style="color:${f.color}">${f.wptIconSvg?f.wptIconSvg:'<i class="ti ti-map-pin" aria-hidden="true" style="color:#bbb;font-size:14px"></i>'}</div>
-        <label class="wpticon-upload-btn" for="wpticon-file-${i}">
+        <button type="button" class="wpticon-upload-btn" data-idx="${i}" onclick="document.getElementById('wpticon-file-${i}').click()">
           <i class="ti ti-upload" aria-hidden="true"></i> Choose SVG
-        </label>
+        </button>
         <input type="file" id="wpticon-file-${i}" accept=".svg,image/svg+xml" style="display:none" data-idx="${i}" class="wpticon-fileinput">
         ${f.wptIconSvg?`<button type="button" class="wpticon-clear" data-idx="${i}">remove</button>`:''}
         <span class="toggle-label" style="color:#000;margin-left:6px">size</span>
@@ -2307,27 +1982,11 @@ function getLabelText(f, elementName){
 // Make an SVG recolorable: replace all fill colors (root AND individual shapes such as
 // <path>, <circle>, etc.) door currentColor, zodat de hele tekening de GPX-kleur volgt.
 // fill="none" wordt met rust gelaten (meestal bewust transparant/outline).
-function normalizeIconSvg(svgText){
-  // Make any SVG scale to its (small) container: give the root a viewBox when missing
-  // and let width/height be 100% so it never renders off-size or invisible.
-  return (''+svgText).replace(/<svg\b([^>]*)>/i, function(m, attrs){
-    var hasVB=/viewBox\s*=/i.test(attrs);
-    var wm=attrs.match(/\bwidth\s*=\s*["']?\s*([0-9.]+)/i);
-    var hm=attrs.match(/\bheight\s*=\s*["']?\s*([0-9.]+)/i);
-    attrs=attrs.replace(/\s(width|height)\s*=\s*"[^"]*"/gi,'').replace(/\s(width|height)\s*=\s*'[^']*'/gi,'');
-    if(!hasVB && wm && hm){ attrs+=' viewBox="0 0 '+wm[1]+' '+hm[1]+'"'; }
-    if(!/preserveAspectRatio/i.test(attrs)) attrs+=' preserveAspectRatio="xMidYMid meet"';
-    attrs+=' width="100%" height="100%" style="display:block"';
-    return '<svg'+attrs+'>';
-  });
-}
 function prepareSvgForRecolor(svgText, recolor){
-  var s=normalizeIconSvg(svgText);
-  if(!recolor) return s;
-  return s
+  if(!recolor) return svgText;
+  return svgText
     .replace(/fill="([^"]*)"/gi, (match, value)=>{
       if(value.trim().toLowerCase()==='none') return match;
-      if(value.trim().toLowerCase()==='currentcolor') return match;
       return 'fill="currentColor"';
     })
     .replace(/stroke="([^"]*)"/gi, (match, value)=>{
@@ -2337,10 +1996,6 @@ function prepareSvgForRecolor(svgText, recolor){
 }
 
 // build a waypoint marker: custom SVG icon if set, otherwise a standard colored circle
-function pwtLabelDiv(text, color, fontSize, offsetCss){
-  var fsz=(fontSize||24), h=contrastHalo(color||'#111'), w=Math.max(2,Math.round(fsz*0.13))+'px';
-  return '<div style="display:inline-flex;align-items:center;gap:5px;color:'+(color||'#111')+';font-size:'+fsz+'px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+w+' -'+w+' 0 '+h+','+w+' -'+w+' 0 '+h+',-'+w+' '+w+' 0 '+h+','+w+' '+w+' 0 '+h+',0 '+w+' 0 '+h+',0 -'+w+' 0 '+h+','+w+' 0 0 '+h+',-'+w+' 0 0 '+h+';'+(offsetCss||'transform:translate(-50%,-50%)')+'">'+text+'</div>';
-}
 function buildWaypointMarker(f, w){
   if(f.wptIconSvg){
     const sz=f.wptIconSize||28;
@@ -2353,7 +2008,7 @@ function buildWaypointMarker(f, w){
       })
     });
   }
-  return L.circleMarker([w.lat,w.lon],{radius:f.lineWidth||8,color:f.color,fillColor:f.color,fillOpacity:1,weight:1});
+  return L.circleMarker([w.lat,w.lon],{radius:f.lineWidth||8,color:f.color,fillColor:f.color,fillOpacity:.9,weight:1});
 }
 
 function resetPreviewExtent(){
@@ -2746,9 +2401,6 @@ function exportMap(){
   const trailMode='full';   // trail-length option removed: always record the whole ride
   const trailMeters=50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
-  const _liveClean=(t)=>({geomType:t.geomType,color:t.color||'#d7263d',size:t.size!=null?t.size:3,fillOpacity:t.fillOpacity!=null?t.fillOpacity:0.2,iconSvg:(t.geomType==='point'&&t.iconSvg)?t.iconSvg:null,iconSize:t.iconSize||28,labelMode:t.labelMode||'none',labelText:t.labelText||'',labelPos:t.labelPos||(t.geomType==='line'?'along':'centroid'),labelZoomMin:t.labelZoomMin!=null?t.labelZoomMin:14,labelZoomMax:t.labelZoomMax!=null?t.labelZoomMax:22,labelFontSize:t.labelFontSize||18,mapZoomMin:t.mapZoomMin!=null?t.mapZoomMin:1,mapZoomMax:t.mapZoomMax!=null?t.mapZoomMax:22,defaultOn:t.defaultOn!==false});
-  const exportLive=liveLayers.filter(l=>l.url&&l.url.trim()&&l.types&&l.types.length).map(l=>({url:l.url.trim(),name:(l.name&&l.name.trim())?l.name.trim():'Live layer',types:l.types.map(_liveClean)}));
-  const liveDefaults={line:_liveClean(newLiveType('line')),point:_liveClean(newLiveType('point')),polygon:_liveClean(newLiveType('polygon'))};
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
   const exportCategories=categories.map(c=>({name:(c.name&&c.name.trim())||'',builtin:c.builtin||null,hidden:!!c.hidden,iconSvg:c.iconSvg||null,iconColor:c.iconColor||'#555555',iconImgSrc:c.iconImgSrc||null})).filter(c=>c.name||c.builtin);
   const data=files.map(f=>({
@@ -3402,10 +3054,6 @@ function getLabelText(f, elementName){
   return f.filename;
 }
 
-function pwtLabelDiv(text, color, fontSize, offsetCss){
-  var fsz=(fontSize||24), h=contrastHalo(color||'#111'), w=Math.max(2,Math.round(fsz*0.13))+'px';
-  return '<div style="display:inline-flex;align-items:center;gap:5px;color:'+(color||'#111')+';font-size:'+fsz+'px;font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+w+' -'+w+' 0 '+h+','+w+' -'+w+' 0 '+h+',-'+w+' '+w+' 0 '+h+','+w+' '+w+' 0 '+h+',0 '+w+' 0 '+h+',0 -'+w+' 0 '+h+','+w+' 0 0 '+h+',-'+w+' 0 0 '+h+';'+(offsetCss||'transform:translate(-50%,-50%)')+'">'+text+'</div>';
-}
 function buildWaypointMarker(f, w){
   if(f.wptIconSvg){
     const sz=f.wptIconSize||28;
@@ -3418,7 +3066,7 @@ function buildWaypointMarker(f, w){
       })
     });
   }
-  return L.circleMarker([w.lat,w.lon],{radius:f.lineWidth||8,color:f.color,fillColor:f.color,fillOpacity:1,weight:1});
+  return L.circleMarker([w.lat,w.lon],{radius:f.lineWidth||8,color:f.color,fillColor:f.color,fillOpacity:.9,weight:1});
 }
 
 function midpt(coords){return coords[Math.floor(coords.length/2)];}
@@ -3459,19 +3107,6 @@ function updateUrlHash(){
 // --- Initialise Leaflet map and OSM base layer ---
 const urlState=parseStateFromHash();
 const map=L.map('map',{rotate:true,bearing:0,touchRotate:true,rotateControl:false});
-// Attribution links should open in a new tab, not replace the map app.
-(function(){
-  function fixAttribLinks(){
-    var as=document.querySelectorAll('.leaflet-control-attribution a');
-    for(var i=0;i<as.length;i++){ if(as[i].getAttribute('target')!=='_blank'){ as[i].setAttribute('target','_blank'); as[i].setAttribute('rel','noopener noreferrer'); } }
-  }
-  fixAttribLinks();
-  map.on('layeradd overlayadd baselayerchange', fixAttribLinks);
-  try{
-    var ac=document.querySelector('.leaflet-control-attribution');
-    if(ac && window.MutationObserver){ new MutationObserver(fixAttribLinks).observe(ac,{childList:true,subtree:true}); }
-  }catch(e){}
-})();
 const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:MAX_ZOOM,maxNativeZoom:19,opacity:OSM_OPACITY,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 // Maker credit + license, always shown bottom-right (edit or remove this one line to change it).
 const AUTHOR_CREDIT='Kaart &copy; <a href="https://github.com/PeeWeeOSM" target="_blank" rel="noopener">PeeWeeOSM</a> &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0</a>';
@@ -3483,8 +3118,6 @@ tiles.on('tileload',()=>document.getElementById('notice').style.display='none');
 
 // Extra layers: add in reverse order so top of list renders on top (added last = highest z-order)
 const EX=${JSON.stringify(exportExtra)};
-const LIVE_LAYERS=${JSON.stringify(exportLive)};
-const LIVE_DEFAULTS=${JSON.stringify(liveDefaults)};
 const MAP_ACTIONS=${JSON.stringify(exportMapActions)};
 const MAP_CATEGORIES=${JSON.stringify(exportCategories)};
 const NOTES_CONFIG=${JSON.stringify(notesConfig)};
@@ -3711,122 +3344,6 @@ const wmsLayerObjs=new Array(EX.length);
   if(cfg.defaultOn){ notesOn=true; map.addLayer(notesGroup); map.whenReady(fetchNotes); }
 })();
 
-function gpxTextToGeoJSON(text){
-  var doc; try{ doc=new DOMParser().parseFromString(text,'application/xml'); }catch(e){ return null; }
-  if(!doc || doc.querySelector('parsererror')) return null;
-  var feats=[];
-  var trks=doc.querySelectorAll('trk,rte');
-  for(var i=0;i<trks.length;i++){
-    var el=trks[i], nmEl=el.querySelector('name'), nm=nmEl?nmEl.textContent:'';
-    var pts=el.querySelectorAll('trkpt,rtept'), coords=[];
-    for(var j=0;j<pts.length;j++){ var la=parseFloat(pts[j].getAttribute('lat')), lo=parseFloat(pts[j].getAttribute('lon')); if(!isNaN(la)&&!isNaN(lo)) coords.push([lo,la]); }
-    if(coords.length>1) feats.push({type:'Feature',properties:{name:nm},geometry:{type:'LineString',coordinates:coords}});
-  }
-  var wpts=doc.querySelectorAll('wpt');
-  for(var k=0;k<wpts.length;k++){ var w=wpts[k], la2=parseFloat(w.getAttribute('lat')), lo2=parseFloat(w.getAttribute('lon')); if(isNaN(la2)||isNaN(lo2)) continue; var wnEl=w.querySelector('name'), wn=wnEl?wnEl.textContent:''; feats.push({type:'Feature',properties:{name:wn},geometry:{type:'Point',coordinates:[lo2,la2]}}); }
-  return {type:'FeatureCollection',features:feats};
-}
-function parseLiveText(text){
-  var t=(''+(text||'')); if(t.charCodeAt(0)===0xFEFF) t=t.slice(1); t=t.trim();
-  var c=t.charAt(0);
-  if(c==='{'||c==='['){ try{ return JSON.parse(t); }catch(e){ return null; } }
-  if(t.indexOf('<gpx')>=0 || (t.indexOf('<?xml')>=0 && t.indexOf('<trk')>=0)){ return gpxTextToGeoJSON(t); }
-  try{ return JSON.parse(t); }catch(e2){ return gpxTextToGeoJSON(t); }
-}
-// --- Live data from URLs: one URL -> per-type styling, fetched fresh on open; toggle in the layer panel. ---
-(function(){
-  if(typeof LIVE_LAYERS==='undefined' || !LIVE_LAYERS || !LIVE_LAYERS.length) return;
-  var panelContent=document.getElementById('layers-panel-content');
-  var secAdded=false;
-  function esc(x){ return (typeof __xmlEsc==='function')?__xmlEsc(x):(''+x); }
-  function geomBucket(t){ if(t==='LineString'||t==='MultiLineString') return 'line'; if(t==='Point'||t==='MultiPoint') return 'point'; if(t==='Polygon'||t==='MultiPolygon') return 'polygon'; return null; }
-  function lblFor(cfg,feat){ if(cfg.labelMode==='fixed') return cfg.labelText||''; if(cfg.labelMode==='name'){ var p=(feat&&feat.properties)||{}; return p.name||p.title||p.Name||p.NAME||''; } return ''; }
-  function markerLabel(latlng,text,fs,color){ return L.marker(latlng,{interactive:false,keyboard:false,icon:L.divIcon({className:'live-label',iconSize:[0,0],iconAnchor:[0,0],html:pwtLabelDiv(esc(text), color||'#111', fs, 'transform:translate(-50%,-50%)')})}); }
-  function lineMidpoint(lls){
-    if(!lls||!lls.length) return null; if(lls.length===1) return lls[0];
-    var d=[0], total=0, i;
-    for(i=1;i<lls.length;i++){ total+=map.distance(lls[i-1],lls[i]); d[i]=total; }
-    if(total===0) return lls[0];
-    var half=total/2;
-    for(i=1;i<lls.length;i++){ if(d[i]>=half){ var seg=d[i]-d[i-1], f=seg>0?(half-d[i-1])/seg:0; return L.latLng(lls[i-1].lat+(lls[i].lat-lls[i-1].lat)*f, lls[i-1].lng+(lls[i].lng-lls[i-1].lng)*f); } }
-    return lls[lls.length-1];
-  }
-  LIVE_LAYERS.forEach(function(layer){
-    var url=layer.url, name=layer.name||'Live layer', types=layer.types||[];
-    var wantOn=types.some(function(t){ return t.defaultOn!==false; });
-    var loaded=false, renderers=[];
-    function cfgFor(gt){ var c=null; types.forEach(function(t){ if(t.geomType===gt) c=t; }); if(!c && typeof LIVE_DEFAULTS!=='undefined' && LIVE_DEFAULTS[gt]) c=LIVE_DEFAULTS[gt]; return c; }
-    function buildType(gt,feats){
-      var cfg=cfgFor(gt); if(!cfg) return;
-      var gg=L.layerGroup(), lg=L.layerGroup(), lineTexts=[], fs=cfg.labelFontSize||18;
-      L.geoJSON({type:'FeatureCollection',features:feats},{
-        style:function(feat){
-          var _t=feat&&feat.geometry&&feat.geometry.type;
-          if(_t==='Point'||_t==='MultiPoint'){ return {color:cfg.color,fillColor:cfg.color,fillOpacity:1,weight:1}; }
-          return {color:cfg.color,weight:cfg.size||3,fillColor:cfg.color,fillOpacity:(cfg.fillOpacity!=null?cfg.fillOpacity:0.2)};
-        },
-        pointToLayer:function(feat,latlng){ return buildWaypointMarker({color:cfg.color,lineWidth:(cfg.size!=null?cfg.size:8),wptIconSvg:cfg.iconSvg||null,wptIconSize:cfg.iconSize||28},{lat:latlng.lat,lon:latlng.lng}); },
-        onEachFeature:function(f,lyr){
-          var p=(f&&f.properties)||{}; var nm=p.name||p.title||p.Name||p.NAME||''; var ds=p.desc||p.description||p.Description||''; var id=p['@id']||p.osm_id||p.id||'';
-          var ph=(typeof elPopup==='function')?elPopup(nm,ds,id):(nm?('<b>'+nm+'</b>'):''); if(ph) lyr.bindPopup(ph);
-          var txt=lblFor(cfg,f);
-          if(txt){
-            if(gt==='line'){
-              if(cfg.labelPos==='along'){ lineTexts.push({layer:lyr,text:txt}); }
-              else {
-                var lls=lyr.getLatLngs?lyr.getLatLngs():null;
-                if(lls && lls.length && Array.isArray(lls[0])) lls=lls[0];
-                var pos=null;
-                if(lls && lls.length){
-                  if(cfg.labelPos==='start') pos=lls[0];
-                  else if(cfg.labelPos==='centroid') pos=(lyr.getBounds?lyr.getBounds().getCenter():lls[0]);
-                  else pos=lineMidpoint(lls);
-                }
-                if(pos) lg.addLayer(markerLabel(pos,txt,fs,cfg.color));
-              }
-            }
-            else if(lyr.getLatLng){ lg.addLayer(markerLabel(lyr.getLatLng(),txt,fs,cfg.color)); }
-            else if(lyr.getBounds){ try{ lg.addLayer(markerLabel(lyr.getBounds().getCenter(),txt,fs,cfg.color)); }catch(e){} }
-          }
-        }
-      }).addTo(gg);
-      renderers.push({gg:gg,lg:lg,mzMin:cfg.mapZoomMin||1,mzMax:cfg.mapZoomMax||22,lzMin:cfg.labelZoomMin||14,lzMax:cfg.labelZoomMax||22,fs:fs,color:cfg.color,lineTexts:lineTexts});
-    }
-    function applyLineTexts(r,show){ r.lineTexts.forEach(function(o){ try{ if(o.layer.setText) o.layer.setText(show?(' '+o.text+' '):null,{center:true,offset:0,attributes:{fill:(r.color||'#111'),'font-size':r.fs+'px','font-weight':'700','stroke':contrastHalo(r.color||'#111'),'stroke-width':'3px','paint-order':'stroke','stroke-linejoin':'round'}}); }catch(e){} }); }
-    function updateAll(){
-      var z=map.getZoom();
-      renderers.forEach(function(r){
-        var gv=wantOn && z>=r.mzMin && z<=r.mzMax;
-        if(gv){ if(!map.hasLayer(r.gg)) map.addLayer(r.gg); } else if(map.hasLayer(r.gg)) map.removeLayer(r.gg);
-        var lv=gv && z>=r.lzMin && z<=r.lzMax;
-        if(lv){ if(!map.hasLayer(r.lg)) map.addLayer(r.lg); } else if(map.hasLayer(r.lg)) map.removeLayer(r.lg);
-        applyLineTexts(r,lv);
-      });
-    }
-    function load(){
-      if(loaded) return; loaded=true;
-      var u=url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now();
-      fetch(u).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(text){
-        var data=parseLiveText(text); if(!data){ loaded=false; return; }
-        var byType={line:[],point:[],polygon:[]};
-        ((data&&data.features)||[]).forEach(function(f){ var gt=geomBucket(f&&f.geometry&&f.geometry.type); if(gt) byType[gt].push(f); });
-        ['line','point','polygon'].forEach(function(gt){ if(byType[gt].length) buildType(gt,byType[gt]); });
-        updateAll();
-      }).catch(function(){ loaded=false; });
-    }
-    map.on('zoomend', updateAll);
-    if(panelContent){
-      if(!secAdded){ var sec=document.createElement('div'); sec.className='layer-section-label'; sec.style.marginTop='6px'; sec.textContent='Live data'; panelContent.appendChild(sec); secAdded=true; }
-      var rowEl=document.createElement('label'); rowEl.className='layer-toggle-row';
-      var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=wantOn;
-      var sp=document.createElement('span'); sp.textContent=name;
-      rowEl.appendChild(cb); rowEl.appendChild(sp); panelContent.appendChild(rowEl);
-      cb.addEventListener('change',function(){ wantOn=cb.checked; load(); updateAll(); });
-    }
-    if(wantOn){ map.whenReady(function(){ load(); updateAll(); }); }
-  });
-})();
-
 const labelLayers=[];
 const trackLineLayers=[];   // L.Polyline track lines only
 const trackDotLayers=[];    // start markers + km markers (belong to tracks, not waypoints)
@@ -3864,7 +3381,6 @@ var BGRADE_LABELS=['< -12%','-12..-6%','-6..-2%','flat (-2..2%)','2..6%','6..12%
 function bGradeClass(pct){ for(var i=0;i<BGRADE_STOPS.length;i++){ if(pct<BGRADE_STOPS[i]) return i; } return BGRADE_STOPS.length; }
 function bTrackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length && t.ele.some(function(x){ return x!=null && !isNaN(x); }); }
 function trackKmStr(coords){ if(!coords||coords.length<2) return ''; var d=0; for(var i=1;i<coords.length;i++) d+=haversineMeters(coords[i-1],coords[i]); return (d/1000).toFixed(1).replace('.',',')+' km'; }
-function trackMidpoint(coords){ if(!coords||coords.length<2) return coords&&coords[0]; var d=[0],total=0,i; for(i=1;i<coords.length;i++){ total+=haversineMeters(coords[i-1],coords[i]); d[i]=total; } if(total===0) return coords[0]; var half=total/2; for(i=1;i<coords.length;i++){ if(d[i]>=half){ var seg=d[i]-d[i-1], fr=seg>0?(half-d[i-1])/seg:0; return [coords[i-1][0]+(coords[i][0]-coords[i-1][0])*fr, coords[i-1][1]+(coords[i][1]-coords[i-1][1])*fr]; } } return coords[coords.length-1]; }
 // --- Download a clicked track as GPX ---
 var __bakedTracks=[];
 function __xmlEsc(x){ x=''+x; x=x.split('&').join('&amp;'); x=x.split('<').join('&lt;'); x=x.split('>').join('&gt;'); return x; }
@@ -4010,7 +3526,7 @@ D.forEach(f=>{
     if(f.colorMode==='grade' && bTrackHasEle(t)){
       __bakedGrade=true;
       const casing=L.polyline(t.coords,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
-      casing._gpxFile=f; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; trackLineLayers.push(casing); filePolys.push(casing); _grp.push(casing); if(!f._mainLine) f._mainLine=casing;
+      casing._gpxFile=f; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; trackLineLayers.push(casing); filePolys.push(casing); _grp.push(casing);
       casing.bindPopup(_popup); casing.on('click',_toFront);
       bBuildGradeRuns(t.coords,t.ele).forEach(run=>{
         const seg=L.polyline(run.coords,{color:run.color,weight:fLw,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
@@ -4020,7 +3536,7 @@ D.forEach(f=>{
     } else {
       const poly=L.polyline(t.coords,{color:f.color,weight:fLw,opacity:.9}).addTo(map);
       poly.bindPopup(_popup);
-      poly._gpxFile=f; if(!f._mainLine) f._mainLine=poly;
+      poly._gpxFile=f;
       poly._trackZoomMin=fZMin;
       poly._trackZoomMax=fZMax;
       trackLineLayers.push(poly);
@@ -4108,27 +3624,21 @@ D.forEach(f=>{
     const fs=(f.labelFontSize||24)+'px';
     const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
     const allPts=f.tracks.flatMap(t=>t.coords);
-    if(f.labelPos==='along' && f._mainLine){
-      f._mainLine._zoomMin=f.labelZoomMin; f._mainLine._zoomMax=f.labelZoomMax; f._mainLine._alongLabel=true;
-      labelLayers.push(f._mainLine);
-    } else {
-      let pos;
-      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-      else if(f.labelPos==='middle') pos=trackMidpoint(allPts);
-      else pos=labelAnchorCentroid(allPts);
-      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
-      const lbl=L.marker(pos,{
-        icon:L.divIcon({
-          className:'',
-          html:pwtLabelDiv(mainLabel, f.color, (f.labelFontSize||24), labelOffset),
-          iconAnchor:[0,0]
-        }),
-        interactive:false,zIndexOffset:200
-      }).addTo(map);
-      lbl._zoomMin=f.labelZoomMin;
-      lbl._zoomMax=f.labelZoomMax;
-      labelLayers.push(lbl);
-    }
+    let pos;
+    if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+    else pos=labelAnchorCentroid(allPts);
+    const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
+    const lbl=L.marker(pos,{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="display:inline-flex;align-items:center;gap:5px;color:'+f.color+';font-size:'+fs+';font-weight:700;white-space:nowrap;pointer-events:none;text-shadow:-'+haloW+' -'+haloW+' 0 '+h+','+haloW+' -'+haloW+' 0 '+h+',-'+haloW+' '+haloW+' 0 '+h+','+haloW+' '+haloW+' 0 '+h+',0 '+haloW+' 0 '+h+',0 -'+haloW+' 0 '+h+','+haloW+' 0 0 '+h+',-'+haloW+' 0 0 '+h+';'+labelOffset+'">'+mainLabel+'</div>',
+        iconAnchor:[0,0]
+      }),
+      interactive:false,zIndexOffset:200
+    }).addTo(map);
+    lbl._zoomMin=f.labelZoomMin;
+    lbl._zoomMax=f.labelZoomMax;
+    labelLayers.push(lbl);
   }
   // --- Polygon labels: per-polygon if each has its own name,
   //     or one combined centroid label if all share the same name ---
@@ -4227,12 +3737,12 @@ function updateLabels(){
     const visible=z>=l._zoomMin&&z<=l._zoomMax;
     if(l.setText){
       // Textpath: set/clear text based on zoom
-      if(visible && map.hasLayer(l)){
+      if(visible){
         const f=l._gpxFile;
         const h=contrastHalo(f.color);
         const mainLabel=getLabelText(f,f.tracks[0]&&f.tracks[0].name);
         l.setText(null);
-        l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':((f.labelFontSize||24)+'px'),'font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
+        l.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':'24px','font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':h,'stroke-width':'3px','stroke-linejoin':'round'}});
       } else {
         l.setText(null);
       }
@@ -4913,9 +4423,8 @@ locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('h
 locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); northHold=true; following=true; lastUserInteraction=Date.now(); if(locMode!=='off' && lastKnownLatLng){ orient(); } else { setBearingProg(0); } });
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
-function popupOpen(){ try{ return !!document.querySelector('.leaflet-popup'); }catch(e){ return false; } }
 setInterval(function(){
-  if(searchActive || routeEditing || anyPanelOpen() || popupOpen()){ lastUserInteraction=Date.now(); return; }   // don't snap back while a panel/dialog/popup is open
+  if(searchActive || routeEditing || anyPanelOpen()){ lastUserInteraction=Date.now(); return; }   // don't snap back while a panel/dialog is open
   if(sharedView) return;                                                                            // shared link: stay at the shared view
   if(FOLLOW_DELAY<=0) return;
   // Held-north view while standing still (e.g. after a double-tap, then panning to
@@ -5441,7 +4950,7 @@ map.on('zoomend',function(){
     });
     parsed.waypoints.forEach(w=>{
       allCoords.push([w.lat,w.lon]);
-      const m=L.circleMarker([w.lat,w.lon],{radius:lineWidth||8,color,fillColor:color,fillOpacity:1,weight:1}).addTo(map);
+      const m=L.circleMarker([w.lat,w.lon],{radius:lineWidth||8,color,fillColor:color,fillOpacity:.85,weight:1}).addTo(map);
       if(w.name||w.desc)m.bindPopup('<b>'+(w.name||name)+'</b>'+(w.desc?'<br>'+w.desc:''));
       lyrGroup.push(m);
     });
