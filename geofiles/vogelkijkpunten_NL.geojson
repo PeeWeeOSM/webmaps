@@ -6,7 +6,6 @@
 { "type": "Feature", "properties": { "osm_id": 1169747615, "@id": "node/1169747615", "name": "Grote Praambult" }, "geometry": { "type": "Point", "coordinates": [ 5.3959316, 52.427564999090642 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169747807, "@id": "node/1169747807", "name": "Kleine Praambult" }, "geometry": { "type": "Point", "coordinates": [ 5.4090394, 52.443498399090011 ] } },
 { "type": "Feature", "properties": { "osm_id": 1169749297, "@id": "node/1169749297", "name": "Texel - Wagejot - Vogelkijkpunt" }, "geometry": { "type": "Point", "coordinates": [ 4.89946, 53.089579999091107 ] } },
-{ "type": "Feature", "properties": { "osm_id": 1530615990, "@id": "way/1530615990", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 4.990635047740166, 51.955609956450672 ] } },
 { "type": "Feature", "properties": { "osm_id": 4938871667, "@id": "node/4938871667", "name": "Vogelboulevard Eemland" }, "geometry": { "type": "Point", "coordinates": [ 5.3238473, 52.192055299102947 ] } },
 { "type": "Feature", "properties": { "osm_id": 4938871668, "@id": "node/4938871668", "name": "Vogelboulevard Eemland" }, "geometry": { "type": "Point", "coordinates": [ 5.3230613, 52.194251999102804 ] } },
 { "type": "Feature", "properties": { "osm_id": 9809678859, "@id": "node/9809678859", "name": "Uitkijktoren Balgzandpolder" }, "geometry": { "type": "Point", "coordinates": [ 4.7964268, 52.916576399085749 ] } },
