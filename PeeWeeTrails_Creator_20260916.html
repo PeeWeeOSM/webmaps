@@ -101,7 +101,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v123</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v121</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator turns your own GPX / GeoJSON / FIT files into a single, self-contained OpenStreetMap map that you can share or put online. Everything is put together here and then "baked" into one standalone HTML file.</p>
@@ -494,7 +494,6 @@ function newLiveType(gt){
     labelPos:(gt==='line'?'along':'centroid'),
     labelZoomMin:(d.labelZoomMin!=null?d.labelZoomMin:14), labelZoomMax:(d.labelZoomMax!=null?d.labelZoomMax:22),
     labelFontSize:(d.labelFontSize||18), mapZoomMin:(d.mapZoomMin!=null?d.mapZoomMin:1), mapZoomMax:(d.mapZoomMax!=null?d.mapZoomMax:22),
-    showStart:(gt==='line'?!!d.showStart:false), showKmMarkers:(gt==='line'?!!d.showKmMarkers:false), kmMarkerInterval:(d.kmMarkerInterval||1), showTrackDist:(gt==='line'?!!d.showTrackDist:false),
     defaultOn:true};
 }
 function liveTypeBlock(i,ti,T){
@@ -528,12 +527,6 @@ function liveTypeBlock(i,ti,T){
     +'<label style="font-size:12px;color:#000">Font <input type="number" class="lt-font" data-i="'+i+'" data-t="'+ti+'" min="8" max="72" value="'+(T.labelFontSize||18)+'" style="width:44px"></label>'
     +'<label style="font-size:12px;color:#000">Visible zoom <input type="number" class="lt-mzmin" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.mapZoomMin!=null?T.mapZoomMin:1)+'" style="width:44px">&ndash;<input type="number" class="lt-mzmax" data-i="'+i+'" data-t="'+ti+'" min="1" max="22" value="'+(T.mapZoomMax!=null?T.mapZoomMax:22)+'" style="width:44px"></label>'
     +'</div>';
-  if(isLn){ h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px">'
-    +'<label style="font-size:12px;color:#000;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="lt-start" data-i="'+i+'" data-t="'+ti+'" '+(T.showStart?'checked':'')+'>start marker</label>'
-    +'<label style="font-size:12px;color:#000;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="lt-km" data-i="'+i+'" data-t="'+ti+'" '+(T.showKmMarkers?'checked':'')+'>km markers</label>'
-    +'<label style="font-size:12px;color:#000">every <input type="number" class="lt-kmint" data-i="'+i+'" data-t="'+ti+'" min="0.1" step="0.1" value="'+(T.kmMarkerInterval||1)+'" style="width:52px"> km</label>'
-    +'<label style="font-size:12px;color:#000;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" class="lt-dist" data-i="'+i+'" data-t="'+ti+'" '+(T.showTrackDist?'checked':'')+'>distance in popup</label>'
-    +'</div>'; }
   h+='</div>';
   return h;
 }
@@ -576,10 +569,6 @@ function renderLiveList(){
   el.querySelectorAll('.lt-font').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).labelFontSize=Math.max(8,Math.min(72,parseInt(e.target.value)||18)); saveLayersToStorage();}));
   el.querySelectorAll('.lt-mzmin').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).mapZoomMin=Math.max(1,Math.min(22,parseInt(e.target.value)||1)); saveLayersToStorage();}));
   el.querySelectorAll('.lt-mzmax').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).mapZoomMax=Math.max(1,Math.min(22,parseInt(e.target.value)||22)); saveLayersToStorage();}));
-  el.querySelectorAll('.lt-start').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).showStart=e.target.checked; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-km').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).showKmMarkers=e.target.checked; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-kmint').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).kmMarkerInterval=parseFloat(e.target.value)||1; saveLayersToStorage();}));
-  el.querySelectorAll('.lt-dist').forEach(x=>x.addEventListener('change',e=>{T(gi(e),gt(e)).showTrackDist=e.target.checked; saveLayersToStorage();}));
   el.querySelectorAll('.lt-icon-size').forEach(x=>x.addEventListener('input',e=>{T(gi(e),gt(e)).iconSize=parseInt(e.target.value)||28; saveLayersToStorage();}));
   el.querySelectorAll('.lt-icon-clear').forEach(x=>x.addEventListener('click',e=>{var t=T(gi(e),gt(e)); t.iconSvg=null; t.iconSvgRaw=null; renderLiveList(); saveLayersToStorage();}));
   el.querySelectorAll('.lt-icon-recolor').forEach(x=>x.addEventListener('change',e=>{var t=T(gi(e),gt(e)); t.iconRecolor=e.target.checked; if(t.iconSvgRaw) t.iconSvg=prepareSvgForRecolor(t.iconSvgRaw,e.target.checked); renderLiveList(); saveLayersToStorage();}));
@@ -2774,7 +2763,7 @@ function exportMap(){
   const trailMode='full';   // trail-length option removed: always record the whole ride
   const trailMeters=50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
-  const _liveClean=(t)=>({geomType:t.geomType,color:t.color||'#d7263d',size:t.size!=null?t.size:3,fillOpacity:t.fillOpacity!=null?t.fillOpacity:0.2,iconSvg:(t.geomType==='point'&&t.iconSvg)?t.iconSvg:null,iconSize:t.iconSize||28,labelMode:t.labelMode||'none',labelText:t.labelText||'',labelPos:t.labelPos||(t.geomType==='line'?'along':'centroid'),labelZoomMin:t.labelZoomMin!=null?t.labelZoomMin:14,labelZoomMax:t.labelZoomMax!=null?t.labelZoomMax:22,labelFontSize:t.labelFontSize||18,mapZoomMin:t.mapZoomMin!=null?t.mapZoomMin:1,mapZoomMax:t.mapZoomMax!=null?t.mapZoomMax:22,showStart:(t.geomType==='line'&&!!t.showStart),showKmMarkers:(t.geomType==='line'&&!!t.showKmMarkers),kmMarkerInterval:t.kmMarkerInterval||1,showTrackDist:(t.geomType==='line'&&!!t.showTrackDist),defaultOn:t.defaultOn!==false});
+  const _liveClean=(t)=>({geomType:t.geomType,color:t.color||'#d7263d',size:t.size!=null?t.size:3,fillOpacity:t.fillOpacity!=null?t.fillOpacity:0.2,iconSvg:(t.geomType==='point'&&t.iconSvg)?t.iconSvg:null,iconSize:t.iconSize||28,labelMode:t.labelMode||'none',labelText:t.labelText||'',labelPos:t.labelPos||(t.geomType==='line'?'along':'centroid'),labelZoomMin:t.labelZoomMin!=null?t.labelZoomMin:14,labelZoomMax:t.labelZoomMax!=null?t.labelZoomMax:22,labelFontSize:t.labelFontSize||18,mapZoomMin:t.mapZoomMin!=null?t.mapZoomMin:1,mapZoomMax:t.mapZoomMax!=null?t.mapZoomMax:22,defaultOn:t.defaultOn!==false});
   const exportLive=liveLayers.filter(l=>l.url&&l.url.trim()&&l.types&&l.types.length).map(l=>({url:l.url.trim(),name:(l.name&&l.name.trim())?l.name.trim():'Live layer',types:l.types.map(_liveClean)}));
   const liveDefaults={line:_liveClean(newLiveType('line')),point:_liveClean(newLiveType('point')),polygon:_liveClean(newLiveType('polygon'))};
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
@@ -3490,8 +3479,8 @@ function updateUrlHash(){
   params.set('lat',c.lat.toFixed(6));
   params.set('lng',c.lng.toFixed(6));
   params.set('z',map.getZoom());
-  if(wmsLayerObjs.length || liveLayerObjs.length){
-    params.set('layers',wmsLayerObjs.map(lo=>map.hasLayer(lo.layer)?'1':'0').concat(liveLayerObjs.map(lo=>lo.isOn()?'1':'0')).join(','));
+  if(wmsLayerObjs.length){
+    params.set('layers',wmsLayerObjs.map(lo=>map.hasLayer(lo.layer)?'1':'0').join(','));
   }
   history.replaceState(null,'','#'+params.toString());
 }
@@ -3571,7 +3560,6 @@ function attachAutoNativeZoom(layer){
   });
 }
 const wmsLayerObjs=new Array(EX.length);
-const liveLayerObjs=[]; // live-data layer toggles, appended after the extra layers in the ?layers= state
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
   let lyr=null;
@@ -3808,8 +3796,6 @@ function parseLiveText(text){
   LIVE_LAYERS.forEach(function(layer){
     var url=layer.url, name=layer.name||'Live layer', types=layer.types||[];
     var wantOn=types.some(function(t){ return t.defaultOn!==false; });
-    var _liveIdx=wmsLayerObjs.length+liveLayerObjs.length;   // this live layer's slot in ?layers=
-    if(urlState&&urlState.layerVis&&urlState.layerVis[_liveIdx]!=null) wantOn=urlState.layerVis[_liveIdx];
     var loaded=false, renderers=[];
     function cfgFor(gt){ var c=null; types.forEach(function(t){ if(t.geomType===gt) c=t; }); if(!c && typeof LIVE_DEFAULTS!=='undefined' && LIVE_DEFAULTS[gt]) c=LIVE_DEFAULTS[gt]; return c; }
     function buildType(gt,feats){
@@ -3824,15 +3810,7 @@ function parseLiveText(text){
         pointToLayer:function(feat,latlng){ return buildWaypointMarker({color:cfg.color,lineWidth:(cfg.size!=null?cfg.size:8),wptIconSvg:cfg.iconSvg||null,wptIconSize:cfg.iconSize||28},{lat:latlng.lat,lon:latlng.lng}); },
         onEachFeature:function(f,lyr){
           var p=(f&&f.properties)||{}; var nm=p.name||p.title||p.Name||p.NAME||''; var ds=p.desc||p.description||p.Description||''; var id=p['@id']||p.osm_id||p.id||'';
-          var _lls=null,_co=null;
-          if(gt==='line' && lyr.getLatLngs){ _lls=lyr.getLatLngs(); if(_lls&&_lls.length&&Array.isArray(_lls[0]))_lls=_lls[0]; if(_lls&&_lls.length)_co=_lls.map(function(ll){return [ll.lat,ll.lng];}); }
-          var ph=(typeof elPopup==='function')?elPopup(nm,ds,id):(nm?('<b>'+nm+'</b>'):'');
-          if(gt==='line' && cfg.showTrackDist && _co){ var _dkm=trackKmStr(_co); if(_dkm) ph=(ph?ph+'<br>':'')+'<b>'+_dkm+'</b>'; }
-          if(ph) lyr.bindPopup(ph);
-          if(gt==='line' && _lls && _lls.length){
-            if(cfg.showStart){ gg.addLayer(makeStartMarker(_lls[0],cfg.color)); }
-            if(cfg.showKmMarkers && _co){ try{ buildKmMarkers(_co, cfg.kmMarkerInterval||1).forEach(function(km){ gg.addLayer(makeKmMarker(km,cfg.color)); }); }catch(e){} }
-          }
+          var ph=(typeof elPopup==='function')?elPopup(nm,ds,id):(nm?('<b>'+nm+'</b>'):''); if(ph) lyr.bindPopup(ph);
           var txt=lblFor(cfg,f);
           if(txt){
             if(gt==='line'){
@@ -3885,9 +3863,8 @@ function parseLiveText(text){
       var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=wantOn;
       var sp=document.createElement('span'); sp.textContent=name;
       rowEl.appendChild(cb); rowEl.appendChild(sp); panelContent.appendChild(rowEl);
-      cb.addEventListener('change',function(){ wantOn=cb.checked; load(); updateAll(); updateUrlHash(); });
+      cb.addEventListener('change',function(){ wantOn=cb.checked; load(); updateAll(); });
     }
-    liveLayerObjs.push({name:name, isOn:function(){return wantOn;}, setOn:function(b){ wantOn=!!b; if(cb) cb.checked=wantOn; load(); updateAll(); }});
     if(wantOn){ map.whenReady(function(){ load(); updateAll(); }); }
   });
 })();
@@ -3931,14 +3908,6 @@ function bTrackHasEle(t){ return t && t.ele && t.ele.length===t.coords.length &&
 function trackKmStr(coords){ if(!coords||coords.length<2) return ''; var d=0; for(var i=1;i<coords.length;i++) d+=haversineMeters(coords[i-1],coords[i]); return (d/1000).toFixed(1).replace('.',',')+' km'; }
 function trackMidpoint(coords){ if(!coords||coords.length<2) return coords&&coords[0]; var d=[0],total=0,i; for(i=1;i<coords.length;i++){ total+=haversineMeters(coords[i-1],coords[i]); d[i]=total; } if(total===0) return coords[0]; var half=total/2; for(i=1;i<coords.length;i++){ if(d[i]>=half){ var seg=d[i]-d[i-1], fr=seg>0?(half-d[i-1])/seg:0; return [coords[i-1][0]+(coords[i][0]-coords[i-1][0])*fr, coords[i-1][1]+(coords[i][1]-coords[i-1][1])*fr]; } } return coords[coords.length-1]; }
 // --- Download a clicked track as GPX ---
-function makeStartMarker(latlng,color,zMin,zMax){
-  var m=L.marker(latlng,{icon:L.divIcon({className:'',html:'<div style="width:22px;height:22px;background:'+color+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)"><span style="color:#fff;font-size:11px;line-height:1;margin-left:2px">&#9654;</span></div>',iconSize:[22,22],iconAnchor:[11,11]}),interactive:false,zIndexOffset:300});
-  if(zMin!=null)m._trackZoomMin=zMin; if(zMax!=null)m._trackZoomMax=zMax; return m;
-}
-function makeKmMarker(km,color,zMin,zMax){
-  var m=L.marker(km.position,{icon:L.divIcon({className:'',html:'<svg width="26" height="26" viewBox="0 0 26 26" data-deg="'+km.bearing+'" style="transform:rotate('+(km.bearing+map.getBearing())+'deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))"><polygon points="13,2 19,22 13,17 7,22" fill="'+color+'" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>',iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:180});
-  m.bindPopup('<b>'+km.km+' km</b>'); if(zMin!=null)m._trackZoomMin=zMin; if(zMax!=null)m._trackZoomMax=zMax; return m;
-}
 var __bakedTracks=[];
 function __xmlEsc(x){ x=''+x; x=x.split('&').join('&amp;'); x=x.split('<').join('&lt;'); x=x.split('>').join('&gt;'); return x; }
 function trackToGpx(name, coords, ele){
@@ -4106,7 +4075,16 @@ D.forEach(f=>{
   // --- Start marker (belongs to tracks, not waypoints) ---
   if(f.showStart&&f.tracks.length&&f.tracks[0].coords.length){
     const sp=f.tracks[0].coords[0];
-    const startM=makeStartMarker(sp,f.color,fZMin,fZMax).addTo(map);
+    const startM=L.marker(sp,{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:22px;height:22px;background:'+f.color+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4)"><span style="color:#fff;font-size:11px;line-height:1;margin-left:2px">&#9654;</span></div>',
+        iconSize:[22,22],iconAnchor:[11,11]
+      }),
+      interactive:false,zIndexOffset:300
+    }).addTo(map);
+    startM._trackZoomMin=fZMin;
+    startM._trackZoomMax=fZMax;
     trackDotLayers.push(startM);  // track group, NOT waypoints
   }
 
@@ -4115,7 +4093,17 @@ D.forEach(f=>{
     const allTrackCoords=f.tracks.flatMap(t=>t.coords);
     const kmMarkers=buildKmMarkers(allTrackCoords, f.kmMarkerInterval);
     kmMarkers.forEach(km=>{
-      const kmM=makeKmMarker(km,f.color,fZMin,fZMax).addTo(map);
+      const kmM=L.marker(km.position,{
+        icon:L.divIcon({
+          className:'',
+          html:'<svg width="26" height="26" viewBox="0 0 26 26" data-deg="'+km.bearing+'" style="transform:rotate('+(km.bearing+map.getBearing())+'deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))"><polygon points="13,2 19,22 13,17 7,22" fill="'+f.color+'" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+          iconSize:[26,26],iconAnchor:[13,13]
+        }),
+        zIndexOffset:180
+      }).addTo(map);
+      kmM.bindPopup('<b>'+km.km+' km</b>');
+      kmM._trackZoomMin=fZMin;
+      kmM._trackZoomMax=fZMax;
       trackDotLayers.push(kmM);  // track group, NOT waypoints
     });
   }
@@ -6527,8 +6515,8 @@ map.on('zoomend',function(){
       // Carry the currently-ticked extra layers along, so opening the shared link
       // reopens the map with exactly the same overlays switched on. Same encoding
       // that parseStateFromHash() reads back (one 1/0 per layer, in list order).
-      if(wmsLayerObjs.length || liveLayerObjs.length){
-        url+='&layers='+wmsLayerObjs.map(lo=>lo&&lo.layer&&map.hasLayer(lo.layer)?'1':'0').concat(liveLayerObjs.map(lo=>lo.isOn()?'1':'0')).join(',');
+      if(wmsLayerObjs.length){
+        url+='&layers='+wmsLayerObjs.map(lo=>lo&&lo.layer&&map.hasLayer(lo.layer)?'1':'0').join(',');
       }
       return url;
     }
