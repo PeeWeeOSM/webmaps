@@ -37,6 +37,8 @@ h1{font-size:20px;font-weight:600;margin-bottom:4px}
 .intro p{margin:0 0 .6rem}
 .intro p:last-child{margin-bottom:0}
 .intro b{font-weight:600}
+.intro ol{margin:.2rem 0 .6rem;padding-left:1.6em}
+.intro li{margin:.15rem 0}
 .dropzone{border:2px dashed #bbb;border-radius:8px;padding:2.5rem 1rem;text-align:center;cursor:pointer;transition:background 0.15s;color:#000;font-size:14px}
 .dropzone:hover,.dropzone.over{background:#e8f4ff;border-color:#4363d8}
 .dropzone i{font-size:32px;display:block;margin-bottom:10px;color:#bbb}
@@ -101,10 +103,18 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v124</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v125</span></h1>
 
 <div class="intro">
-  <p><b>What this is.</b> The PeeWeeTrails Creator turns your own GPX / GeoJSON / FIT files into a single, self-contained OpenStreetMap map that you can share or put online. Everything is put together here and then "baked" into one standalone HTML file.</p>
+  <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
+    GPX / GeoJSON / FIT files , WMS/WMTS layers into a single, self-contained OpenStreetMap map that you can share or put online. Everything is put together here and then "baked" into 
+    one standalone HTML file. Here are some examples</p>
+    <ol>
+    <li><a href="https://peeweeosm.github.io/webmaps/PeeWeeTrails_NL#lat=52.376574&lng=4.897201&z=19&layers=1%2C0%2C0%2C0%2C0%2C0%2C1%2C0%2C0%2C1%2C0%2C0%2C0%2C0%2C0%2C0%2C0%2C1" target = "_blank">Map with many layers of open data Netherlands</a></li>  
+    <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic target = "_blank">Clean map for navigating</a></li>
+    <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Bird target = "_blank">Birding locations Netherlands</a></li>
+    <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Toerfietsers.html target = "_blank">Cycle trips Germany</a></li>
+    </ol>
   <p><b>How to use it.</b> Work your way down the page from top to bottom. Change a setting &mdash; or just leave it as it is &mdash; and watch the live Preview update as you go. Trying things out is completely safe: nothing is stored or deleted while you experiment, so go by trial and error.</p>
   <p><b>Your tracks &amp; shapes.</b> Add files under &ldquo;Files&rdquo; and, if you like, give them a style (colour, line width, labels, gradient colouring, km-markers). That styling is baked into the map &mdash; but if you&rsquo;d rather keep it plain, simply leave the defaults; you don&rsquo;t have to change anything.</p>
   <p><b>Bake your map.</b> When you&rsquo;re happy, click &ldquo;Create your map&rdquo; at the bottom to save one standalone .html file. Placed on a web address with https (for example GitHub Pages), that exported map can also show your current location, so you can use it to navigate. Opened straight from your device it still works as a map, only without the live location.</p>
@@ -3660,10 +3670,12 @@ function parseStateFromHash(){
   const lng=parseFloat(params.get('lng'));
   const z=parseInt(params.get('z'));
   const layersParam=params.get('layers');
+  const orderParam=params.get('order');
   const markerParam=params.get('marker');
   const out={};
   if(!isNaN(lat)&&!isNaN(lng)&&!isNaN(z)){ out.lat=lat; out.lng=lng; out.z=z; }
   if(layersParam!=null){ out.layerVis=layersParam.split(',').map(v=>v==='1'); }
+  if(orderParam!=null){ out.layerOrder=orderParam.split(',').map(x=>parseInt(x,10)).filter(x=>!isNaN(x)); }
   if(markerParam!=null){
     const parts=markerParam.split(',').map(parseFloat);
     if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])) out.marker=[parts[0],parts[1]];
@@ -3680,6 +3692,7 @@ function updateUrlHash(){
   if(wmsLayerObjs.length || liveLayerObjs.length){
     params.set('layers',wmsLayerObjs.map(lo=>map.hasLayer(lo.layer)?'1':'0').concat(liveLayerObjs.map(lo=>lo.isOn()?'1':'0')).join(','));
   }
+  if(extraOrder.length>1){ params.set('order',extraOrder.join(',')); }
   history.replaceState(null,'','#'+params.toString());
 }
 
@@ -3759,6 +3772,8 @@ function attachAutoNativeZoom(layer){
 }
 const wmsLayerObjs=new Array(EX.length);
 const liveLayerObjs=[]; // live-data layer toggles, appended after the extra layers in the ?layers= state
+var extraOrder=[]; // stacking order (bottom->top) of the enabled extra tile layers, carried in ?order=
+function reapplyExtraOrder(){ extraOrder.forEach(function(idx,pos){ var lo=wmsLayerObjs[idx]; if(lo&&lo.layer&&lo.layer.setZIndex){ try{ lo.layer.setZIndex(100+pos); }catch(e){} } }); }
 [...EX].reverse().forEach((el,ri)=>{
   const i=EX.length-1-ri;
   let lyr=null;
@@ -3776,6 +3791,16 @@ const liveLayerObjs=[]; // live-data layer toggles, appended after the extra lay
   }catch(e){}
   wmsLayerObjs[i]={layer:lyr,name:el.displayName||('Layer '+(i+1)),visible:true};
 });
+// Stacking order of the enabled extra layers: a shared link may carry ?order= (bottom->top);
+// otherwise fall back to the order the layers were added (list order).
+extraOrder=[];
+wmsLayerObjs.forEach(function(lo,i){ if(lo&&lo.layer&&map.hasLayer(lo.layer)) extraOrder.push(i); });
+if(urlState&&urlState.layerOrder){
+  var _ord=urlState.layerOrder.filter(function(i){ return wmsLayerObjs[i]&&wmsLayerObjs[i].layer&&map.hasLayer(wmsLayerObjs[i].layer); });
+  wmsLayerObjs.forEach(function(lo,i){ if(lo&&lo.layer&&map.hasLayer(lo.layer)&&_ord.indexOf(i)<0) _ord.push(i); });
+  extraOrder=_ord;
+}
+reapplyExtraOrder();
 
 // Layers panel top-right: always show (opacity sliders for all layers + OSM base)
 {
@@ -3827,7 +3852,8 @@ const liveLayerObjs=[]; // live-data layer toggles, appended after the extra lay
         const i=parseInt(e.target.dataset.idx);
         const lo=wmsLayerObjs[i];
         if(!lo.layer)return;
-        if(e.target.checked){map.addLayer(lo.layer);}else{map.removeLayer(lo.layer);}
+        if(e.target.checked){ map.addLayer(lo.layer); extraOrder=extraOrder.filter(x=>x!==i); extraOrder.push(i); reapplyExtraOrder(); }
+        else{ map.removeLayer(lo.layer); extraOrder=extraOrder.filter(x=>x!==i); }
         updateUrlHash();
         saveLayerState();
       });
@@ -6717,6 +6743,7 @@ map.on('zoomend',function(){
       if(wmsLayerObjs.length || liveLayerObjs.length){
         url+='&layers='+wmsLayerObjs.map(lo=>lo&&lo.layer&&map.hasLayer(lo.layer)?'1':'0').concat(liveLayerObjs.map(lo=>lo.isOn()?'1':'0')).join(',');
       }
+      if(extraOrder.length>1){ url+='&order='+extraOrder.join(','); }
       return url;
     }
 
