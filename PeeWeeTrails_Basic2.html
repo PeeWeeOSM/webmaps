@@ -708,7 +708,7 @@ const GRADE_CONFIG={"baseline":90,"minSeg":60};
 const START_LOCMODE="north";
 const WELCOME_CONFIG={"enabled":true,"text":"Tip: add this map to your phone's home screen for quick, app-like access. Open your browser menu and choose \"Add to Home screen\" (Android) or Share → \"Add to Home Screen\" (iPhone). On a computer you can bookmark this page instead. This map needs an internet connection."};
 const SEARCH_CATS=[{"icon":"🅿️","label":"Parking","terms":["parking","car park"]},{"icon":"🪑","label":"Bench","terms":["bench","picnic site","picnic table"]},{"icon":"🚿","label":"Drinking water","terms":["drinking water"]},{"icon":"🚽","label":"Toilets","terms":["toilets"]},{"icon":"🍱","label":"Picnic site","terms":["picnic site","picnic table"]},{"icon":"🏕","label":"Shelter","terms":["shelter"]},{"icon":"👀","label":"Viewpoint","terms":["viewpoint"]},{"icon":"⛺","label":"Camp site","terms":["camp site"]},{"icon":"🚲","label":"Bicycle shop","terms":["bicycle shop"]},{"icon":"🥐","label":"Bakery","terms":["bakery"]},{"icon":"☕","label":"Café","terms":["cafe"]},{"icon":"🍺","label":"Pub","terms":["pub"]},{"icon":"🍽","label":"Restaurant","terms":["restaurant"]},{"icon":"🛒","label":"Supermarket","terms":["supermarket"]}];
-const PREVIEW_VIEW={"lat":52.16092185094205,"lng":5.361322760581971,"zoom":17};
+const PREVIEW_VIEW={"lat":52.15574186200669,"lng":5.388343334197999,"zoom":15};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Remember which extra layers are ticked, across a browser reload / tab discard.
 const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
@@ -2011,7 +2011,10 @@ function recenterOnLocation(ll){
   programmaticMove=false;
 }
 function orient(){
-  if(locMode==='compass') return;   // bearing is driven by the device compass
+  if(locMode==='compass'){   // bearing is driven by the device compass; here we only keep the user centred
+    if(following && lastKnownLatLng){ programmaticMove=true; map.setView(lastKnownLatLng, map.getZoom(), {animate:false}); programmaticMove=false; }
+    return;
+  }
   if(locMode==='off'){ if(following) setBearingProg(0); return; }
   if(!following || !lastKnownLatLng) return;
   const zoom=RECENTER_ZOOM;
@@ -2153,7 +2156,7 @@ function _onDeviceOrient(e){
 }
 function _compassTick(){
   if(!compassOn){ compassRAF=null; return; }
-  if(compassHeading!=null && locMode==='compass' && following){
+  if(compassHeading!=null && locMode==='compass'){   // rotate always, independent of centring/following
     var target=((-compassHeading)%360+360)%360;
     var cur=map.getBearing();
     var d=angleDeltaDeg(cur, target);
@@ -2191,7 +2194,7 @@ function setLocMode(m){
   else { locBtn.classList.add('tracking'); startGPS(); orient(); requestWakeLock(); }
 }
 locBtn.onclick=function(e){ e.stopPropagation(); compassMenu.classList.toggle('hidden'); };
-locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); northHold=true; following=true; lastUserInteraction=Date.now(); if(locMode!=='off' && lastKnownLatLng){ orient(); } else { setBearingProg(0); } });
+locBtn.addEventListener('dblclick',function(e){ e.preventDefault(); e.stopPropagation(); compassMenu.classList.add('hidden'); if(locMode==='compass'){ setLocMode('north'); return; } northHold=true; following=true; lastUserInteraction=Date.now(); if(locMode!=='off' && lastKnownLatLng){ orient(); } else { setBearingProg(0); } });
 document.addEventListener('click',function(e){ if(!document.getElementById('loc-overlay').contains(e.target)) compassMenu.classList.add('hidden'); });
 document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.addEventListener('click',function(ev){ ev.stopPropagation(); setLocMode(el.dataset.mode); }); });
 function popupOpen(){ try{ return !!document.querySelector('.leaflet-popup'); }catch(e){ return false; } }
