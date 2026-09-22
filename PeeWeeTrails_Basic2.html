@@ -708,7 +708,7 @@ const GRADE_CONFIG={"baseline":90,"minSeg":60};
 const START_LOCMODE="north";
 const WELCOME_CONFIG={"enabled":true,"text":"Tip: add this map to your phone's home screen for quick, app-like access. Open your browser menu and choose \"Add to Home screen\" (Android) or Share → \"Add to Home Screen\" (iPhone). On a computer you can bookmark this page instead. This map needs an internet connection."};
 const SEARCH_CATS=[{"icon":"🅿️","label":"Parking","terms":["parking","car park"]},{"icon":"🪑","label":"Bench","terms":["bench","picnic site","picnic table"]},{"icon":"🚿","label":"Drinking water","terms":["drinking water"]},{"icon":"🚽","label":"Toilets","terms":["toilets"]},{"icon":"🍱","label":"Picnic site","terms":["picnic site","picnic table"]},{"icon":"🏕","label":"Shelter","terms":["shelter"]},{"icon":"👀","label":"Viewpoint","terms":["viewpoint"]},{"icon":"⛺","label":"Camp site","terms":["camp site"]},{"icon":"🚲","label":"Bicycle shop","terms":["bicycle shop"]},{"icon":"🥐","label":"Bakery","terms":["bakery"]},{"icon":"☕","label":"Café","terms":["cafe"]},{"icon":"🍺","label":"Pub","terms":["pub"]},{"icon":"🍽","label":"Restaurant","terms":["restaurant"]},{"icon":"🛒","label":"Supermarket","terms":["supermarket"]}];
-const PREVIEW_VIEW={"lat":52.17182615932842,"lng":5.395337194204331,"zoom":19};
+const PREVIEW_VIEW={"lat":52.16092185094205,"lng":5.361322760581971,"zoom":17};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Remember which extra layers are ticked, across a browser reload / tab discard.
 const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
@@ -2138,13 +2138,18 @@ function startGPS(){
 
 // --- Compass modes menu + auto-return timer ---
 const compassMenu=document.getElementById('compass-menu');
-var compassOn=false, compassHeading=null, compassRAF=null;
+var compassOn=false, compassHeading=null, compassRAF=null, _haveAbsolute=false;
 function _onDeviceOrient(e){
+  var absolute=(e.absolute===true) || (e.type==='deviceorientationabsolute');
+  if(absolute) _haveAbsolute=true;
+  if(_haveAbsolute && !absolute) return;   // once an absolute source exists, ignore the (often relative) plain events
   var h=null;
   if(typeof e.webkitCompassHeading==='number' && !isNaN(e.webkitCompassHeading)){ h=e.webkitCompassHeading; }
   else if(typeof e.alpha==='number' && !isNaN(e.alpha)){ h=(360-e.alpha)%360; }
   if(h==null || isNaN(h)) return;
-  compassHeading=h;
+  // Low-pass the raw heading to damp sensor noise (stops the jitter when standing still).
+  if(compassHeading==null){ compassHeading=h; }
+  else { var dd=angleDeltaDeg(compassHeading, h); compassHeading=((compassHeading + dd*0.25)%360+360)%360; }
 }
 function _compassTick(){
   if(!compassOn){ compassRAF=null; return; }
@@ -2152,21 +2157,21 @@ function _compassTick(){
     var target=((-compassHeading)%360+360)%360;
     var cur=map.getBearing();
     var d=angleDeltaDeg(cur, target);
-    if(Math.abs(d)>0.4){ setBearingProg(cur + d*0.15); }   // ease ~15%/frame -> smooth turn
+    if(Math.abs(d)>1.5){ setBearingProg(cur + d*0.14); }   // dead-zone + gentle ease -> smooth, no jitter
   }
   compassRAF=requestAnimationFrame(_compassTick);
 }
 function startCompass(){
-  if(compassOn) return; compassOn=true; compassHeading=null;
+  if(compassOn) return; compassOn=true; compassHeading=null; _haveAbsolute=false;
   function add(){
     window.addEventListener('deviceorientationabsolute', _onDeviceOrient, true);
     window.addEventListener('deviceorientation', _onDeviceOrient, true);
     if(compassRAF==null) compassRAF=requestAnimationFrame(_compassTick);
-    setTimeout(function(){ if(compassOn && compassHeading==null) showToast('No compass detected on this device.'); }, 2500);
+    setTimeout(function(){ if(compassOn && compassHeading==null){ showToast('No compass signal — this device or browser may not provide it (or blocks motion sensors). The map stays north up.', 6000); setLocMode('north'); } }, 2500);
   }
   try{
     if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
-      DeviceOrientationEvent.requestPermission().then(function(st){ if(st==='granted'){ add(); } else { compassOn=false; showToast('Compass access denied'); setLocMode('north'); } }).catch(function(){ add(); });
+      DeviceOrientationEvent.requestPermission().then(function(st){ if(st==='granted'){ add(); } else { compassOn=false; showToast('The browser blocked the compass sensor, so the map stays north up. Some browsers (e.g. Brave) block motion sensors by default — turn Shields off for this page, or allow motion sensors in the browser settings, then try again.', 7000); setLocMode('north'); } }).catch(function(){ add(); });
     } else { add(); }
   }catch(e){ add(); }
 }
