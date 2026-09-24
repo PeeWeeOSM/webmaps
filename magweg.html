@@ -2738,6 +2738,7 @@ map.on('zoomend',function(){
       const popupName=t.name||name;
       poly.bindPopup('<b>'+popupName+'</b>');
       poly._isLine=true;
+      poly.on('click', function(){ try{ selectTrackGroup([poly]); }catch(e){} });
       lyrGroup.push(poly);
     });
     (parsed.polygons||[]).forEach(p=>{
