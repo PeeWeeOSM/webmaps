@@ -55,7 +55,7 @@
 { "type": "Feature", "properties": { "@id": "node/1163267956", "name": "35" }, "geometry": { "type": "Point", "coordinates": [ 5.3763861, 52.084237399110599 ] } },
 { "type": "Feature", "properties": { "@id": "node/45183946", "name": "T" }, "geometry": { "type": "Point", "coordinates": [ 5.3897274, 52.086475199110446 ] } },
 { "type": "Feature", "properties": { "@id": "node/1727242454", "name": "75" }, "geometry": { "type": "Point", "coordinates": [ 5.3368698, 52.055517999112865 ] } },
-{ "type": "Feature", "properties": { "@id": "node/472409627", "name": "T" }, "geometry": { "type": "Point", "coordinates": [ 5.3209501, 52.073390899111459 ] } },
+{ "type": "Feature", "properties": { "@id": "node/472409627", "name": "32" }, "geometry": { "type": "Point", "coordinates": [ 5.3209501, 52.073390899111459 ] } },
 { "type": "Feature", "properties": { "@id": "node/855705868", "name": "73" }, "geometry": { "type": "Point", "coordinates": [ 5.3414156, 52.057400199112706 ] } },
 { "type": "Feature", "properties": { "@id": "node/1727242430", "name": "76" }, "geometry": { "type": "Point", "coordinates": [ 5.3339306, 52.053716799113012 ] } },
 { "type": "Feature", "properties": { "@id": "node/110305742", "name": "T" }, "geometry": { "type": "Point", "coordinates": [ 5.3306587, 52.087772299110334 ] } },
