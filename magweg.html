@@ -1058,7 +1058,10 @@ function parseLiveText(text){
       fetch(u).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(text){
         var data=parseLiveText(text); if(!data){ loaded=false; return; }
         var byType={line:[],point:[],polygon:[]};
-        ((data&&data.features)||[]).forEach(function(f){ var gt=geomBucket(f&&f.geometry&&f.geometry.type); if(gt==='line'){ try{ pwtSimplifyLiveFeature(f); }catch(e){} } if(gt) byType[gt].push(f); });
+        var _lineFeats=[], _totalLinePts=0;
+        ((data&&data.features)||[]).forEach(function(f){ var gt=geomBucket(f&&f.geometry&&f.geometry.type); if(gt==='line'){ _lineFeats.push(f); _totalLinePts+=pwtCountLinePts(f); } if(gt) byType[gt].push(f); });
+        var _simpTol=pwtAdaptiveTol(_totalLinePts);
+        if(_simpTol>0){ _lineFeats.forEach(function(f){ try{ pwtSimplifyLiveFeature(f,_simpTol); }catch(e){} }); }
         ['line','point','polygon'].forEach(function(gt){ if(byType[gt].length) buildType(gt,byType[gt]); });
         updateAll();
       }).catch(function(){ loaded=false; });
@@ -1174,9 +1177,16 @@ function pwtSimplifyGeoLine(coords, tolM){
     if(maxd>tol2){ keep[idx]=1; stack.push([a,idx]); stack.push([idx,b]); } }
   var oc=[]; for(var i=0;i<n;i++){ if(keep[i]) oc.push(coords[i]); } return oc;
 }
-function pwtSimplifyLiveFeature(f){ var g=f&&f.geometry; if(!g) return;
-  if(g.type==='LineString'){ g.coordinates=pwtSimplifyGeoLine(g.coordinates,5); }
-  else if(g.type==='MultiLineString'){ g.coordinates=(g.coordinates||[]).map(function(c){ return pwtSimplifyGeoLine(c,5); }); }
+function pwtCountLinePts(f){ var g=f&&f.geometry; if(!g) return 0; if(g.type==='LineString') return (g.coordinates||[]).length; if(g.type==='MultiLineString') return (g.coordinates||[]).reduce(function(a,c){return a+(c?c.length:0);},0); return 0; }
+function pwtAdaptiveTol(N){ // metres; scales the Douglas-Peucker tolerance with the total number of line points
+  if(N<=2000) return 0;              // small data: keep every point
+  if(N>=100000) return 15;           // very large: strongest
+  var f=(Math.log(N)-Math.log(2000))/(Math.log(100000)-Math.log(2000)); // log ramp 2m..15m
+  return 2 + 13*f;
+}
+function pwtSimplifyLiveFeature(f, tol){ var g=f&&f.geometry; if(!g||!(tol>0)) return;
+  if(g.type==='LineString'){ g.coordinates=pwtSimplifyGeoLine(g.coordinates,tol); }
+  else if(g.type==='MultiLineString'){ g.coordinates=(g.coordinates||[]).map(function(c){ return pwtSimplifyGeoLine(c,tol); }); }
 }
 function pwtElHav(a,b){ var R=6371000,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180; var dLa=(b[0]-a[0])*Math.PI/180,dLo=(b[1]-a[1])*Math.PI/180; var x=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)*Math.sin(dLo/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
 function pwtElevStats(coords, ele){ if(!ele||!coords||ele.length<2) return null; var asc=0,desc=0,mn=Infinity,mx=-Infinity,have=false,ref=null,TH=3,i,e; for(i=0;i<ele.length;i++){ e=ele[i]; if(e==null||isNaN(e)) continue; have=true; if(e<mn)mn=e; if(e>mx)mx=e; if(ref===null){ ref=e; continue; } var d=e-ref; if(d>TH){ asc+=d; ref=e; } else if(d<-TH){ desc+=-d; ref=e; } } if(!have) return null; var dist=0; for(i=0;i+1<coords.length;i++) dist+=pwtElHav(coords[i],coords[i+1]); return {ascent:Math.round(asc),descent:Math.round(desc),min:Math.round(mn),max:Math.round(mx),dist:dist}; }
