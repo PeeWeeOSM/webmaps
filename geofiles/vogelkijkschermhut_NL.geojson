@@ -624,6 +624,8 @@
 { "type": "Feature", "properties": { "osm_id": 14091541331, "@id": "node/14091541331", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 5.1958367, 52.337253799094611 ] } },
 { "type": "Feature", "properties": { "osm_id": 14099811172, "@id": "node/14099811172", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 5.637597, 51.230896899211466 ] } },
 { "type": "Feature", "properties": { "osm_id": 14178740933, "@id": "node/14178740933", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 6.7463447, 52.031062299114851 ] } },
-{ "type": "Feature", "properties": { "osm_id": 14178798713, "@id": "node/14178798713", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 6.7572946, 52.028097099115094 ] } }
+{ "type": "Feature", "properties": { "osm_id": 14178798713, "@id": "node/14178798713", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 6.7572946, 52.028097099115094 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14212068308, "@id": "node/14212068308", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 3.9862493, 51.291808899202117 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14212213766, "@id": "node/14212213766", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 3.9973947, 51.283644499203362 ] } }
 ]
 }
