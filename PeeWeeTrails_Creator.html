@@ -105,7 +105,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v149</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v153</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
@@ -3108,7 +3108,7 @@ function exportMap(){
     }
   }catch(e){}
 
-  const CREATOR_VERSION='v149';
+  const CREATOR_VERSION='v153';
   const html=`<!DOCTYPE html>
 <!--
   PeeWeeTrails — a browser-based Leaflet mapping tool.
@@ -4710,6 +4710,7 @@ let followCheckInterval=null;
 let programmaticMove=false;
 let wakeLock=null;        // Screen Wake Lock sentinel while navigating
 let lastGpsHintAt=0;      // throttle for the "weak signal" hint (ms timestamp)
+let _accuracyHinted=false, _bestAcc=Infinity, _gpsStartAt=0; // one-time approximate-location hint + accuracy tracking
 // --- Rotation / orientation state (compass modes) ---
 let locMode='off';
 let following=true;
@@ -5233,12 +5234,23 @@ function orient(){
 function startGPS(){
   if(wid!==null) return;
   if(!navigator.geolocation){alert('GPS is not available in this browser.');return;}
+  _bestAcc=Infinity; _gpsStartAt=Date.now(); _accuracyHinted=false;   // fresh accuracy evaluation each time tracking starts
+  setTimeout(function(){
+    // After giving the GPS ~12 s to sharpen: if the best accuracy so far is still poor, warn once.
+    if(wid!==null && !_accuracyHinted && _bestAcc!==Infinity && _bestAcc>120){
+      _accuracyHinted=true;
+      showToast('Your location stays approximate (best accuracy about '+Math.round(_bestAcc)+' m). For a precise position, allow precise / exact location for your browser (on Android this is a separate toggle) and use it outdoors with a clear GPS signal.', 8000);
+    }
+  }, 12500);
 
   wid=navigator.geolocation.watchPosition(function(p){
     var _alt=p.coords.altitude;
     const ll=[p.coords.latitude,p.coords.longitude,Date.now()];
     if(_alt!=null && !isNaN(_alt)) locAltByTime[ll[2]]=_alt;
     lastKnownLatLng=ll;
+    // Warn once when the location stays coarse: give the GPS ~12 s to sharpen first, then if the
+    // best accuracy so far is still poor (>120 m) it's likely precise/exact location off, or Wi-Fi/IP only.
+    if(p.coords && p.coords.accuracy!=null && p.coords.accuracy<_bestAcc) _bestAcc=p.coords.accuracy;
     locHistory.push(ll);
     locHistory=trimTrail(locHistory);
 
@@ -5304,6 +5316,15 @@ function startGPS(){
     //    tree cover, a slow first fix). Keep the watch alive so a later fix
     //    recovers on its own; show a discreet, throttled hint instead of
     //    killing navigation with a blocking alert mid-ride.
+    if(location.protocol!=='http:' && location.protocol!=='https:' && locMode!=='compass'){
+      // Opened as a local file (file://, or content:// on Android): browsers block geolocation for
+      // non-web pages, so a "permission denied" hint would be misleading — explain the real cause.
+      stopLoc(); locBtn.classList.remove('tracking');
+      locMode='off'; following=false; setBearingProg(0);
+      document.querySelectorAll('#compass-menu .cm-item').forEach(function(el){ el.classList.toggle('active', el.dataset.mode==='off'); });
+      showToast('This map is opened as a local file, so your location is not available here. It only works when the map is opened from a web address (https, or http://localhost).',6500);
+      return;
+    }
     if(e && e.code===1){
       if(locMode==='compass'){
         // Compass rotation needs no GPS \u2014 keep it running, just without a position dot.
