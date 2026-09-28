@@ -105,7 +105,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v147</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v149</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
@@ -1038,7 +1038,7 @@ function buildProject(){
 }
 function saveProject(){
   try{
-    var blob=new Blob([JSON.stringify(buildProject())],{type:'application/json'});
+    var blob=new Blob([JSON.stringify(buildProject(), function(k,v){ if(v && typeof v==='object' && typeof L!=='undefined' && L.Layer && (v instanceof L.Layer)) return undefined; return v; })],{type:'application/json'});
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
     var t=(_pv('title')||'project').replace(/[^a-zA-Z0-9_\- ]/g,'').trim()||'project';
@@ -2399,6 +2399,7 @@ function nearestPointOnLine(point, lineCoords){
 
 // Label anchor for "centroid": compute the geometric center, then project it
 // back onto the track itself so the label is guaranteed to sit on the line.
+function trackMidpoint(coords){ if(!coords||coords.length<2) return coords&&coords[0]; var d=[0],total=0,i; for(i=1;i<coords.length;i++){ total+=haversineMeters(coords[i-1],coords[i]); d[i]=total; } if(total===0) return coords[0]; var half=total/2; for(i=1;i<coords.length;i++){ if(d[i]>=half){ var seg=d[i]-d[i-1], fr=seg>0?(half-d[i-1])/seg:0; return [coords[i-1][0]+(coords[i][0]-coords[i-1][0])*fr, coords[i-1][1]+(coords[i][1]-coords[i-1][1])*fr]; } } return coords[coords.length-1]; }
 function labelAnchorCentroid(trackCoords){
   const c=centroid(trackCoords);
   return nearestPointOnLine(c, trackCoords);
@@ -2760,11 +2761,12 @@ function updatePreview(){
     const fLw=f.lineWidth!=null?f.lineWidth:3;
     const fZMin=f.mapZoomMin!=null?f.mapZoomMin:1;
     const fZMax=f.mapZoomMax!=null?f.mapZoomMax:MAX_ZOOM;
+    f._prevLine=null;
     f.tracks.forEach(t=>{
       const _s=simplifyTrack(t.coords,t.ele,simplifyTol,(f.colorMode==='grade'&&cTrackHasEle(t))), tc=_s.coords, te=_s.ele;
       if(f.colorMode==='grade' && cTrackHasEle(t)){
         const casing=L.polyline(tc,{color:'#ffffff',weight:fLw+4,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
-        casing._gpxFile=f; casing._gpxTrack=true; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; layers.push(casing);
+        casing._gpxFile=f; casing._gpxTrack=true; casing._trackZoomMin=fZMin; casing._trackZoomMax=fZMax; if(!f._prevLine) f._prevLine=casing; layers.push(casing);
         cBuildGradeRuns(tc,te).forEach(run=>{
           const seg=L.polyline(run.coords,{color:run.color,weight:fLw,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(map);
           seg._gpxFile=f; seg._gpxTrack=true; seg._trackZoomMin=fZMin; seg._trackZoomMax=fZMax; layers.push(seg);
@@ -2773,7 +2775,7 @@ function updatePreview(){
       } else {
         var _pds=pwtDash(f.lineStyle, fLw); const poly=L.polyline(tc,{color:f.color,weight:fLw,opacity:.9,dashArray:_pds.dashArray,dashOffset:_pds.dashOffset,lineCap:_pds.lineCap}).addTo(map);
         poly.bindPopup('<b>'+getLabelText(f,t.name)+'</b>'+osmLink(t.osmId)+(t.name?'<br>'+t.name:''));
-        poly._gpxFile=f;
+        poly._gpxFile=f; if(!f._prevLine) f._prevLine=poly;
         poly._gpxTrack=true; // separate flag for map-zoom visibility of the track itself (independent of label zoom)
         poly._trackZoomMin=fZMin;
         poly._trackZoomMax=fZMax;
@@ -2853,12 +2855,17 @@ function updatePreview(){
       }
       const mainLabel=getLabelText(f,f.tracks[0].name)+kmSuffix;
       const allPts=f.tracks.flatMap(t=>t.coords);
-      let pos;
-      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
-      else pos=labelAnchorCentroid(allPts);
-      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
       const fs=(f.labelFontSize||24)+'px';
       const haloW=Math.max(2,Math.round((f.labelFontSize||24)*0.13))+'px';
+      if(f.labelPos==='along' && f._prevLine && f._prevLine.setText){
+        f._prevLine.setText(null);
+        f._prevLine.setText(mainLabel,{center:true,repeat:false,attributes:{'font-size':fs,'font-weight':'bold','fill':f.color,'paint-order':'stroke','stroke':halo,'stroke-width':'3px','stroke-linejoin':'round'}});
+      } else {
+      let pos;
+      if(f.labelPos==='start') pos=f.tracks[0].coords[0];
+      else if(f.labelPos==='middle') pos=trackMidpoint(allPts);
+      else pos=labelAnchorCentroid(allPts);
+      const labelOffset=(f.labelPos==='start'&&f.showStart)?'transform:translate(-50%,calc(-50% - 18px))':'transform:translate(-50%,-50%)';
       const label=L.marker(pos,{
         icon:L.divIcon({
           className:'',
@@ -2872,6 +2879,7 @@ function updatePreview(){
       label._zoomMin=f.labelZoomMin;
       label._zoomMax=f.labelZoomMax;
       layers.push(label);
+      }
     }
     // Render polygons as filled areas.
     // Plain Polygon: single L.polygon, label at centroid (if name set).
@@ -3100,6 +3108,7 @@ function exportMap(){
     }
   }catch(e){}
 
+  const CREATOR_VERSION='v149';
   const html=`<!DOCTYPE html>
 <!--
   PeeWeeTrails — a browser-based Leaflet mapping tool.
@@ -3126,6 +3135,7 @@ function exportMap(){
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="generator" content="PeeWeeTrails Creator ${CREATOR_VERSION}">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer-when-downgrade"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnIGlkPSJOZWRlcmxhbmRzX3ZlcmtlZXJzYm9yZF9HMTEiIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMzAwIDMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiPg0KDQo8Y2lyY2xlIGlkPSJibGF1d2VfY2lya2VsIiBjeD0iMTUwIiBjeT0iMTUwIiByPSIxNTAiIGZpbGw9IiMwZTUxOGQiLz4NCg0KPGcgaWQ9ImZpZXRzIj4NCjxwYXRoIGZpbGw9IiNmN2ZiZjUiIGQ9Ik0gNDAuMTMwMjQsMTY4LjI1MjYxIEMgNDAuMTMwMjQsMTQ0LjQwNDIgNTkuNDcxMjMsMTI1LjA2MTAyIDgzLjMxNjk3LDEyNS4wNjEwMiBDIDEwNy4xNjI3MywxMjUuMDYxMDIgMTI2LjQ3MDAyLDE0NC40MDQyIDEyNi40NzAwMiwxNjguMjUyNjEgQyAxMjYuNDcwMDIsMTkyLjEwMTAzIDEwNy4xNjI3MywyMTEuNDEwNSA4My4zMTY5NywyMTEuNDEwNSBDIDU5LjQ3MTIzLDIxMS40MTA1IDQwLjEzMDI0LDE5Mi4xMDEwMyA0MC4xMzAyNCwxNjguMjUyNjEgeiBNIDgzLjI0OTYxLDIwMC43ODMxOCBDIDEwMS4yNDMzOSwyMDAuNzgzMTggMTE1Ljg0Mzg2LDE4Ni4xODEwNiAxMTUuODQzODYsMTY4LjE4NTIzIEMgMTE1Ljg0Mzg2LDE1MC4xODk0OCAxMDEuMjQzMzksMTM1LjU4NzM4IDgzLjI0OTYxLDEzNS41ODczOCBDIDY1LjI1NTg1LDEzNS41ODczOCA1MC42NTUzNywxNTAuMTg5NDggNTAuNjU1MzcsMTY4LjE4NTIzIEMgNTAuNjU1MzcsMTg2LjE4MTA2IDY1LjI1NTg1LDIwMC43ODMxOCA4My4yNDk2MSwyMDAuNzgzMTggeiIvPg0KPHBhdGggZmlsbD0iI2Y3ZmJmNSIgZD0iTSAxMzkuNTI5NjEsODMuNDE4OTM2IEwgMTM5LjUyOTYxLDcyLjg1ODk3NSBMIDEyMC43NzgwMyw3Mi44NTg5NzUgQyAxMTIuMzU3OTMsNzIuODU4OTc1IDEwOS45MjQ1Miw4My40MTg5MzYgMTA5LjkyNDUyLDgzLjQxODkzNiBDIDEwNC4wNzI1NCwxMDAuMTI2MjYgODAuMDU4NCwxNjguMDI1MyA4MC4wNTg0LDE2OC4wMjUzIEMgNzcuNjI1LDE3NC4xMzg5NyA4Ny4zNTg2MywxNzcuNTkxNTQgODkuNjY1NzMsMTcxLjczODk3IEMgOTEuOTMwNzYsMTY1Ljg4NjMgMTE5LjM2MzQ1LDg4LjU0NzM0NCAxMTkuMzYzNDUsODguNTQ3MzQ0IEMgMTIxLjI0MTE1LDgyLjY5NDc2NCAxMjYuNjYzNyw4My40MTg5MzYgMTI2LjY2MzcsODMuNDE4OTM2IEwgMTM5LjUyOTYxLDgzLjQxODkzNiIvPg0KPHBhdGggZmlsbD0iI2Y3ZmJmNSIgZD0iTSAyMjIuMzc1MDQsMTYyLjkyMjE0IEMgMjE4LjEzOTczLDE1My43NzY4MyAyMDIuNDEwOTksMTIwLjEyNjMyIDE5Mi40NDk5OSw5OC43NDUyMTkgTCAxMTAuNjQ4NjUsOTguNzQ1MjE5IEwgMTA0LjA3MjU0LDExNi4xNDMxMSBMIDE1NC43ODY4NSwxNzMuNDQ4NCBMIDIxNi4zOTY3OCwxNzMuNDQ4NCBDIDIyOC4zOTU0MywxNzMuNDQ4NCAyMjIuMzc1MDQsMTYyLjkyMjE0IDIyMi4zNzUwNCwxNjIuOTIyMTQiLz4NCjxwYXRoIGZpbGw9IiMwZTUxOGQiIGQ9Ik0gMjEwLjkzMjEzLDE2Mi44NTQ3NSBDIDIwMy44OTI5MywxNDguMDU4OTMgMTkzLjQzNTE1LDEyNS40OTA0OSAxODUuOTY2NTEsMTA5LjU2NjI3IEwgMTExLjkyODUxLDEwOS40Mzk5NSBMIDE1OS4zNTg5OCwxNjIuODU0NzUgTCAyMTAuOTMyMTMsMTYyLjg1NDc1Ii8+DQo8cGF0aCBmaWxsPSIjZjdmYmY1IiBkPSJNIDIxMC4yNDE2OCw4My40MTg5MzYgTCAyMTAuMjQxNjgsOTEuODM5OTg2IEwgMTczLjc5OTQ1LDkxLjcwNTIxNyBDIDE2Ny41MTgwNiw5MS43MDUyMTcgMTY3LjM4MzM0LDgzLjQxODkzNiAxNzMuNzk5NDUsODMuNDE4OTM2IEMgMTc3LjA5MTcyLDgzLjQxODkzNiAyMTAuMjQxNjgsODMuNDE4OTM2IDIxMC4yNDE2OCw4My40MTg5MzYiLz4NCjxwYXRoIGZpbGw9IiNmN2ZiZjUiIGQ9Ik0gMTc1LjAxMTk1LDE2OC4yNTI2MSBDIDE3NS4wMTE5NSwxNDQuNDA0MiAxOTQuMzUyOTQsMTI1LjA2MTAyIDIxOC4xOTg2OSwxMjUuMDYxMDIgQyAyNDIuMDE5MTcsMTI1LjA2MTAyIDI2MS4zNTE3NSwxNDQuNDA0MiAyNjEuMzUxNzUsMTY4LjI1MjYxIEMgMjYxLjM1MTc1LDE5Mi4xMDEwMyAyNDIuMDE5MTcsMjExLjQxMDUgMjE4LjE5ODY5LDIxMS40MTA1IEMgMTk0LjM1Mjk0LDIxMS40MTA1IDE3NS4wMTE5NSwxOTIuMTAxMDMgMTc1LjAxMTk1LDE2OC4yNTI2MSB6IE0gMjE4LjEzOTczLDIwMC43ODMxOCBDIDIzNi4xMjUwOSwyMDAuNzgzMTggMjUwLjczMzk5LDE4Ni4xODEwNiAyNTAuNzMzOTksMTY4LjE4NTIzIEMgMjUwLjczMzk5LDE1MC4xODk0OCAyMzYuMTI1MDksMTM1LjU4NzM4IDIxOC4xMzk3MywxMzUuNTg3MzggQyAyMDAuMTQ1OTcsMTM1LjU4NzM4IDE4NS41MzcwOCwxNTAuMTg5NDggMTg1LjUzNzA4LDE2OC4xODUyMyBDIDE4NS41MzcwOCwxODYuMTgxMDYgMjAwLjE0NTk3LDIwMC43ODMxOCAyMTguMTM5NzMsMjAwLjc4MzE4Ii8+DQo8cGF0aCBmaWxsPSIjZjdmYmY1IiBkPSJNIDE2Mi4xODgxMiwxNzEuMTQ5NDggTCAyMDAuMjEzMzMsOTAuMjkwNDc2IEwgMTkwLjY3MzM2LDg1LjgxODk0MyBMIDE1Mi41MjE4NCwxNjcuMTMyNjYgTCAxNjIuMTg4MTIsMTcxLjE0OTQ4Ii8+DQo8L2c+DQoNCjxjaXJjbGUgaWQ9IndpdHRlX2JpZXMiIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjE0MS45NDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y3ZmJmNSIgc3Ryb2tlLXdpZHRoPSI2LjczNiIvPg0KDQo8L3N2Zz4="><link rel="apple-touch-icon" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnIGlkPSJOZWRlcmxhbmRzX3ZlcmtlZXJzYm9yZF9HMTEiIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMzAwIDMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiPg0KDQo8Y2lyY2xlIGlkPSJibGF1d2VfY2lya2VsIiBjeD0iMTUwIiBjeT0iMTUwIiByPSIxNTAiIGZpbGw9IiMwZTUxOGQiLz4NCg0KPGcgaWQ9ImZpZXRzIj4NCjxwYXRoIGZpbGw9IiNmN2ZiZjUiIGQ9Ik0gNDAuMTMwMjQsMTY4LjI1MjYxIEMgNDAuMTMwMjQsMTQ0LjQwNDIgNTkuNDcxMjMsMTI1LjA2MTAyIDgzLjMxNjk3LDEyNS4wNjEwMiBDIDEwNy4xNjI3MywxMjUuMDYxMDIgMTI2LjQ3MDAyLDE0NC40MDQyIDEyNi40NzAwMiwxNjguMjUyNjEgQyAxMjYuNDcwMDIsMTkyLjEwMTAzIDEwNy4xNjI3MywyMTEuNDEwNSA4My4zMTY5NywyMTEuNDEwNSBDIDU5LjQ3MTIzLDIxMS40MTA1IDQwLjEzMDI0LDE5Mi4xMDEwMyA0MC4xMzAyNCwxNjguMjUyNjEgeiBNIDgzLjI0OTYxLDIwMC43ODMxOCBDIDEwMS4yNDMzOSwyMDAuNzgzMTggMTE1Ljg0Mzg2LDE4Ni4xODEwNiAxMTUuODQzODYsMTY4LjE4NTIzIEMgMTE1Ljg0Mzg2LDE1MC4xODk0OCAxMDEuMjQzMzksMTM1LjU4NzM4IDgzLjI0OTYxLDEzNS41ODczOCBDIDY1LjI1NTg1LDEzNS41ODczOCA1MC42NTUzNywxNTAuMTg5NDggNTAuNjU1MzcsMTY4LjE4NTIzIEMgNTAuNjU1MzcsMTg2LjE4MTA2IDY1LjI1NTg1LDIwMC43ODMxOCA4My4yNDk2MSwyMDAuNzgzMTggeiIvPg0KPHBhdGggZmlsbD0iI2Y3ZmJmNSIgZD0iTSAxMzkuNTI5NjEsODMuNDE4OTM2IEwgMTM5LjUyOTYxLDcyLjg1ODk3NSBMIDEyMC43NzgwMyw3Mi44NTg5NzUgQyAxMTIuMzU3OTMsNzIuODU4OTc1IDEwOS45MjQ1Miw4My40MTg5MzYgMTA5LjkyNDUyLDgzLjQxODkzNiBDIDEwNC4wNzI1NCwxMDAuMTI2MjYgODAuMDU4NCwxNjguMDI1MyA4MC4wNTg0LDE2OC4wMjUzIEMgNzcuNjI1LDE3NC4xMzg5NyA4Ny4zNTg2MywxNzcuNTkxNTQgODkuNjY1NzMsMTcxLjczODk3IEMgOTEuOTMwNzYsMTY1Ljg4NjMgMTE5LjM2MzQ1LDg4LjU0NzM0NCAxMTkuMzYzNDUsODguNTQ3MzQ0IEMgMTIxLjI0MTE1LDgyLjY5NDc2NCAxMjYuNjYzNyw4My40MTg5MzYgMTI2LjY2MzcsODMuNDE4OTM2IEwgMTM5LjUyOTYxLDgzLjQxODkzNiIvPg0KPHBhdGggZmlsbD0iI2Y3ZmJmNSIgZD0iTSAyMjIuMzc1MDQsMTYyLjkyMjE0IEMgMjE4LjEzOTczLDE1My43NzY4MyAyMDIuNDEwOTksMTIwLjEyNjMyIDE5Mi40NDk5OSw5OC43NDUyMTkgTCAxMTAuNjQ4NjUsOTguNzQ1MjE5IEwgMTA0LjA3MjU0LDExNi4xNDMxMSBMIDE1NC43ODY4NSwxNzMuNDQ4NCBMIDIxNi4zOTY3OCwxNzMuNDQ4NCBDIDIyOC4zOTU0MywxNzMuNDQ4NCAyMjIuMzc1MDQsMTYyLjkyMjE0IDIyMi4zNzUwNCwxNjIuOTIyMTQiLz4NCjxwYXRoIGZpbGw9IiMwZTUxOGQiIGQ9Ik0gMjEwLjkzMjEzLDE2Mi44NTQ3NSBDIDIwMy44OTI5MywxNDguMDU4OTMgMTkzLjQzNTE1LDEyNS40OTA0OSAxODUuOTY2NTEsMTA5LjU2NjI3IEwgMTExLjkyODUxLDEwOS40Mzk5NSBMIDE1OS4zNTg5OCwxNjIuODU0NzUgTCAyMTAuOTMyMTMsMTYyLjg1NDc1Ii8+DQo8cGF0aCBmaWxsPSIjZjdmYmY1IiBkPSJNIDIxMC4yNDE2OCw4My40MTg5MzYgTCAyMTAuMjQxNjgsOTEuODM5OTg2IEwgMTczLjc5OTQ1LDkxLjcwNTIxNyBDIDE2Ny41MTgwNiw5MS43MDUyMTcgMTY3LjM4MzM0LDgzLjQxODkzNiAxNzMuNzk5NDUsODMuNDE4OTM2IEMgMTc3LjA5MTcyLDgzLjQxODkzNiAyMTAuMjQxNjgsODMuNDE4OTM2IDIxMC4yNDE2OCw4My40MTg5MzYiLz4NCjxwYXRoIGZpbGw9IiNmN2ZiZjUiIGQ9Ik0gMTc1LjAxMTk1LDE2OC4yNTI2MSBDIDE3NS4wMTE5NSwxNDQuNDA0MiAxOTQuMzUyOTQsMTI1LjA2MTAyIDIxOC4xOTg2OSwxMjUuMDYxMDIgQyAyNDIuMDE5MTcsMTI1LjA2MTAyIDI2MS4zNTE3NSwxNDQuNDA0MiAyNjEuMzUxNzUsMTY4LjI1MjYxIEMgMjYxLjM1MTc1LDE5Mi4xMDEwMyAyNDIuMDE5MTcsMjExLjQxMDUgMjE4LjE5ODY5LDIxMS40MTA1IEMgMTk0LjM1Mjk0LDIxMS40MTA1IDE3NS4wMTE5NSwxOTIuMTAxMDMgMTc1LjAxMTk1LDE2OC4yNTI2MSB6IE0gMjE4LjEzOTczLDIwMC43ODMxOCBDIDIzNi4xMjUwOSwyMDAuNzgzMTggMjUwLjczMzk5LDE4Ni4xODEwNiAyNTAuNzMzOTksMTY4LjE4NTIzIEMgMjUwLjczMzk5LDE1MC4xODk0OCAyMzYuMTI1MDksMTM1LjU4NzM4IDIxOC4xMzk3MywxMzUuNTg3MzggQyAyMDAuMTQ1OTcsMTM1LjU4NzM4IDE4NS41MzcwOCwxNTAuMTg5NDggMTg1LjUzNzA4LDE2OC4xODUyMyBDIDE4NS41MzcwOCwxODYuMTgxMDYgMjAwLjE0NTk3LDIwMC43ODMxOCAyMTguMTM5NzMsMjAwLjc4MzE4Ii8+DQo8cGF0aCBmaWxsPSIjZjdmYmY1IiBkPSJNIDE2Mi4xODgxMiwxNzEuMTQ5NDggTCAyMDAuMjEzMzMsOTAuMjkwNDc2IEwgMTkwLjY3MzM2LDg1LjgxODk0MyBMIDE1Mi41MjE4NCwxNjcuMTMyNjYgTCAxNjIuMTg4MTIsMTcxLjE0OTQ4Ii8+DQo8L2c+DQoNCjxjaXJjbGUgaWQ9IndpdHRlX2JpZXMiIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjE0MS45NDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y3ZmJmNSIgc3Ryb2tlLXdpZHRoPSI2LjczNiIvPg0KDQo8L3N2Zz4=">${ogTags}<title>${safeTitle}</title>${headSnippet?('\n'+headSnippet):''}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
