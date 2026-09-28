@@ -737,7 +737,7 @@ const GRADE_CONFIG={"baseline":90,"minSeg":60};
 const START_LOCMODE="off";
 const WELCOME_CONFIG={"enabled":false,"text":"Tip: add this map to your phone's home screen for quick, app-like access. Open your browser menu and choose \"Add to Home screen\" (Android) or Share → \"Add to Home Screen\" (iPhone). On a computer you can bookmark this page instead. This map needs an internet connection."};
 const SEARCH_CATS=[{"icon":"🅿️","label":"Parking","terms":["parking","car park"]},{"icon":"🍽","label":"Restaurant","terms":["restaurant"]},{"icon":"🛒","label":"Supermarket","terms":["supermarket"]},{"icon":"🥐","label":"Bakery","terms":["bakery"]},{"icon":"🪑","label":"Bench","terms":["bench","picnic site","picnic table"]},{"icon":"🍱","label":"Picnic site","terms":["picnic site","picnic table"]},{"icon":"🚿","label":"Drinking water","terms":["drinking water"]},{"icon":"🚽","label":"Toilets","terms":["toilets"]},{"icon":"🏕","label":"Shelter","terms":["shelter"]},{"icon":"👀","label":"Viewpoint","terms":["viewpoint"]},{"icon":"⛺","label":"Camp- Caravan site","terms":["camp site","caravan site"]},{"icon":"🚲","label":"Bicycle shop","terms":["bicycle shop"]},{"icon":"☕","label":"Café","terms":["cafe"]},{"icon":"🍺","label":"Pub","terms":["pub"]}];
-const PREVIEW_VIEW={"lat":52.16529837296868,"lng":5.384845733642578,"zoom":12};
+const PREVIEW_VIEW={"lat":52.156874007636354,"lng":5.391926765441895,"zoom":14};
 const INFO_URL="https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic_Info.html";
 // Remember which extra layers are ticked, across a browser reload / tab discard.
 const LAYERSTATE_KEY='PeeWeeTrails_layerstate__'+location.pathname;
@@ -3147,6 +3147,7 @@ map.on('zoomend',function(){
     return userRoutes.filter(function(r){ return r.visible!==false && r.parsed; }).map(function(r){
       return {
         filename:r.name||'route',
+        baseName:r.name||'route',
         color:r.color,
         showLabel:!!r.showLabel,
         labelMode:r.labelMode||'nametag',
@@ -3165,7 +3166,9 @@ map.on('zoomend',function(){
         wptIconSvg:null,
         wptIconSize:28,
         colorMode:r.colorMode||'fixed',
-        tracks:(r.parsed.tracks||[]),
+        lineStyle:r.lineStyle||'solid',
+        kmMarkerInterval:(r.kmMarkerInterval||1),
+        tracks:(r.parsed.tracks||[]).map(function(t){ var o={}; for(var k in t) o[k]=t[k]; if(r.customName && r.name) o.name=r.name; return o; }),
         waypoints:(r.parsed.waypoints||[]),
         polygons:(r.parsed.polygons||[])
       };
