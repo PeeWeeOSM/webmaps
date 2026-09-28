@@ -105,7 +105,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v144</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v147</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
@@ -146,7 +146,7 @@ input:checked+.slider:before{transform:translateX(14px)}
       <textarea id="search-cats-input" rows="8" style="width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:5px">&#127359;&#65039; | Parking | parking, car park
 &#127869; | Restaurant | restaurant
 &#128722; | Supermarket | supermarket
-&#129360; | Bakery | bakerys
+&#129360; | Bakery | bakery
 &#129681; | Bench | bench,picnic site, picnic table
 &#127857; | Picnic site | picnic site, picnic table
 &#128703; | Drinking water | drinking water
@@ -6249,11 +6249,12 @@ map.on('zoomend',function(){
     return userRoutes.filter(function(r){ return r.visible!==false && r.parsed; }).map(function(r){
       return {
         filename:r.name||'route',
+        baseName:r.name||'route',
         color:r.color,
         showLabel:!!r.showLabel,
         labelMode:r.labelMode||'nametag',
         showStart:!!r.showStart,
-        labelPos:'centroid',
+        labelPos:(r.labelPos||'centroid'),
         labelZoomMin:(r.labelZoomMin!=null?r.labelZoomMin:0),
         labelZoomMax:(r.labelZoomMax!=null?r.labelZoomMax:22),
         labelFontSize:24,
@@ -6267,7 +6268,9 @@ map.on('zoomend',function(){
         wptIconSvg:null,
         wptIconSize:28,
         colorMode:r.colorMode||'fixed',
-        tracks:(r.parsed.tracks||[]),
+        lineStyle:r.lineStyle||'solid',
+        kmMarkerInterval:(r.kmMarkerInterval||1),
+        tracks:(r.parsed.tracks||[]).map(function(t){ var o={}; for(var k in t) o[k]=t[k]; if(r.customName && r.name) o.name=r.name; return o; }),
         waypoints:(r.parsed.waypoints||[]),
         polygons:(r.parsed.polygons||[])
       };
