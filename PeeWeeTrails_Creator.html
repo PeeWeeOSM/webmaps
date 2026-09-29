@@ -105,7 +105,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v153</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v155</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
@@ -721,7 +721,7 @@ function liveTypeBlock(i,ti,T){
     +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
     +'<input type="color" class="lt-color" data-i="'+i+'" data-t="'+ti+'" value="'+(T.color||'#d7263d')+'" title="Colour">'
     +'<label style="font-size:12px;color:#000">'+sizeLbl+' <input type="number" class="lt-size" data-i="'+i+'" data-t="'+ti+'" min="1" max="30" value="'+(T.size!=null?T.size:3)+'" style="width:50px"></label>'
-    +(T.geomType==='line'?('<label style="font-size:12px;color:#000">Style <select class="lt-style" data-i="'+i+'" data-t="'+ti+'">'+['solid','dashed','dashed-off','dotted','dotted-off'].map(function(o){var L={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (offset)',dotted:'Dotted','dotted-off':'Dotted (offset)'}; return '<option value="'+o+'"'+((T.lineStyle||'solid')===o?' selected':'')+'>'+L[o]+'</option>';}).join('')+'</select></label>'):'')
+    +((T.geomType==='line'||T.geomType==='polygon')?('<label style="font-size:12px;color:#000">Style <select class="lt-style" data-i="'+i+'" data-t="'+ti+'">'+['solid','dashed','dashed-off','dotted','dotted-off'].map(function(o){var L={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (offset)',dotted:'Dotted','dotted-off':'Dotted (offset)'}; return '<option value="'+o+'"'+((T.lineStyle||'solid')===o?' selected':'')+'>'+L[o]+'</option>';}).join('')+'</select></label>'):'')
     +(isPol?('<label style="font-size:12px;color:#000">Fill % <input type="number" class="lt-fill" data-i="'+i+'" data-t="'+ti+'" min="0" max="100" value="'+Math.round((T.fillOpacity!=null?T.fillOpacity:0.2)*100)+'" style="width:50px"></label>'):'')
     +'</div>';
   if(isPt){
@@ -1122,7 +1122,7 @@ let files=[];
 const DEFAULT_FILE_DEFAULTS={
   trk:{showLabel:true,labelMode:'nametag',labelPos:'start',showStart:true,showKmMarkers:true,showTrackDist:true,useElementName:true,labelZoomMin:14,labelZoomMax:22,labelFontSize:24,lineWidth:5,mapZoomMin:1,mapZoomMax:22,colorMode:'fixed',lineStyle:'solid',kmMarkerInterval:1},
   wpt:{showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:8,mapZoomMin:9,mapZoomMax:22},
-  pol:{showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2}
+  pol:{showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2,lineStyle:'solid'}
 };
 let fileDefaults=JSON.parse(JSON.stringify(DEFAULT_FILE_DEFAULTS));
 let simplifyTol=2;  // metres; Douglas-Peucker tolerance for line simplification (0 = off)
@@ -2099,7 +2099,7 @@ function renderList(){
       <span class="toggle-label" style="color:#000">${f._splitType==='wpt'?'dot size':f._splitType==='pol'?'border':'line width'}</span>
       <input type="number" value="${f.lineWidth!=null?f.lineWidth:5}" min="1" max="15" data-idx="${i}" class="zoominput linewidthinput" title="${f._splitType==='wpt'?'Dot size in pixels (when no SVG icon)':f._splitType==='pol'?'Border width in pixels':'Line width in pixels'}" style="width:56px">
       <span class="toggle-label" style="color:#000">px</span>
-      ${(f._splitType!=='wpt'&&f._splitType!=='pol')?`<select data-idx="${i}" class="filestyle" title="Line style" style="font-size:12px;margin-left:4px">${['solid','dashed','dashed-off','dotted','dotted-off'].map(o=>{const SL={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (offset)',dotted:'Dotted','dotted-off':'Dotted (offset)'};return `<option value="${o}"${(f.lineStyle||'solid')===o?' selected':''}>${SL[o]}</option>`;}).join('')}</select>`:''}
+      ${(f._splitType!=='wpt')?`<select data-idx="${i}" class="filestyle" title="Line style" style="font-size:12px;margin-left:4px">${['solid','dashed','dashed-off','dotted','dotted-off'].map(o=>{const SL={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (offset)',dotted:'Dotted','dotted-off':'Dotted (offset)'};return `<option value="${o}"${(f.lineStyle||'solid')===o?' selected':''}>${SL[o]}</option>`;}).join('')}</select>`:''}
       ${f._splitType==='pol'?`
       <span class="toggle-label" style="color:#000;margin-left:4px">fill</span>
       <input type="number" value="${Math.round((f.fillOpacity!=null?f.fillOpacity:0.2)*100)}" min="0" max="100" step="5" data-idx="${i}" class="zoominput fillopacityinput" title="Fill opacity of the polygon area in percent. 0 = fully transparent (outline only), 100 = fully solid." style="width:56px">
@@ -2884,7 +2884,7 @@ function updatePreview(){
     // Render polygons as filled areas.
     // Plain Polygon: single L.polygon, label at centroid (if name set).
     (f.polygons||[]).forEach(p=>{
-      const poly=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2)}).addTo(map);
+      var _ppg=pwtDash(f.lineStyle, f.lineWidth||2); const poly=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2),dashArray:_ppg.dashArray,dashOffset:_ppg.dashOffset,lineCap:_ppg.lineCap}).addTo(map);
       {var pn=p.name||(osmUrlFrom(p.osmId)?'':f.displayName); var pp=elPopup(pn,p.desc,p.osmId); if(pp)poly.bindPopup(pp);}
       poly._gpxTrack=true;
       poly._trackZoomMin=fZMin;
@@ -3036,7 +3036,7 @@ function exportMap(){
   const trailMode='full';   // trail-length option removed: always record the whole ride
   const trailMeters=50;
   const exportExtra=extraLayers.filter(l=>l.url.trim()).map((l,i)=>({type:l.type,url:l.url,wmsLayer:l.wmsLayer,displayName:(l.displayName&&l.displayName.trim())?l.displayName.trim():('Layer '+(i+1)),opacity:l.opacity,zoomMin:l.zoomMin!=null?l.zoomMin:0,zoomMax:l.zoomMax!=null?l.zoomMax:MAX_ZOOM,defaultOn:l.defaultOn===true,attribution:l.attribution||''}));
-  const _liveClean=(t)=>({geomType:t.geomType,color:t.color||'#d7263d',size:t.size!=null?t.size:3,fillOpacity:t.fillOpacity!=null?t.fillOpacity:0.2,iconSvg:(t.geomType==='point'&&t.iconSvg)?t.iconSvg:null,iconSize:t.iconSize||28,labelMode:t.labelMode||'none',labelText:t.labelText||'',labelPos:t.labelPos||(t.geomType==='line'?'along':'centroid'),labelZoomMin:t.labelZoomMin!=null?t.labelZoomMin:14,labelZoomMax:t.labelZoomMax!=null?t.labelZoomMax:22,labelFontSize:t.labelFontSize||18,mapZoomMin:t.mapZoomMin!=null?t.mapZoomMin:1,mapZoomMax:t.mapZoomMax!=null?t.mapZoomMax:22,showStart:(t.geomType==='line'&&!!t.showStart),showKmMarkers:(t.geomType==='line'&&!!t.showKmMarkers),kmMarkerInterval:t.kmMarkerInterval||1,showTrackDist:(t.geomType==='line'&&!!t.showTrackDist),lineStyle:(t.geomType==='line'?(t.lineStyle||'solid'):'solid'),defaultOn:t.defaultOn!==false});
+  const _liveClean=(t)=>({geomType:t.geomType,color:t.color||'#d7263d',size:t.size!=null?t.size:3,fillOpacity:t.fillOpacity!=null?t.fillOpacity:0.2,iconSvg:(t.geomType==='point'&&t.iconSvg)?t.iconSvg:null,iconSize:t.iconSize||28,labelMode:t.labelMode||'none',labelText:t.labelText||'',labelPos:t.labelPos||(t.geomType==='line'?'along':'centroid'),labelZoomMin:t.labelZoomMin!=null?t.labelZoomMin:14,labelZoomMax:t.labelZoomMax!=null?t.labelZoomMax:22,labelFontSize:t.labelFontSize||18,mapZoomMin:t.mapZoomMin!=null?t.mapZoomMin:1,mapZoomMax:t.mapZoomMax!=null?t.mapZoomMax:22,showStart:(t.geomType==='line'&&!!t.showStart),showKmMarkers:(t.geomType==='line'&&!!t.showKmMarkers),kmMarkerInterval:t.kmMarkerInterval||1,showTrackDist:(t.geomType==='line'&&!!t.showTrackDist),lineStyle:((t.geomType==='line'||t.geomType==='polygon')?(t.lineStyle||'solid'):'solid'),defaultOn:t.defaultOn!==false});
   const exportLive=liveLayers.filter(l=>l.url&&l.url.trim()&&l.types&&l.types.length).map(l=>({url:l.url.trim(),name:(l.name&&l.name.trim())?l.name.trim():'Live layer',types:l.types.map(_liveClean)}));
   const liveDefaults={line:_liveClean(newLiveType('line')),point:_liveClean(newLiveType('point')),polygon:_liveClean(newLiveType('polygon'))};
   const exportMapActions=mapActions.filter(a=>a.name.trim()&&a.urlTemplate.trim()).map(a=>({group:(a.group&&a.group.trim())||'Actions',iconSvg:a.iconSvg||null,iconColor:a.iconColor||'#555555',iconImgSrc:a.iconImgSrc||null,name:a.name.trim(),urlTemplate:a.urlTemplate.trim()}));
@@ -3108,7 +3108,7 @@ function exportMap(){
     }
   }catch(e){}
 
-  const CREATOR_VERSION='v153';
+  const CREATOR_VERSION='v155';
   const html=`<!DOCTYPE html>
 <!--
   PeeWeeTrails — a browser-based Leaflet mapping tool.
@@ -3830,6 +3830,24 @@ if(location.protocol==='file:'){
 } else {
   tiles=L.tileLayer(OSM_URL, Object.assign({referrerPolicy:'strict-origin-when-cross-origin'}, OSM_OPTS)).addTo(map);
 }
+// Auto-reload tiles that failed while offline. Leaflet keeps a failed tile blank until a new
+// request is made (e.g. after a zoom); here we re-request failed tiles once the connection is back,
+// so riding back into coverage fills the gaps by itself — no manual zoom in/out needed.
+(function(){
+  var failed=[];
+  function mark(e){ if(e.tile && failed.indexOf(e.tile)<0) failed.push(e.tile); }
+  function unmark(e){ var i=failed.indexOf(e.tile); if(i>=0) failed.splice(i,1); }
+  function retry(){
+    if(!failed.length) return;
+    if(navigator.onLine===false) return;              // still offline: wait for the next trigger
+    var pend=failed.splice(0);
+    pend.forEach(function(t){ try{ if(t && t.parentNode && t.src && t.src.indexOf('blob:')!==0){ var u=t.src; t.src=''; t.src=u; } }catch(_){}});
+  }
+  tiles.on('tileerror', mark);
+  tiles.on('tileload', unmark);
+  window.addEventListener('online', function(){ setTimeout(retry, 600); });
+  setInterval(retry, 15000);                          // also recover when 'online' doesn't fire but coverage returns
+})();
 // Maker credit + license, always shown bottom-right (edit or remove this one line to change it).
 const AUTHOR_CREDIT='Kaart &copy; <a href="https://github.com/PeeWeeOSM" target="_blank" rel="noopener">PeeWeeOSM</a> &middot; <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0</a>';
 if(AUTHOR_CREDIT) map.attributionControl.addAttribution(AUTHOR_CREDIT);
@@ -4423,7 +4441,8 @@ D.forEach(f=>{
   // --- Render polygon areas (filled, with darker outline) ---
   // For plain Polygon: pass rings normally.
   (f.polygons||[]).forEach(p=>{
-    const pg=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2)}).addTo(map);
+    var _pgds=pwtDash(f.lineStyle, f.lineWidth||2);
+    const pg=L.polygon(p.rings,{color:f.color,weight:f.lineWidth||2,opacity:0.9,fillColor:f.color,fillOpacity:(f.fillOpacity!=null?f.fillOpacity:0.2),dashArray:_pgds.dashArray,dashOffset:_pgds.dashOffset,lineCap:_pgds.lineCap}).addTo(map);
     {var pn=p.name||(osmUrlFrom(p.osmId)?'':f.filename); var pp=elPopup(pn,p.desc,p.osmId); if(pp)pg.bindPopup(pp);}
     pg._isPolygon=true;
     pg._baseFillOpacity=(f.fillOpacity!=null?f.fillOpacity:0.2);
@@ -6034,7 +6053,8 @@ map.on('zoomend',function(){
       if(l instanceof L.CircleMarker&&!(l instanceof L.Circle)){
         l.setStyle({color:r.color,fillColor:r.color,weight:1,opacity:r.opacity,fillOpacity:r.opacity,radius:r.lineWidth||8});
       } else if(l instanceof L.Polygon){
-        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*(r.fillOpacity!=null?r.fillOpacity:0.2)});
+        var _pgs=(r.colorMode==='grade')?{dashArray:null,dashOffset:'0',lineCap:'round'}:pwtDash(r.lineStyle, r.lineWidth);
+        l.setStyle({color:r.color,fillColor:r.color,weight:r.lineWidth,opacity:r.opacity,fillOpacity:r.opacity*(r.fillOpacity!=null?r.fillOpacity:0.2),dashArray:_pgs.dashArray,dashOffset:_pgs.dashOffset,lineCap:_pgs.lineCap});
       } else {
         var _rds=(r.colorMode==='grade')?{dashArray:null,dashOffset:'0',lineCap:'round'}:pwtDash(r.lineStyle, r.lineWidth);
         l.setStyle({color:r.color,weight:r.lineWidth,opacity:r.opacity,dashArray:_rds.dashArray,dashOffset:_rds.dashOffset,lineCap:_rds.lineCap});
@@ -6434,6 +6454,7 @@ map.on('zoomend',function(){
       const elZoomMin=r.mapZoomMin!=null?r.mapZoomMin:1;
       const lblZoomMin=r.labelZoomMin!=null?r.labelZoomMin:1;
       const hasPol=(r.parsed.polygons||[]).length>0;
+      const hasLine=(r.parsed.tracks||[]).length>0;
       const fillVal=Math.round((r.fillOpacity!=null?r.fillOpacity:0.2)*100);
       const _ed=routeEleData(r);
       const _est=_ed?elevStats(_ed.coords,_ed.ele):null;
@@ -6446,8 +6467,8 @@ map.on('zoomend',function(){
           '<span class="ro-group" style="margin-left:6px"><span class="ro-label">Width</span>'+
           '<input type="number" min="1" max="20" value="'+r.lineWidth+'" class="ur-lw">'+
           '<span class="ro-label">px</span></span>'+
-          '<span class="ro-group" style="margin-left:6px"><span class="ro-label">Style</span>'+
-          '<select class="ur-style">'+['solid','dashed','dashed-off','dotted','dotted-off'].map(function(o){var SL={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (off)',dotted:'Dotted','dotted-off':'Dotted (off)'};return '<option value="'+o+'"'+((r.lineStyle||'solid')===o?' selected':'')+'>'+SL[o]+'</option>';}).join('')+'</select></span>'+
+          ((hasLine||hasPol)?('<span class="ro-group" style="margin-left:6px"><span class="ro-label">Style</span>'+
+          '<select class="ur-style">'+['solid','dashed','dashed-off','dotted','dotted-off'].map(function(o){var SL={solid:'Solid',dashed:'Dashed','dashed-off':'Dashed (off)',dotted:'Dotted','dotted-off':'Dotted (off)'};return '<option value="'+o+'"'+((r.lineStyle||'solid')===o?' selected':'')+'>'+SL[o]+'</option>';}).join('')+'</select></span>'):'')+
           (hasPol?(
           '<span class="ro-group" style="margin-left:6px"><span class="ro-label" title="Fill opacity of the polygon area. 0% = fully transparent (outline only), 100% = fully solid.">Fill</span>'+
           '<input type="number" min="0" max="100" step="5" value="'+fillVal+'" class="ur-fill" style="width:48px">'+
@@ -7955,7 +7976,7 @@ function finishGeometryDraw(){
       ...trkDefaults
     });
   } else if(mode==='pol'){
-    const polDefaults={showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2};
+    const polDefaults={showLabel:true,labelMode:'nametag',labelPos:'centroid',showStart:false,showKmMarkers:false,useElementName:true,labelZoomMin:15,labelZoomMax:22,labelFontSize:24,lineWidth:2,mapZoomMin:1,mapZoomMax:22,fillOpacity:0.2,lineStyle:'solid'};
     const displayName='New polygon '+n;
     // close the ring (first point repeated at the end), matching parseGeoJSON ring convention
     const ring=pts.concat([pts[0]]);
