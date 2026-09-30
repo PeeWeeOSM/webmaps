@@ -105,7 +105,7 @@ input:checked+.slider:before{transform:translateX(14px)}
 </style>
 </head>
 <body>
-<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v158</span></h1>
+<h1>PeeWeeTrails <span style="font-size:.5em;color:#888;font-weight:400;vertical-align:middle">Creator&nbsp;v161</span></h1>
 
 <div class="intro">
   <p><b>What this is.</b> The PeeWeeTrails Creator lets you create your own styled map that can be used as a simple satnav app navigating by foot, bicycle or car. You can add 
@@ -116,6 +116,8 @@ input:checked+.slider:before{transform:translateX(14px)}
     <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Basic target = "_blank">Clean map for navigating</a></li>
     <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Bird target = "_blank">Birding locations Netherlands</a></li>
     <li><a href=https://peeweeosm.github.io/webmaps/PeeWeeTrails_Toerfietsers.html target = "_blank">Cycle trips Germany</a></li>
+    <li><a href="https://peeweeosm.github.io/webmaps/Den_Treek_Riding.html" target = "_blank">Den Treek horsetrail network</a></li>
+    <li><a href="https://peeweeosm.github.io/webmaps/Den_Treek_Mountainbike.html" target = "_blank">Den Treek mountainbike trails</a></li>
     </ol>
   <p><b>How to use it.</b> Work your way down the page from top to bottom. Change a setting &mdash; or just leave it as it is &mdash; and watch the live Preview update as you go. Trying things out is completely safe: nothing is stored or deleted while you experiment, so go by trial and error.</p>
   <p><b>Your tracks &amp; shapes.</b> Add files under &ldquo;Files&rdquo; and, if you like, give them a style (colour, line width, labels, gradient colouring, km-markers). That styling is baked into the map &mdash; but if you&rsquo;d rather keep it plain, simply leave the defaults; you don&rsquo;t have to change anything.</p>
@@ -139,6 +141,13 @@ input:checked+.slider:before{transform:translateX(14px)}
     <div>
       <label for="pwa-short">PWA short name <span style="font-weight:normal;color:#000;font-size:12px">&mdash; shown under the icon when the map is added to a home screen</span></label>
       <input type="text" id="pwa-short" placeholder="PWTrails" value="PWTrails" maxlength="24">
+    </div>
+    <div>
+      <label>App icon <span style="font-weight:normal;color:#000;font-size:12px">&mdash; give each map a distinct home-screen icon by choosing its two colours</span></label>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <label style="font-weight:normal;font-size:13px">Background <input type="color" id="opt-app-icon-color" value="#0e518d" style="vertical-align:middle;width:46px;height:28px;padding:0;border:1px solid #ccc;border-radius:4px"></label>
+        <label style="font-weight:normal;font-size:13px">Bike <input type="color" id="opt-app-icon-bike" value="#f7fbf5" style="vertical-align:middle;width:46px;height:28px;padding:0;border:1px solid #ccc;border-radius:4px"></label>
+      </div>
     </div>
     <div>
       <label for="search-cats-input">Search categories (the "Looking for?" list in the exported map)</label>
@@ -874,6 +883,7 @@ function saveLayersToStorage(){
       simplifyTol:simplifyTol,
       title:document.getElementById('title').value,
       pwaShort:(document.getElementById('pwa-short')||{}).value,
+      appIconColor:(document.getElementById('opt-app-icon-color')||{}).value, appIconBike:(document.getElementById('opt-app-icon-bike')||{}).value,
       osmOpacity:document.getElementById('osmopacity').value,
       distUnit:(document.getElementById('opt-dist-unit')||{}).value,
       outputInfoUrl:document.getElementById('output-info-url').value,
@@ -961,6 +971,8 @@ function loadLayersFromStorage(stateOverride){
     if(state&&state.liveLayers) applyLiveLayers(state.liveLayers);
     if(state&&state.title) document.getElementById('title').value=state.title;
     if(state&&state.pwaShort!=null&&document.getElementById('pwa-short')) document.getElementById('pwa-short').value=state.pwaShort;
+    if(state&&state.appIconColor&&document.getElementById('opt-app-icon-color')) document.getElementById('opt-app-icon-color').value=state.appIconColor;
+    if(state&&state.appIconBike&&document.getElementById('opt-app-icon-bike')) document.getElementById('opt-app-icon-bike').value=state.appIconBike;
     if(state&&state.outputInfoUrl) document.getElementById('output-info-url').value=state.outputInfoUrl;
     if(state&&state.ogImage!=null&&document.getElementById('og-image')) document.getElementById('og-image').value=state.ogImage;
     if(state&&state.ogDesc!=null&&document.getElementById('og-desc')) document.getElementById('og-desc').value=state.ogDesc;
@@ -989,6 +1001,7 @@ if(document.readyState==='loading'){
 // Save title changes
 document.getElementById('title').addEventListener('input',saveLayersToStorage);
 var _pwaShortEl=document.getElementById('pwa-short'); if(_pwaShortEl) _pwaShortEl.addEventListener('input',saveLayersToStorage);
+['opt-app-icon-color','opt-app-icon-bike'].forEach(function(id){ var el=document.getElementById(id); if(el) el.addEventListener('input',saveLayersToStorage); });
 ['og-image','og-desc','og-url'].forEach(function(id){ var e=document.getElementById(id); if(e) e.addEventListener('input',saveLayersToStorage); });
 document.getElementById('output-info-url').addEventListener('input',saveLayersToStorage);
 
@@ -1034,7 +1047,7 @@ function buildProject(){
     simplifyTol: simplifyTol,
     liveLayers: JSON.parse(JSON.stringify(liveLayers)),
     settings: {
-      title:_pv('title'), pwaShort:_pv('pwa-short'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
+      title:_pv('title'), pwaShort:_pv('pwa-short'), appIconColor:_pv('opt-app-icon-color'), appIconBike:_pv('opt-app-icon-bike'), osmOpacity:_pv('osmopacity'), outputInfoUrl:_pv('output-info-url'),
       zoomLevel:_pv('opt-zoom-level'), centerDelay:_pv('opt-center-delay'), hideUi:_pv('opt-hide-ui'),
       rotateGesture:_pv('opt-rotate-gesture'), startLocMode:_pv('opt-start-locmode'), distUnit:_pv('opt-dist-unit'),
       welcomeEnabled:_pc('opt-welcome-enabled'), welcomeText:_pv('opt-welcome-text'),
@@ -1077,7 +1090,7 @@ function loadProject(obj){
     function sv(id,v){ var e=document.getElementById(id); if(e&&v!=null) e.value=v; }
     function sc(id,v){ var e=document.getElementById(id); if(e&&v!=null) e.checked=!!v; }
     sv('opt-zoom-level',S.zoomLevel); sv('opt-center-delay',S.centerDelay); sv('opt-hide-ui',S.hideUi);
-    sv('opt-rotate-gesture',S.rotateGesture); sv('opt-start-locmode',S.startLocMode); sv('opt-dist-unit',S.distUnit||'km');
+    sv('opt-rotate-gesture',S.rotateGesture); sv('opt-start-locmode',S.startLocMode); sv('opt-dist-unit',S.distUnit||'km'); sv('opt-app-icon-color',S.appIconColor||'#0e518d'); sv('opt-app-icon-bike',S.appIconBike||'#f7fbf5');
     sc('opt-welcome-enabled',S.welcomeEnabled); sv('opt-welcome-text',S.welcomeText);
     sv('og-image',S.ogImage); sv('og-desc',S.ogDesc); sv('og-url',S.ogUrl); sv('head-snippet',S.headSnippet);
     if(S.previewView && S.previewView.lat!=null){ _pendingPreviewView=S.previewView; }
@@ -3110,6 +3123,8 @@ function exportMap(){
   const safePwaShort=JSON.stringify(pwaShort);
   const startLocMode=((document.getElementById('opt-start-locmode')||{}).value)||'off';
   const distUnit=((document.getElementById('opt-dist-unit')||{}).value)||'km';
+  const appIconColor=((document.getElementById('opt-app-icon-color')||{}).value)||'#0e518d';
+  const appIconBike=((document.getElementById('opt-app-icon-bike')||{}).value)||'#f7fbf5';
   const welcomeConfig={enabled:!!((document.getElementById('opt-welcome-enabled')||{}).checked), text:(((document.getElementById('opt-welcome-text')||{}).value)||'')};
 
   // Carry over whatever view (center + zoom) the live preview is currently
@@ -3124,7 +3139,7 @@ function exportMap(){
     }
   }catch(e){}
 
-  const CREATOR_VERSION='v158';
+  const CREATOR_VERSION='v161';
   const html=`<!DOCTYPE html>
 <!--
   PeeWeeTrails — a browser-based Leaflet mapping tool.
@@ -3888,6 +3903,8 @@ const MAP_CATEGORIES=${JSON.stringify(exportCategories)};
 const NOTES_CONFIG=${JSON.stringify(notesConfig)};
 const GRADE_CONFIG=${JSON.stringify(gradeConfig)};
 const DIST_UNIT=${JSON.stringify(distUnit)};
+const APP_ICON_COLOR=${JSON.stringify(appIconColor)};
+const APP_ICON_BIKE=${JSON.stringify(appIconBike)};
 const START_LOCMODE=${JSON.stringify(startLocMode)};
 const WELCOME_CONFIG=${JSON.stringify(welcomeConfig)};
 const SEARCH_CATS=${JSON.stringify(exportSearchCats)};
@@ -5143,10 +5160,23 @@ trailBtn.onclick=function(e){
 // URL wherever the map is hosted. Lets "Add to home screen" launch the map
 // full-screen / app-like on Android. Reuses the page's own SVG icon. Harmless
 // where unsupported.
+function pwtBuildAppIcon(baseHref){
+  try{
+    var svg=atob((baseHref.split(',')[1]||''));
+    var _bg=(typeof APP_ICON_COLOR!=='undefined' && APP_ICON_COLOR)?APP_ICON_COLOR:'#0e518d';
+    var _bike=(typeof APP_ICON_BIKE!=='undefined' && APP_ICON_BIKE)?APP_ICON_BIKE:'#f7fbf5';
+    // tokenise first, then substitute, so picking one colour equal to the other's default can't double-replace
+    svg=svg.split('#0e518d').join('%%BG%%').split('#f7fbf5').join('%%BIKE%%');
+    svg=svg.split('%%BG%%').join(_bg).split('%%BIKE%%').join(_bike);
+    return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+  }catch(e){ return baseHref; }
+}
 (function(){
   try{
-    const iconEl=document.querySelector('link[rel="icon"]');
-    const iconHref=iconEl?iconEl.href:'';
+    var iconEl=document.querySelector('link[rel="icon"]');
+    var baseHref=iconEl?iconEl.href:'';
+    const iconHref=pwtBuildAppIcon(baseHref);
+    document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(function(l){ l.href=iconHref; });
     const manifest={
       name:document.title||'PeeWeeTrails map',
       short_name:${safePwaShort},
