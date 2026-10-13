@@ -14,6 +14,7 @@
 { "type": "Feature", "properties": { "osm_id": 11884503126, "@id": "node/11884503126", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 4.8990948, 53.091975899091203 ] } },
 { "type": "Feature", "properties": { "osm_id": 13254472090, "@id": "node/13254472090", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 5.294289, 52.275752799097866 ] } },
 { "type": "Feature", "properties": { "osm_id": 13254488319, "@id": "node/13254488319", "name": "Vogelboulevard Eemland" }, "geometry": { "type": "Point", "coordinates": [ 5.3246025, 52.190447599103052 ] } },
-{ "type": "Feature", "properties": { "osm_id": 13254513687, "@id": "node/13254513687", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 5.292341, 52.269968599098185 ] } }
+{ "type": "Feature", "properties": { "osm_id": 13254513687, "@id": "node/13254513687", "name": "birdwatching" }, "geometry": { "type": "Point", "coordinates": [ 5.292341, 52.269968599098185 ] } },
+{ "type": "Feature", "properties": { "osm_id": 14277356391, "@id": "node/14277356391", "name": "Sommelsdijk" }, "geometry": { "type": "Point", "coordinates": [ 4.183143, 51.775535699139212 ] } }
 ]
 }
